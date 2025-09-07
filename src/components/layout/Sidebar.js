@@ -9,14 +9,14 @@ const Sidebar = () => {
   const location = useLocation();
 
   const navigation = [
-    { name: 'Dashboard', href: '/dashboard', icon: '🏠' },
-    { name: 'Communities', href: '/community', icon: '🏘️' },
-    { name: 'Disputes', href: '/disputes', icon: '⚖️' },
-    { name: 'Events', href: '/events', icon: '📅' },
-    { name: 'Announcements', href: '/announcements', icon: '📢' },
-    { name: 'Reports', href: '/reports', icon: '📊' },
-    { name: 'Profile', href: '/profile', icon: '👤' },
-    { name: 'Settings', href: '/settings', icon: '⚙️' }
+    { name: 'Dashboard', href: '/app/dashboard', icon: '🏠' },
+    { name: 'Communities', href: '/app/community', icon: '🏘️' },
+    { name: 'Disputes', href: '/app/disputes', icon: '⚖️' },
+    { name: 'Events', href: '/app/events', icon: '📅' },
+    { name: 'Announcements', href: '/app/announcements', icon: '📢' },
+    { name: 'Reports', href: '/app/reports', icon: '📊' },
+    { name: 'Profile', href: '/app/profile', icon: '👤' },
+    { name: 'Settings', href: '/app/settings', icon: '⚙️' }
   ];
 
   const isActive = (path) => {

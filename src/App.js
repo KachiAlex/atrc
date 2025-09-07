@@ -7,6 +7,7 @@ import Sidebar from './components/layout/Sidebar';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 
 // Pages
+import HomePage from './pages/HomePage';
 import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
 import Dashboard from './pages/Dashboard';
@@ -27,11 +28,12 @@ function App() {
         <Router>
           <Routes>
             {/* Public Routes */}
+            <Route path="/" element={<HomePage />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             
             {/* Protected Routes */}
-            <Route path="/" element={
+            <Route path="/app" element={
               <ProtectedRoute>
                 <div className="flex h-screen">
                   <Sidebar />
@@ -39,15 +41,15 @@ function App() {
                     <Navbar />
                     <main className="flex-1 overflow-x-hidden overflow-y-auto">
                       <Routes>
-                        <Route path="/" element={<Navigate to="/dashboard" replace />} />
-                        <Route path="/dashboard" element={<Dashboard />} />
-                        <Route path="/community" element={<CommunityManagement />} />
-                        <Route path="/disputes" element={<DisputeResolution />} />
-                        <Route path="/events" element={<EventManagement />} />
-                        <Route path="/announcements" element={<Announcements />} />
-                        <Route path="/reports" element={<Reports />} />
-                        <Route path="/profile" element={<Profile />} />
-                        <Route path="/settings" element={<Settings />} />
+                        <Route path="/app" element={<Navigate to="/app/dashboard" replace />} />
+                        <Route path="/app/dashboard" element={<Dashboard />} />
+                        <Route path="/app/community" element={<CommunityManagement />} />
+                        <Route path="/app/disputes" element={<DisputeResolution />} />
+                        <Route path="/app/events" element={<EventManagement />} />
+                        <Route path="/app/announcements" element={<Announcements />} />
+                        <Route path="/app/reports" element={<Reports />} />
+                        <Route path="/app/profile" element={<Profile />} />
+                        <Route path="/app/settings" element={<Settings />} />
                       </Routes>
                     </main>
                   </div>

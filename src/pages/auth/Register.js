@@ -63,7 +63,7 @@ const Register = () => {
       // This would typically be handled by a cloud function
       // For now, we'll just show success
       toast.success('Registration successful!');
-      navigate('/dashboard');
+      navigate('/app/dashboard');
     } catch (error) {
       console.error('Registration error:', error);
       toast.error('Failed to register. Please try again.');

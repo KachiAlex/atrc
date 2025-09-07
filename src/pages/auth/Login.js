@@ -24,7 +24,7 @@ const Login = () => {
       setLoading(true);
       await login(email, password);
       toast.success('Login successful!');
-      navigate('/dashboard');
+      navigate('/app/dashboard');
     } catch (error) {
       console.error('Login error:', error);
       toast.error('Failed to login. Please check your credentials.');
