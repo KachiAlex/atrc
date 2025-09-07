@@ -40,19 +40,19 @@ A comprehensive digital platform for African Traditional Rulers Council, built w
 ### Installation
 
 1. **Clone the repository**
-   ```bash
+```bash
    git clone <repository-url>
-   cd traditional-rulers-app-firebase
+cd traditional-rulers-app-firebase
    ```
 
 2. **Install dependencies**
    ```bash
-   npm install
-   ```
+npm install
+```
 
 3. **Set up environment variables**
-   ```bash
-   cp env.example .env
+```bash
+cp env.example .env
    ```
    Edit `.env` with your Firebase configuration:
    ```env
@@ -73,19 +73,19 @@ A comprehensive digital platform for African Traditional Rulers Council, built w
    ```
 
 5. **Start development server**
-   ```bash
-   npm start
+```bash
+npm start
    ```
 
 6. **Build for production**
    ```bash
    npm run build
-   ```
+```
 
 7. **Deploy to Firebase Hosting**
-   ```bash
-   firebase deploy
-   ```
+```bash
+firebase deploy
+```
 
 ## 🏗️ Project Structure
 
