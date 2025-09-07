@@ -7,13 +7,12 @@ import { getAnalytics } from 'firebase/analytics';
 
 // Firebase configuration
 const firebaseConfig = {
-  apiKey: "AIzaSyDTPXlKP6Se210YI3439Y8tZhOt7tv3PBI",
-  authDomain: "atrc-3326f.firebaseapp.com",
-  projectId: "atrc-3326f",
-  storageBucket: "atrc-3326f.firebasestorage.app",
-  messagingSenderId: "752973806771",
-  appId: "1:752973806771:web:de2d848546e5cafdb144c6",
-  measurementId: "G-TQ53JFVHCL"
+  apiKey: "AIzaSyBWzqn4dlfHbKCL2gIDHxOy2jxrFoBh_jY",
+  authDomain: "traditional-rulers-app.firebaseapp.com",
+  projectId: "traditional-rulers-app",
+  storageBucket: "traditional-rulers-app.firebasestorage.app",
+  messagingSenderId: "479592525040",
+  appId: "1:479592525040:web:e13c68142e85ac0d23a635"
 };
 
 // Initialize Firebase

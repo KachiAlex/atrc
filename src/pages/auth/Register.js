@@ -66,7 +66,31 @@ const Register = () => {
       navigate('/app/dashboard');
     } catch (error) {
       console.error('Registration error:', error);
-      toast.error('Failed to register. Please try again.');
+      
+      // Handle specific Firebase auth errors
+      let errorMessage = 'Failed to register. Please try again.';
+      
+      switch (error.code) {
+        case 'auth/email-already-in-use':
+          errorMessage = 'This email address is already registered. Please try signing in instead.';
+          break;
+        case 'auth/invalid-email':
+          errorMessage = 'Please enter a valid email address.';
+          break;
+        case 'auth/weak-password':
+          errorMessage = 'Password should be at least 6 characters long.';
+          break;
+        case 'auth/operation-not-allowed':
+          errorMessage = 'Registration is currently disabled. Please contact support.';
+          break;
+        case 'auth/network-request-failed':
+          errorMessage = 'Network error. Please check your internet connection.';
+          break;
+        default:
+          errorMessage = error.message || 'Failed to register. Please try again.';
+      }
+      
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -274,6 +298,18 @@ const Register = () => {
               className={`font-medium ${isDarkMode ? 'text-primary-400 hover:text-primary-300' : 'text-primary-600 hover:text-primary-500'}`}
             >
               Sign in here
+            </Link>
+          </div>
+          
+          <div className="text-center">
+            <span className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+              Forgot your password?{' '}
+            </span>
+            <Link
+              to="/login"
+              className={`font-medium ${isDarkMode ? 'text-primary-400 hover:text-primary-300' : 'text-primary-600 hover:text-primary-500'}`}
+            >
+              Reset password
             </Link>
           </div>
         </form>

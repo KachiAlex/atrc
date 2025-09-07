@@ -1,0 +1,11 @@
+{"users": [
+{
+  "localId": "mjkXXYZBzaWxzZPiiECs4maDc1Z2",
+  "email": "onyedika.akoma@gmail.com",
+  "emailVerified": false,
+  "passwordHash": "4bJwQdZDPAseCVT/RrDkXIhfsTY+oIvJijIU5jKviFK7i3LeAd6rsUjHAFXVyAljjqx4k568EQl+kWfLIj5HHQ==",
+  "salt": "cj3ms4SXhH+A8A==",
+  "createdAt": "1757227689369",
+  "disabled": false,
+  "providerUserInfo": []
+}]}

@@ -1,48 +1,51 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useTheme } from '../contexts/ThemeContext';
+import { useLanguage } from '../contexts/LanguageContext';
+import LanguageSelector from '../components/LanguageSelector';
 
 const HomePage = () => {
   const { isDarkMode, toggleTheme } = useTheme();
+  const { t } = useLanguage();
 
   const features = [
     {
       icon: '🏘️',
-      title: 'Community Management',
-      description: 'Manage traditional communities and kingdoms with digital tools'
+      title: t('features.community.title'),
+      description: t('features.community.desc')
     },
     {
       icon: '⚖️',
-      title: 'Dispute Resolution',
-      description: 'Traditional dispute resolution system with mediation tools'
+      title: t('features.disputes.title'),
+      description: t('features.disputes.desc')
     },
     {
       icon: '📅',
-      title: 'Event Management',
-      description: 'Organize cultural events and traditional ceremonies'
+      title: t('features.events.title'),
+      description: t('features.events.desc')
     },
     {
       icon: '📢',
-      title: 'Announcements',
-      description: 'Communicate important updates to community members'
+      title: t('features.announcements.title'),
+      description: t('features.announcements.desc')
     },
     {
       icon: '📊',
-      title: 'Analytics & Reports',
-      description: 'Comprehensive reporting and community insights'
+      title: t('features.analytics.title'),
+      description: t('features.analytics.desc')
     },
     {
       icon: '👥',
-      title: 'Member Management',
-      description: 'Manage community members and traditional roles'
+      title: t('features.members.title'),
+      description: t('features.members.desc')
     }
   ];
 
   const stats = [
-    { number: '500+', label: 'Traditional Communities' },
-    { number: '50+', label: 'Active Rulers' },
-    { number: '1000+', label: 'Community Members' },
-    { number: '24/7', label: 'Support Available' }
+    { number: '500+', label: t('stats.communities') },
+    { number: '50+', label: t('stats.rulers') },
+    { number: '1000+', label: t('stats.members') },
+    { number: '24/7', label: t('stats.support') }
   ];
 
   return (
@@ -67,6 +70,7 @@ const HomePage = () => {
               </div>
             </div>
             <div className="flex items-center space-x-4">
+              <LanguageSelector />
               <button
                 onClick={toggleTheme}
                 className={`p-2 rounded-md hover:bg-gray-100 ${isDarkMode ? 'hover:bg-gray-700' : ''}`}
@@ -81,13 +85,13 @@ const HomePage = () => {
                     : 'text-gray-700 hover:text-gray-900 hover:bg-gray-100'
                 }`}
               >
-                Sign In
+                {t('nav.signIn')}
               </Link>
               <Link
                 to="/register"
                 className="bg-primary-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-primary-700 transition-colors"
               >
-                Join ATRC
+                {t('nav.joinATRC')}
               </Link>
             </div>
           </div>
@@ -97,28 +101,29 @@ const HomePage = () => {
       {/* Hero Section */}
       <div className="relative overflow-hidden">
         <div className="max-w-7xl mx-auto">
-          <div className="relative z-10 pb-8 sm:pb-16 md:pb-20 lg:max-w-2xl lg:w-full lg:pb-28 xl:pb-32">
+          <div className="relative z-10 pb-8 sm:pb-16 md:pb-20 lg:pb-28 xl:pb-32">
             <main className="mt-10 mx-auto max-w-7xl px-4 sm:mt-12 sm:px-6 md:mt-16 lg:mt-20 lg:px-8 xl:mt-28">
-              <div className="sm:text-center lg:text-left">
+              <div className="text-center">
                 <h1 className={`text-4xl tracking-tight font-extrabold sm:text-5xl md:text-6xl ${
                   isDarkMode ? 'text-white' : 'text-gray-900'
                 }`}>
-                  <span className="block">African Traditional</span>
-                  <span className="block text-primary-600">Rulers Council</span>
+                  <span className="block">{t('home.title')}</span>
+                  <span className="block text-primary-600">{t('home.subtitle')}</span>
                 </h1>
-                <p className={`mt-3 text-base sm:mt-5 sm:text-lg sm:max-w-xl sm:mx-auto md:mt-5 md:text-xl lg:mx-0 ${
+                
+                <p className={`mt-6 text-base sm:text-lg sm:max-w-2xl sm:mx-auto md:text-xl ${
                   isDarkMode ? 'text-gray-300' : 'text-gray-500'
                 }`}>
-                  Empowering traditional rulers with modern digital tools for community governance, 
-                  dispute resolution, and cultural preservation across Africa.
+                  {t('home.description')}
                 </p>
-                <div className="mt-5 sm:mt-8 sm:flex sm:justify-center lg:justify-start">
+                
+                <div className="mt-8 sm:flex sm:justify-center">
                   <div className="rounded-md shadow">
                     <Link
                       to="/register"
                       className="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 md:py-4 md:text-lg md:px-10 transition-colors"
                     >
-                      Join Our Community
+                      {t('home.joinCommunity')}
                     </Link>
                   </div>
                   <div className="mt-3 sm:mt-0 sm:ml-3">
@@ -130,27 +135,12 @@ const HomePage = () => {
                           : 'text-primary-700 bg-primary-100 hover:bg-primary-200'
                       } md:py-4 md:text-lg md:px-10 transition-colors`}
                     >
-                      Sign In
+                      {t('home.signIn')}
                     </Link>
                   </div>
                 </div>
               </div>
             </main>
-          </div>
-        </div>
-        <div className="lg:absolute lg:inset-y-0 lg:right-0 lg:w-1/2">
-          <div className={`h-56 w-full sm:h-72 md:h-96 lg:w-full lg:h-full flex items-center justify-center ${
-            isDarkMode ? 'bg-gray-800' : 'bg-primary-50'
-          }`}>
-            <div className="text-center">
-              <div className="text-8xl mb-4">👑</div>
-              <h3 className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-                Traditional Wisdom
-              </h3>
-              <p className={`text-lg ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                Modern Technology
-              </p>
-            </div>
           </div>
         </div>
       </div>
@@ -178,10 +168,10 @@ const HomePage = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <h2 className={`text-3xl font-extrabold ${isDarkMode ? 'text-white' : 'text-gray-900'} sm:text-4xl`}>
-              Digital Tools for Traditional Governance
+              {t('features.title')}
             </h2>
             <p className={`mt-4 text-lg ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-              Modern technology solutions designed specifically for African traditional rulers and communities
+              {t('features.subtitle')}
             </p>
           </div>
 
@@ -207,17 +197,17 @@ const HomePage = () => {
       <div className={`py-16 ${isDarkMode ? 'bg-primary-900' : 'bg-primary-600'}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-3xl font-extrabold text-white sm:text-4xl">
-            Ready to Join the Digital Revolution?
+            {t('cta.title')}
           </h2>
           <p className="mt-4 text-lg text-primary-100">
-            Connect with traditional rulers across Africa and modernize your community governance
+            {t('cta.subtitle')}
           </p>
           <div className="mt-8">
             <Link
               to="/register"
               className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-primary-600 bg-white hover:bg-primary-50 transition-colors"
             >
-              Get Started Today
+              {t('cta.getStarted')}
             </Link>
           </div>
         </div>
@@ -242,36 +232,35 @@ const HomePage = () => {
                 </div>
               </div>
               <p className={`mt-4 text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                Empowering traditional rulers with modern digital tools for community governance, 
-                dispute resolution, and cultural preservation.
+                {t('footer.description')}
               </p>
             </div>
             <div>
               <h4 className={`text-sm font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'} uppercase tracking-wider`}>
-                Features
+                {t('footer.features')}
               </h4>
               <ul className="mt-4 space-y-2">
-                <li><Link to="/login" className={`text-sm ${isDarkMode ? 'text-gray-400 hover:text-white' : 'text-gray-600 hover:text-gray-900'} transition-colors`}>Community Management</Link></li>
-                <li><Link to="/login" className={`text-sm ${isDarkMode ? 'text-gray-400 hover:text-white' : 'text-gray-600 hover:text-gray-900'} transition-colors`}>Dispute Resolution</Link></li>
-                <li><Link to="/login" className={`text-sm ${isDarkMode ? 'text-gray-400 hover:text-white' : 'text-gray-600 hover:text-gray-900'} transition-colors`}>Event Management</Link></li>
-                <li><Link to="/login" className={`text-sm ${isDarkMode ? 'text-gray-400 hover:text-white' : 'text-gray-600 hover:text-gray-900'} transition-colors`}>Analytics</Link></li>
+                <li><Link to="/login" className={`text-sm ${isDarkMode ? 'text-gray-400 hover:text-white' : 'text-gray-600 hover:text-gray-900'} transition-colors`}>{t('features.community.title')}</Link></li>
+                <li><Link to="/login" className={`text-sm ${isDarkMode ? 'text-gray-400 hover:text-white' : 'text-gray-600 hover:text-gray-900'} transition-colors`}>{t('features.disputes.title')}</Link></li>
+                <li><Link to="/login" className={`text-sm ${isDarkMode ? 'text-gray-400 hover:text-white' : 'text-gray-600 hover:text-gray-900'} transition-colors`}>{t('features.events.title')}</Link></li>
+                <li><Link to="/login" className={`text-sm ${isDarkMode ? 'text-gray-400 hover:text-white' : 'text-gray-600 hover:text-gray-900'} transition-colors`}>{t('features.analytics.title')}</Link></li>
               </ul>
             </div>
             <div>
               <h4 className={`text-sm font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'} uppercase tracking-wider`}>
-                Support
+                {t('footer.support')}
               </h4>
               <ul className="mt-4 space-y-2">
-                <li><Link to="/login" className={`text-sm ${isDarkMode ? 'text-gray-400 hover:text-white' : 'text-gray-600 hover:text-gray-900'} transition-colors`}>Help Center</Link></li>
-                <li><Link to="/login" className={`text-sm ${isDarkMode ? 'text-gray-400 hover:text-white' : 'text-gray-600 hover:text-gray-900'} transition-colors`}>Contact Us</Link></li>
-                <li><Link to="/login" className={`text-sm ${isDarkMode ? 'text-gray-400 hover:text-white' : 'text-gray-600 hover:text-gray-900'} transition-colors`}>Privacy Policy</Link></li>
-                <li><Link to="/login" className={`text-sm ${isDarkMode ? 'text-gray-400 hover:text-white' : 'text-gray-600 hover:text-gray-900'} transition-colors`}>Terms of Service</Link></li>
+                <li><Link to="/login" className={`text-sm ${isDarkMode ? 'text-gray-400 hover:text-white' : 'text-gray-600 hover:text-gray-900'} transition-colors`}>{t('footer.helpCenter')}</Link></li>
+                <li><Link to="/login" className={`text-sm ${isDarkMode ? 'text-gray-400 hover:text-white' : 'text-gray-600 hover:text-gray-900'} transition-colors`}>{t('footer.contactUs')}</Link></li>
+                <li><Link to="/login" className={`text-sm ${isDarkMode ? 'text-gray-400 hover:text-white' : 'text-gray-600 hover:text-gray-900'} transition-colors`}>{t('footer.privacyPolicy')}</Link></li>
+                <li><Link to="/login" className={`text-sm ${isDarkMode ? 'text-gray-400 hover:text-white' : 'text-gray-600 hover:text-gray-900'} transition-colors`}>{t('footer.termsOfService')}</Link></li>
               </ul>
             </div>
           </div>
           <div className={`mt-8 pt-8 border-t border-gray-200 text-center`}>
             <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-              © 2024 African Traditional Rulers Council. All rights reserved.
+              {t('footer.copyright')}
             </p>
           </div>
         </div>

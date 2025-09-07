@@ -1,0 +1,46 @@
+<svg width="120" height="120" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background circle -->
+  <circle cx="60" cy="60" r="55" fill="#3B82F6" stroke="#1E40AF" stroke-width="2"/>
+  
+  <!-- Cross in the center -->
+  <g transform="translate(60, 60)">
+    <!-- Vertical line of cross -->
+    <rect x="-3" y="-25" width="6" height="50" fill="white" rx="3"/>
+    <!-- Horizontal line of cross -->
+    <rect x="-20" y="-3" width="40" height="6" fill="white" rx="3"/>
+  </g>
+  
+  <!-- Crown elements around the cross -->
+  <g transform="translate(60, 60)">
+    <!-- Crown base -->
+    <path d="M-25 -15 L-15 -25 L-5 -20 L5 -25 L15 -20 L25 -15 L25 -5 L-25 -5 Z" fill="#FCD34D" stroke="#F59E0B" stroke-width="1"/>
+    
+    <!-- Crown jewels -->
+    <circle cx="-15" cy="-20" r="2" fill="#EF4444"/>
+    <circle cx="0" cy="-22" r="2.5" fill="#8B5CF6"/>
+    <circle cx="15" cy="-20" r="2" fill="#10B981"/>
+  </g>
+  
+  <!-- Wisdom rays emanating from the cross -->
+  <g transform="translate(60, 60)">
+    <!-- Top ray -->
+    <path d="M0 -35 L-3 -45 L3 -45 Z" fill="#FCD34D"/>
+    <!-- Bottom ray -->
+    <path d="M0 35 L-3 45 L3 45 Z" fill="#FCD34D"/>
+    <!-- Left ray -->
+    <path d="M-35 0 L-45 -3 L-45 3 Z" fill="#FCD34D"/>
+    <!-- Right ray -->
+    <path d="M35 0 L45 -3 L45 3 Z" fill="#FCD34D"/>
+  </g>
+  
+  <!-- Decorative elements -->
+  <g transform="translate(60, 60)">
+    <!-- Small stars around the design -->
+    <g fill="#FCD34D">
+      <path d="M-40 -10 L-38 -5 L-33 -5 L-37 -1 L-35 4 L-40 0 L-45 4 L-43 -1 L-47 -5 L-42 -5 Z"/>
+      <path d="M40 -10 L42 -5 L47 -5 L43 -1 L45 4 L40 0 L35 4 L37 -1 L33 -5 L38 -5 Z"/>
+      <path d="M-10 -40 L-8 -35 L-3 -35 L-7 -31 L-5 -26 L-10 -30 L-15 -26 L-13 -31 L-17 -35 L-12 -35 Z"/>
+      <path d="M10 -40 L12 -35 L17 -35 L13 -31 L15 -26 L10 -30 L5 -26 L7 -31 L3 -35 L8 -35 Z"/>
+    </g>
+  </g>
+</svg>

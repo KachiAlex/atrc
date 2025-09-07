@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import { ThemeProvider } from './contexts/ThemeContext';
+import { LanguageProvider } from './contexts/LanguageContext';
 import Navbar from './components/layout/Navbar';
 import Sidebar from './components/layout/Sidebar';
 import ProtectedRoute from './components/auth/ProtectedRoute';
@@ -10,7 +11,7 @@ import ProtectedRoute from './components/auth/ProtectedRoute';
 import HomePage from './pages/HomePage';
 import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
-import Dashboard from './pages/Dashboard';
+import RoleBasedDashboard from './components/RoleBasedDashboard';
 import CommunityManagement from './pages/CommunityManagement';
 import DisputeResolution from './pages/DisputeResolution';
 import EventManagement from './pages/EventManagement';
@@ -23,9 +24,10 @@ import './index.css';
 
 function App() {
   return (
-    <ThemeProvider>
-      <AuthProvider>
-        <Router>
+    <LanguageProvider>
+      <ThemeProvider>
+        <AuthProvider>
+          <Router>
           <Routes>
             {/* Public Routes */}
             <Route path="/" element={<HomePage />} />
@@ -41,15 +43,16 @@ function App() {
                     <Navbar />
                     <main className="flex-1 overflow-x-hidden overflow-y-auto">
                       <Routes>
-                        <Route path="/app" element={<Navigate to="/app/dashboard" replace />} />
-                        <Route path="/app/dashboard" element={<Dashboard />} />
-                        <Route path="/app/community" element={<CommunityManagement />} />
-                        <Route path="/app/disputes" element={<DisputeResolution />} />
-                        <Route path="/app/events" element={<EventManagement />} />
-                        <Route path="/app/announcements" element={<Announcements />} />
-                        <Route path="/app/reports" element={<Reports />} />
-                        <Route path="/app/profile" element={<Profile />} />
-                        <Route path="/app/settings" element={<Settings />} />
+                        <Route index element={<Navigate to="dashboard" replace />} />
+                        <Route path="dashboard" element={<RoleBasedDashboard />} />
+                        <Route path="community" element={<CommunityManagement />} />
+                        <Route path="disputes" element={<DisputeResolution />} />
+                        <Route path="events" element={<EventManagement />} />
+                        <Route path="announcements" element={<Announcements />} />
+                        <Route path="reports" element={<Reports />} />
+                        <Route path="profile" element={<Profile />} />
+                        <Route path="settings" element={<Settings />} />
+                        <Route path="*" element={<Navigate to="dashboard" replace />} />
                       </Routes>
                     </main>
                   </div>
@@ -60,9 +63,10 @@ function App() {
             {/* Catch all route */}
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
-        </Router>
-      </AuthProvider>
-    </ThemeProvider>
+          </Router>
+        </AuthProvider>
+      </ThemeProvider>
+    </LanguageProvider>
   );
 }
 
