@@ -1,0 +1,62 @@
+type User @table {
+  displayName: String!
+  email: String!
+  createdAt: Timestamp!
+  role: String!
+  photoUrl: String
+  communityName: String
+  bio: String
+}
+
+type Course @table {
+  title: String!
+  description: String!
+  createdAt: Timestamp!
+  duration: Int
+  difficultyLevel: String
+}
+
+type Lesson @table {
+  course: Course!
+  title: String!
+  content: String!
+  orderInCourse: Int!
+  createdAt: Timestamp!
+  videoUrl: String
+  attachmentUrl: String
+}
+
+type UserProgress @table(key: ["user", "lesson"]) {
+  user: User!
+  lesson: Lesson!
+  isCompleted: Boolean!
+  createdAt: Timestamp!
+  updatedAt: Timestamp!
+  completionDate: Timestamp
+}
+
+type ForumTopic @table {
+  creator: User!
+  title: String!
+  createdAt: Timestamp!
+  updatedAt: Timestamp!
+  description: String
+  isLocked: Boolean
+}
+
+type ForumPost @table {
+  author: User!
+  topic: ForumTopic!
+  content: String!
+  createdAt: Timestamp!
+  updatedAt: Timestamp
+}
+
+type Book @table {
+  title: String!
+  author: String!
+  content: String!
+  createdAt: Timestamp!
+  genre: String
+  coverImageUrl: String
+}

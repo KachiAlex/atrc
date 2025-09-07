@@ -1,0 +1,42 @@
+mutation CreateNewForumTopic($title: String!, $content: String!) @auth(level: USER) {
+  forumTopic: forumTopic_insert(data: {
+    title: $title,
+    description: $content,
+    creatorId_expr: "auth.uid",
+    updatedAt_expr: "request.time",
+    createdAt_expr: "request.time"
+  })
+}
+
+query ListAllCourses @auth(level: PUBLIC) {
+  courses {
+    id
+    title
+    description
+    difficultyLevel
+    duration
+  }
+}
+
+mutation MarkLessonAsCompleted($lessonId: UUID!) @auth(level: USER) {
+  userProgress_upsert(data: {
+    userId_expr: "auth.uid",
+    lessonId: $lessonId,
+    isCompleted: true,
+    completionDate_expr: "request.time",
+	updatedAt_expr: "request.time",
+    createdAt_expr: "request.time"
+  })
+}
+
+query GetMyForumPosts @auth(level: USER) {
+  forumPosts(where: { authorId: { eq_expr: "auth.uid" } }) {
+    id
+    content
+    createdAt
+    topic {
+      id
+      title
+    }
+  }
+}

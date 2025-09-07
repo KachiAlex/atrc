@@ -1,0 +1,136 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return request.auth.uid == userId;
+    }
+    
+    function isAdmin() {
+      return isAuthenticated() && 
+             firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+    
+    function isRuler() {
+      return isAuthenticated() && 
+             firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.role in ['ruler', 'chief', 'elder'];
+    }
+    
+    function isValidImageType() {
+      return resource.contentType.matches('image/.*');
+    }
+    
+    function isValidDocumentType() {
+      return resource.contentType in [
+        'application/pdf',
+        'application/msword',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'text/plain'
+      ];
+    }
+    
+    function isValidAudioType() {
+      return resource.contentType in [
+        'audio/mpeg',
+        'audio/wav',
+        'audio/ogg',
+        'audio/mp3'
+      ];
+    }
+    
+    function isValidVideoType() {
+      return resource.contentType in [
+        'video/mp4',
+        'video/avi',
+        'video/mov',
+        'video/wmv'
+      ];
+    }
+    
+    function isValidFileSize(maxSizeInMB) {
+      return resource.size <= maxSizeInMB * 1024 * 1024;
+    }
+    
+    // Profile images
+    match /profile-images/{fileName} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated() && 
+                      isValidImageType() && 
+                      isValidFileSize(5) && // 5MB limit
+                      (isOwner(resource.metadata.userId) || isAdmin());
+      allow delete: if isAuthenticated() && 
+                       (isOwner(resource.metadata.userId) || isAdmin());
+    }
+    
+    // Dispute evidence
+    match /disputes/{disputeId}/evidence/{fileName} {
+      allow read: if isAuthenticated() && 
+                     (isAdmin() || isRuler() || 
+                      firestore.get(/databases/(default)/documents/disputes/$(disputeId)).data.complainant == request.auth.uid ||
+                      firestore.get(/databases/(default)/documents/disputes/$(disputeId)).data.respondent == request.auth.uid);
+      allow write: if isAuthenticated() && 
+                      (isValidImageType() || isValidDocumentType() || isValidAudioType() || isValidVideoType()) &&
+                      isValidFileSize(10) && // 10MB limit
+                      (isAdmin() || isRuler() || 
+                       firestore.get(/databases/(default)/documents/disputes/$(disputeId)).data.complainant == request.auth.uid ||
+                       firestore.get(/databases/(default)/documents/disputes/$(disputeId)).data.respondent == request.auth.uid);
+      allow delete: if isAuthenticated() && 
+                       (isAdmin() || isRuler() || 
+                        firestore.get(/databases/(default)/documents/disputes/$(disputeId)).data.complainant == request.auth.uid ||
+                        firestore.get(/databases/(default)/documents/disputes/$(disputeId)).data.respondent == request.auth.uid);
+    }
+    
+    // Event media
+    match /events/{eventId}/media/{fileName} {
+      allow read: if isAuthenticated() && 
+                     (isAdmin() || isRuler() || 
+                      firestore.get(/databases/(default)/documents/events/$(eventId)).data.organizer == request.auth.uid ||
+                      firestore.get(/databases/(default)/documents/events/$(eventId)).data.visibility == 'public');
+      allow write: if isAuthenticated() && 
+                      (isValidImageType() || isValidVideoType()) &&
+                      isValidFileSize(50) && // 50MB limit
+                      (isAdmin() || isRuler() || 
+                       firestore.get(/databases/(default)/documents/events/$(eventId)).data.organizer == request.auth.uid);
+      allow delete: if isAuthenticated() && 
+                       (isAdmin() || isRuler() || 
+                        firestore.get(/databases/(default)/documents/events/$(eventId)).data.organizer == request.auth.uid);
+    }
+    
+    // Announcement attachments
+    match /announcements/{announcementId}/attachments/{fileName} {
+      allow read: if isAuthenticated() && 
+                     (isAdmin() || isRuler() || 
+                      firestore.get(/databases/(default)/documents/announcements/$(announcementId)).data.visibility == 'public');
+      allow write: if isAuthenticated() && 
+                      (isValidDocumentType() || isValidImageType()) &&
+                      isValidFileSize(10) && // 10MB limit
+                      (isAdmin() || isRuler() || 
+                       firestore.get(/databases/(default)/documents/announcements/$(announcementId)).data.author == request.auth.uid);
+      allow delete: if isAuthenticated() && 
+                       (isAdmin() || isRuler() || 
+                        firestore.get(/databases/(default)/documents/announcements/$(announcementId)).data.author == request.auth.uid);
+    }
+    
+    // Community documents
+    match /communities/{communityId}/documents/{fileName} {
+      allow read: if isAuthenticated() && 
+                     (isAdmin() || isRuler() || 
+                      firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.community == communityId);
+      allow write: if isAuthenticated() && 
+                      (isValidDocumentType() || isValidImageType()) &&
+                      isValidFileSize(20) && // 20MB limit
+                      (isAdmin() || isRuler());
+      allow delete: if isAuthenticated() && 
+                       (isAdmin() || isRuler());
+    }
+    
+    // Default deny all other files
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

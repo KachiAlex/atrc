@@ -1,0 +1,34 @@
+mutation SeedDatabase @auth(level: USER) {
+  user_upsertMany(data: [
+    {
+      id: "550e8400-e29b-41d4-a716-446655440000",
+      displayName: "Bob User",
+      email: "bob@example.com",
+      role: "member",
+      createdAt: "2024-01-01T00:00:00Z"
+    },
+    {
+      id: "550e8400-e29b-41d4-a716-446655440001",
+      displayName: "Alice Admin",
+      email: "alice@example.com",
+      role: "admin",
+      createdAt: "2024-01-01T00:00:00Z"
+    }
+  ])
+  course_upsertMany(data: [
+    {
+      id: "550e8400-e29b-41d4-a716-446655440002",
+      title: "Intro to Firebase",
+      description: "Learn the basics of Firebase",
+      duration: 60,
+      createdAt: "2024-01-01T00:00:00Z"
+    },
+    {
+      id: "550e8400-e29b-41d4-a716-446655440003",
+      title: "Advanced Firebase",
+      description: "Learn advanced Firebase concepts",
+      duration: 120,
+      createdAt: "2024-01-01T00:00:00Z"
+    }
+  ])
+}
