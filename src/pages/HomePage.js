@@ -88,7 +88,7 @@ const HomePage = () => {
                 {t('nav.signIn')}
               </Link>
               <Link
-                to="/register"
+                to="/auth"
                 className="bg-primary-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-primary-700 transition-colors"
               >
                 {t('nav.joinATRC')}
@@ -120,7 +120,7 @@ const HomePage = () => {
                 <div className="mt-8 sm:flex sm:justify-center">
                   <div className="rounded-md shadow">
                     <Link
-                      to="/register"
+                      to="/auth"
                       className="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 md:py-4 md:text-lg md:px-10 transition-colors"
                     >
                       {t('home.joinCommunity')}
@@ -204,7 +204,7 @@ const HomePage = () => {
           </p>
           <div className="mt-8">
             <Link
-              to="/register"
+              to="/auth"
               className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-primary-600 bg-white hover:bg-primary-50 transition-colors"
             >
               {t('cta.getStarted')}
