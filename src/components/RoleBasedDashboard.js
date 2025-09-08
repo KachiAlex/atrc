@@ -30,8 +30,16 @@ const RoleBasedDashboard = () => {
       console.log('RoleBasedDashboard - Rendering AdminDashboard');
       return <AdminDashboard />;
     case 'ruler':
-    default:
       console.log('RoleBasedDashboard - Rendering TraditionalRulersDashboard');
+      return <TraditionalRulersDashboard />;
+    case 'delegate':
+      console.log('RoleBasedDashboard - Rendering TraditionalRulersDashboard for delegate');
+      return <TraditionalRulersDashboard />;
+    case 'learner':
+      console.log('RoleBasedDashboard - Rendering TraditionalRulersDashboard for learner');
+      return <TraditionalRulersDashboard />;
+    default:
+      console.log('RoleBasedDashboard - Rendering TraditionalRulersDashboard (default)');
       return <TraditionalRulersDashboard />;
   }
 };
