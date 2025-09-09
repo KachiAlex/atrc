@@ -101,9 +101,9 @@ const Login = () => {
             </div>
 
             <div className="text-sm">
-              <a href="#" className={`font-medium ${isDarkMode ? 'text-primary-400 hover:text-primary-300' : 'text-primary-600 hover:text-primary-500'}`}>
+              <button type="button" className={`font-medium ${isDarkMode ? 'text-primary-400 hover:text-primary-300' : 'text-primary-600 hover:text-primary-500'}`}>
                 Forgot your password?
-              </a>
+              </button>
             </div>
           </div>
 

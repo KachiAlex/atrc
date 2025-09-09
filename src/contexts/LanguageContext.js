@@ -15,7 +15,7 @@ const translationData = {
   en: {
     // Navigation
     'nav.signIn': 'Sign In',
-    'nav.joinATRC': 'Join ATRC',
+    'nav.joinATRC': 'Join ATRFC',
     'nav.dashboard': 'Dashboard',
     'nav.communities': 'Communities',
     'nav.disputes': 'Disputes',
@@ -27,8 +27,8 @@ const translationData = {
     'nav.logout': 'Logout',
     
     // Homepage
-    'home.title': 'African Traditional',
-    'home.subtitle': 'Rulers Council',
+    'home.title': 'Africa Traditional',
+    'home.subtitle': 'Rulers for Christ',
     'home.description': 'Empowering traditional rulers with modern digital tools for community governance, dispute resolution, and cultural preservation across Africa.',
     'home.joinCommunity': 'Join Our Community',
     'home.signIn': 'Sign In',
@@ -185,8 +185,8 @@ const translationData = {
     'nav.logout': 'Déconnexion',
     
     // Homepage
-    'home.title': 'Conseil des Dirigeants',
-    'home.subtitle': 'Traditionnels Africains',
+    'home.title': 'Dirigeants Traditionnels',
+    'home.subtitle': 'd\'Afrique pour le Christ',
     'home.description': 'Autonomiser les dirigeants traditionnels avec des outils numériques modernes pour la gouvernance communautaire, la résolution de conflits et la préservation culturelle à travers l\'Afrique.',
     'home.joinCommunity': 'Rejoindre notre communauté',
     'home.signIn': 'Se connecter',
@@ -331,7 +331,7 @@ const translationData = {
   es: {
     // Navigation
     'nav.signIn': 'Iniciar sesión',
-    'nav.joinATRC': 'Unirse a ATRC',
+    'nav.joinATRC': 'Unirse a ATRFC',
     'nav.dashboard': 'Panel de control',
     'nav.communities': 'Comunidades',
     'nav.disputes': 'Disputas',
@@ -343,8 +343,8 @@ const translationData = {
     'nav.logout': 'Cerrar sesión',
     
     // Homepage
-    'home.title': 'Consejo de Líderes',
-    'home.subtitle': 'Tradicionales Africanos',
+    'home.title': 'Líderes Tradicionales',
+    'home.subtitle': 'de África para Cristo',
     'home.description': 'Empoderando a los líderes tradicionales con herramientas digitales modernas para la gobernanza comunitaria, resolución de disputas y preservación cultural en toda África.',
     'home.joinCommunity': 'Únete a nuestra comunidad',
     'home.signIn': 'Iniciar sesión',
@@ -489,7 +489,7 @@ const translationData = {
   sw: {
     // Navigation
     'nav.signIn': 'Ingia',
-    'nav.joinATRC': 'Jiunge na ATRC',
+    'nav.joinATRC': 'Jiunge na ATRFC',
     'nav.dashboard': 'Dashibodi',
     'nav.communities': 'Jamii',
     'nav.disputes': 'Migogoro',
@@ -501,8 +501,8 @@ const translationData = {
     'nav.logout': 'Ondoka',
     
     // Homepage
-    'home.title': 'Baraza la Viongozi',
-    'home.subtitle': 'Wa Jadi wa Kiafrika',
+    'home.title': 'Viongozi wa Jadi',
+    'home.subtitle': 'wa Afrika kwa Kristo',
     'home.description': 'Kuwawezesha viongozi wa jadi kwa vifaa vya kidijitali vya kisasa kwa utawala wa jamii, utatuzi wa migogoro, na uhifadhi wa utamaduni katika Afrika.',
     'home.joinCommunity': 'Jiunge na jamii yetu',
     'home.signIn': 'Ingia',

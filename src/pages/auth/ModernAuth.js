@@ -218,7 +218,7 @@ const ModernAuth = () => {
       <div className="w-full max-w-lg shadow-lg rounded-2xl bg-white">
         <div className="p-8">
           <h1 className="text-2xl font-bold text-center mb-6 text-gray-800">
-            ATRC Leadership Institute
+            ATRFC Leadership Institute
           </h1>
 
           {/* Tab Navigation */}
@@ -280,7 +280,7 @@ const ModernAuth = () => {
                 {loading ? 'Logging in...' : 'Login'}
               </button>
               <p className="text-sm text-center text-gray-600 mt-2">
-                Forgot your password? <a href="#" className="text-primary-600 hover:underline">Reset here</a>
+                Forgot your password? <button type="button" className="text-primary-600 hover:underline">Reset here</button>
               </p>
             </form>
           )}

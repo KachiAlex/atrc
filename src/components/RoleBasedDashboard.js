@@ -1,6 +1,5 @@
 import React from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import SimpleDashboard from './SimpleDashboard';
 import TraditionalRulersDashboard from '../pages/TraditionalRulersDashboard';
 import AdminDashboard from '../pages/AdminDashboard';
 

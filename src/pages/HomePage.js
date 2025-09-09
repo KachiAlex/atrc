@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import LanguageSelector from '../components/LanguageSelector';
+import ATRCLogo from '../components/ATRCLogo';
 
 const HomePage = () => {
   const { isDarkMode, toggleTheme } = useTheme();
@@ -56,16 +57,14 @@ const HomePage = () => {
           <div className="flex justify-between h-16">
             <div className="flex items-center">
               <div className="flex-shrink-0">
-                <div className="h-8 w-8 rounded-full bg-primary-100 flex items-center justify-center">
-                  <span className="text-lg">👑</span>
-                </div>
+                <ATRCLogo size="small" />
               </div>
               <div className="ml-3">
-                <h1 className={`text-xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-                  ATRC
+                <h1 className={`text-xl font-bold atrc-gradient-text`}>
+                  ATRFC
                 </h1>
                 <p className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                  Traditional Rulers
+                  Africa Traditional Rulers for Christ
                 </p>
               </div>
             </div>
@@ -108,7 +107,7 @@ const HomePage = () => {
                   isDarkMode ? 'text-white' : 'text-gray-900'
                 }`}>
                   <span className="block">{t('home.title')}</span>
-                  <span className="block text-primary-600">{t('home.subtitle')}</span>
+                  <span className="block atrc-gradient-text">{t('home.subtitle')}</span>
                 </h1>
                 
                 <p className={`mt-6 text-base sm:text-lg sm:max-w-2xl sm:mx-auto md:text-xl ${
@@ -194,18 +193,18 @@ const HomePage = () => {
       </div>
 
       {/* CTA Section */}
-      <div className={`py-16 ${isDarkMode ? 'bg-primary-900' : 'bg-primary-600'}`}>
+      <div className="py-16 atrc-gradient-bg">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-3xl font-extrabold text-white sm:text-4xl">
             {t('cta.title')}
           </h2>
-          <p className="mt-4 text-lg text-primary-100">
+          <p className="mt-4 text-lg text-white/90">
             {t('cta.subtitle')}
           </p>
           <div className="mt-8">
             <Link
               to="/auth"
-              className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-primary-600 bg-white hover:bg-primary-50 transition-colors"
+              className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-primary-600 bg-white hover:bg-primary-50 transition-colors shadow-lg"
             >
               {t('cta.getStarted')}
             </Link>
@@ -219,15 +218,13 @@ const HomePage = () => {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div className="col-span-1 md:col-span-2">
               <div className="flex items-center">
-                <div className="h-8 w-8 rounded-full bg-primary-100 flex items-center justify-center">
-                  <span className="text-lg">👑</span>
-                </div>
+                <ATRCLogo size="small" />
                 <div className="ml-3">
-                  <h3 className={`text-lg font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-                    ATRC
+                  <h3 className={`text-lg font-semibold atrc-gradient-text`}>
+                    ATRFC
                   </h3>
                   <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                    African Traditional Rulers Council
+                    Africa Traditional Rulers for Christ
                   </p>
                 </div>
               </div>

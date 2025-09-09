@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { useLanguage } from '../contexts/LanguageContext';
+// Removed unused language hook
 
 const AdminDashboard = () => {
   const { currentUser } = useAuth();
-  const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState('verification');
   const [pendingThrones] = useState([
     { id: 1, name: "Oba Adewale", throne: "Ife Kingdom", country: "Nigeria", status: "pending" },
@@ -86,7 +85,7 @@ const AdminDashboard = () => {
           <div className="h-8 w-8 rounded-full bg-primary-100 flex items-center justify-center mr-3">
             <span className="text-lg">👑</span>
           </div>
-          <h2 className="text-2xl font-bold text-gray-900">ATRC Admin</h2>
+          <h2 className="text-2xl font-bold text-gray-900">ATRFC Admin</h2>
         </div>
         
         <nav className="space-y-2">
@@ -129,7 +128,7 @@ const AdminDashboard = () => {
         <div className="mb-6">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Super Admin Dashboard</h1>
           <p className="text-gray-600">
-            Manage throne verifications, documents, and overall ATRC activity.
+            Manage throne verifications, documents, and overall ATRFC activity.
           </p>
         </div>
 

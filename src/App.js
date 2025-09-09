@@ -13,11 +13,12 @@ import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
 import ModernAuth from './pages/auth/ModernAuth';
 import RoleBasedDashboard from './components/RoleBasedDashboard';
-import CommunityManagement from './pages/CommunityManagement';
+import CommunityReport from './pages/CommunityReport';
 import DisputeResolution from './pages/DisputeResolution';
 import EventManagement from './pages/EventManagement';
 import Announcements from './pages/Announcements';
 import Reports from './pages/Reports';
+import ProjectReports from './pages/ProjectReports';
 import Profile from './pages/Profile';
 import Settings from './pages/Settings';
 
@@ -63,7 +64,7 @@ function App() {
               <Route path="/app/community" element={
                 <ProtectedRoute>
                   <AppLayout>
-                    <CommunityManagement />
+                    <CommunityReport />
                   </AppLayout>
                 </ProtectedRoute>
               } />
@@ -96,6 +97,14 @@ function App() {
                 <ProtectedRoute>
                   <AppLayout>
                     <Reports />
+                  </AppLayout>
+                </ProtectedRoute>
+              } />
+              
+              <Route path="/app/projects" element={
+                <ProtectedRoute>
+                  <AppLayout>
+                    <ProjectReports />
                   </AppLayout>
                 </ProtectedRoute>
               } />

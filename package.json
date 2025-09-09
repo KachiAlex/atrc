@@ -1,7 +1,7 @@
 {
-  "name": "traditional-rulers-app-firebase",
+  "name": "africa-traditional-rulers-for-christ",
   "version": "1.0.0",
-  "description": "African Traditional Rulers App with Firebase Backend",
+  "description": "Africa Traditional Rulers for Christ - Digital Platform for Traditional Rulers",
   "private": true,
   "dependencies": {
     "@dataconnect/generated": "file:src/dataconnect-generated",

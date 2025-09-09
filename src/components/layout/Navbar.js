@@ -1,6 +1,7 @@
 import React from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
+import ATRCLogo from '../ATRCLogo';
 
 const Navbar = () => {
   const { currentUser, logout } = useAuth();
@@ -11,7 +12,11 @@ const Navbar = () => {
       <div className="max-w-7xl mx-auto px-4">
         <div className="flex justify-between h-16">
           <div className="flex items-center">
-            <h1 className="text-xl font-bold text-blue-600">ATRC</h1>
+            <ATRCLogo size="small" />
+            <div className="ml-3">
+              <h1 className="text-xl font-bold atrc-gradient-text">ATRC</h1>
+              <p className="text-xs text-gray-500">Leadership Institute</p>
+            </div>
           </div>
           <div className="flex items-center space-x-4">
             <button
