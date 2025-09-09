@@ -21,6 +21,7 @@ import Reports from './pages/Reports';
 import ProjectReports from './pages/ProjectReports';
 import Profile from './pages/Profile';
 import Settings from './pages/Settings';
+import AdminSetup from './pages/AdminSetup';
 
 import './index.css';
 
@@ -46,11 +47,12 @@ function App() {
         <AuthProvider>
           <Router>
             <Routes>
-              {/* Public Routes */}
-              <Route path="/" element={<HomePage />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/register" element={<Register />} />
-              <Route path="/auth" element={<ModernAuth />} />
+                  {/* Public Routes */}
+                  <Route path="/" element={<HomePage />} />
+                  <Route path="/login" element={<Login />} />
+                  <Route path="/register" element={<Register />} />
+                  <Route path="/auth" element={<ModernAuth />} />
+                  <Route path="/admin-setup" element={<AdminSetup />} />
               
               {/* Protected Routes - Simplified Structure */}
               <Route path="/app/dashboard" element={

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -8,6 +8,84 @@ import ATRCLogo from '../components/ATRCLogo';
 const HomePage = () => {
   const { isDarkMode, toggleTheme } = useTheme();
   const { t } = useLanguage();
+  const [isVisible, setIsVisible] = useState(false);
+  const [visibleSections, setVisibleSections] = useState(new Set());
+  const [currentSlide, setCurrentSlide] = useState(0);
+
+  useEffect(() => {
+    // Trigger initial animation
+    setIsVisible(true);
+    
+    // Intersection Observer for scroll animations
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setVisibleSections(prev => new Set([...prev, entry.target.id]));
+          }
+        });
+      },
+      { threshold: 0.1 }
+    );
+
+    // Observe all sections
+    const sections = document.querySelectorAll('[data-animate]');
+    sections.forEach(section => observer.observe(section));
+
+    return () => observer.disconnect();
+  }, []);
+
+  // Auto-advance banner slides
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % 5); // 5 slides total
+    }, 5000); // Change slide every 5 seconds
+
+    return () => clearInterval(interval);
+  }, []);
+
+  const bannerSlides = [
+    {
+      id: 1,
+      title: "Unity in Diversity",
+      subtitle: "Connecting Traditional Rulers Across Africa",
+      description: "Join our network of traditional leaders working together for community development and cultural preservation.",
+      image: "🏛️",
+      gradient: "from-blue-600 to-purple-600"
+    },
+    {
+      id: 2,
+      title: "Digital Transformation",
+      subtitle: "Modern Solutions for Traditional Leadership",
+      description: "Embrace technology while preserving cultural heritage through our comprehensive digital platform.",
+      image: "📱",
+      gradient: "from-green-600 to-blue-600"
+    },
+    {
+      id: 3,
+      title: "Community Development",
+      subtitle: "Building Stronger Communities Together",
+      description: "Collaborate on projects that enhance education, healthcare, and infrastructure in your communities.",
+      image: "🏘️",
+      gradient: "from-purple-600 to-pink-600"
+    },
+    {
+      id: 4,
+      title: "Cultural Preservation",
+      subtitle: "Honoring Our Rich Heritage",
+      description: "Document and preserve traditional knowledge, customs, and practices for future generations.",
+      image: "🎭",
+      gradient: "from-orange-600 to-red-600"
+    },
+    {
+      id: 5,
+      title: "Global Network",
+      subtitle: "Connecting Africa to the World",
+      description: "Build international partnerships and showcase African traditional leadership on the global stage.",
+      image: "🌍",
+      gradient: "from-teal-600 to-green-600"
+    }
+  ];
 
   const features = [
     {
@@ -97,63 +175,127 @@ const HomePage = () => {
         </div>
       </nav>
 
-      {/* Hero Section */}
-      <div className="relative overflow-hidden">
-        <div className="max-w-7xl mx-auto">
-          <div className="relative z-10 pb-8 sm:pb-16 md:pb-20 lg:pb-28 xl:pb-32">
-            <main className="mt-10 mx-auto max-w-7xl px-4 sm:mt-12 sm:px-6 md:mt-16 lg:mt-20 lg:px-8 xl:mt-28">
-              <div className="text-center">
-                <h1 className={`text-4xl tracking-tight font-extrabold sm:text-5xl md:text-6xl ${
-                  isDarkMode ? 'text-white' : 'text-gray-900'
-                }`}>
-                  <span className="block">{t('home.title')}</span>
-                  <span className="block atrc-gradient-text">{t('home.subtitle')}</span>
-                </h1>
-                
-                <p className={`mt-6 text-base sm:text-lg sm:max-w-2xl sm:mx-auto md:text-xl ${
-                  isDarkMode ? 'text-gray-300' : 'text-gray-500'
-                }`}>
-                  {t('home.description')}
-                </p>
-                
-                <div className="mt-8 sm:flex sm:justify-center">
-                  <div className="rounded-md shadow">
-                    <Link
-                      to="/auth"
-                      className="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 md:py-4 md:text-lg md:px-10 transition-colors"
-                    >
-                      {t('home.joinCommunity')}
-                    </Link>
-                  </div>
-                  <div className="mt-3 sm:mt-0 sm:ml-3">
-                    <Link
-                      to="/login"
-                      className={`w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md ${
-                        isDarkMode 
-                          ? 'text-primary-400 bg-gray-800 hover:bg-gray-700 border-gray-600' 
-                          : 'text-primary-700 bg-primary-100 hover:bg-primary-200'
-                      } md:py-4 md:text-lg md:px-10 transition-colors`}
-                    >
-                      {t('home.signIn')}
-                    </Link>
+      {/* Dynamic Banner Hero Section */}
+      <div className="relative overflow-hidden h-screen">
+        {/* Background Slides */}
+        <div className="absolute inset-0">
+          {bannerSlides.map((slide, index) => (
+            <div
+              key={slide.id}
+              className={`absolute inset-0 bg-gradient-to-br ${slide.gradient} transition-opacity duration-1000 ${
+                index === currentSlide ? 'opacity-100' : 'opacity-0'
+              }`}
+            >
+              <div className="absolute inset-0 bg-black/20"></div>
+            </div>
+          ))}
+        </div>
+
+        {/* Content */}
+        <div className="relative z-10 h-full flex items-center">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
+            <div className="text-center">
+              {bannerSlides.map((slide, index) => (
+                <div
+                  key={slide.id}
+                  className={`transition-all duration-1000 ${
+                    index === currentSlide 
+                      ? 'opacity-100 translate-y-0' 
+                      : 'opacity-0 translate-y-8 absolute inset-0'
+                  }`}
+                >
+                  <div className={`transform transition-all duration-1000 ${
+                    isVisible ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'
+                  }`}>
+                    <div className="text-8xl mb-6 animate-bounce">{slide.image}</div>
+                    <h1 className="text-4xl tracking-tight font-extrabold text-white sm:text-5xl md:text-6xl mb-4">
+                      <span className="block">{slide.title}</span>
+                      <span className="block text-yellow-300">{slide.subtitle}</span>
+                    </h1>
+                    <p className="mt-6 text-lg sm:text-xl text-white/90 max-w-3xl mx-auto">
+                      {slide.description}
+                    </p>
                   </div>
                 </div>
+              ))}
+              
+              <div className={`mt-12 transform transition-all duration-1000 delay-500 ${
+                isVisible ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'
+              }`}>
+                <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                  <Link
+                    to="/auth"
+                    className="inline-flex items-center px-8 py-4 border border-transparent text-lg font-medium rounded-lg text-primary-600 bg-white hover:bg-primary-50 transition-all duration-300 transform hover:scale-105 shadow-lg"
+                  >
+                    {t('home.joinCommunity')}
+                  </Link>
+                  <Link
+                    to="/login"
+                    className="inline-flex items-center px-8 py-4 border-2 border-white text-lg font-medium rounded-lg text-white hover:bg-white hover:text-primary-600 transition-all duration-300 transform hover:scale-105"
+                  >
+                    {t('home.signIn')}
+                  </Link>
+                </div>
               </div>
-            </main>
+            </div>
           </div>
         </div>
+
+        {/* Slide Indicators */}
+        <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 flex space-x-2">
+          {bannerSlides.map((_, index) => (
+            <button
+              key={index}
+              onClick={() => setCurrentSlide(index)}
+              className={`w-3 h-3 rounded-full transition-all duration-300 ${
+                index === currentSlide 
+                  ? 'bg-white scale-125' 
+                  : 'bg-white/50 hover:bg-white/75'
+              }`}
+            />
+          ))}
+        </div>
+
+        {/* Navigation Arrows */}
+        <button
+          onClick={() => setCurrentSlide((prev) => (prev - 1 + bannerSlides.length) % bannerSlides.length)}
+          className="absolute left-4 top-1/2 transform -translate-y-1/2 text-white/70 hover:text-white transition-colors duration-300"
+        >
+          <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+          </svg>
+        </button>
+        <button
+          onClick={() => setCurrentSlide((prev) => (prev + 1) % bannerSlides.length)}
+          className="absolute right-4 top-1/2 transform -translate-y-1/2 text-white/70 hover:text-white transition-colors duration-300"
+        >
+          <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+          </svg>
+        </button>
       </div>
 
       {/* Stats Section */}
-      <div className={`py-12 ${isDarkMode ? 'bg-gray-800' : 'bg-white'}`}>
+      <div 
+        id="stats" 
+        data-animate
+        className={`py-12 ${isDarkMode ? 'bg-gray-800' : 'bg-white'} ${
+          visibleSections.has('stats') ? 'animate-fadeInUp' : 'opacity-0'
+        }`}
+      >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-2 gap-8 md:grid-cols-4">
             {stats.map((stat, index) => (
-              <div key={index} className="text-center">
-                <div className={`text-3xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+              <div 
+                key={index} 
+                className={`text-center transform transition-all duration-700 delay-${index * 100} ${
+                  visibleSections.has('stats') ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'
+                } hover:scale-105`}
+              >
+                <div className={`text-3xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'} transition-colors duration-300`}>
                   {stat.number}
                 </div>
-                <div className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                <div className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'} transition-colors duration-300`}>
                   {stat.label}
                 </div>
               </div>
@@ -163,9 +305,17 @@ const HomePage = () => {
       </div>
 
       {/* Features Section */}
-      <div className={`py-16 ${isDarkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
+      <div 
+        id="features" 
+        data-animate
+        className={`py-16 ${isDarkMode ? 'bg-gray-900' : 'bg-gray-50'} ${
+          visibleSections.has('features') ? 'animate-fadeInUp' : 'opacity-0'
+        }`}
+      >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center">
+          <div className={`text-center transform transition-all duration-1000 ${
+            visibleSections.has('features') ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'
+          }`}>
             <h2 className={`text-3xl font-extrabold ${isDarkMode ? 'text-white' : 'text-gray-900'} sm:text-4xl`}>
               {t('features.title')}
             </h2>
@@ -177,12 +327,22 @@ const HomePage = () => {
           <div className="mt-12">
             <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
               {features.map((feature, index) => (
-                <div key={index} className={`${isDarkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow`}>
-                  <div className="text-4xl mb-4">{feature.icon}</div>
-                  <h3 className={`text-lg font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'} mb-2`}>
+                <div 
+                  key={index} 
+                  className={`${isDarkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-md p-6 hover:shadow-xl transition-all duration-500 transform hover:scale-105 hover:-translate-y-2 ${
+                    visibleSections.has('features') 
+                      ? 'translate-y-0 opacity-100' 
+                      : 'translate-y-8 opacity-0'
+                  }`}
+                  style={{ transitionDelay: `${index * 100}ms` }}
+                >
+                  <div className="text-4xl mb-4 transform transition-transform duration-300 hover:scale-110 hover:rotate-12">
+                    {feature.icon}
+                  </div>
+                  <h3 className={`text-lg font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'} mb-2 transition-colors duration-300`}>
                     {feature.title}
                   </h3>
-                  <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                  <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'} transition-colors duration-300`}>
                     {feature.description}
                   </p>
                 </div>
@@ -193,21 +353,31 @@ const HomePage = () => {
       </div>
 
       {/* CTA Section */}
-      <div className="py-16 atrc-gradient-bg">
+      <div 
+        id="cta" 
+        data-animate
+        className={`py-16 atrc-gradient-bg ${
+          visibleSections.has('cta') ? 'animate-fadeInUp' : 'opacity-0'
+        }`}
+      >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-3xl font-extrabold text-white sm:text-4xl">
-            {t('cta.title')}
-          </h2>
-          <p className="mt-4 text-lg text-white/90">
-            {t('cta.subtitle')}
-          </p>
-          <div className="mt-8">
-            <Link
-              to="/auth"
-              className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-primary-600 bg-white hover:bg-primary-50 transition-colors shadow-lg"
-            >
-              {t('cta.getStarted')}
-            </Link>
+          <div className={`transform transition-all duration-1000 ${
+            visibleSections.has('cta') ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'
+          }`}>
+            <h2 className="text-3xl font-extrabold text-white sm:text-4xl">
+              {t('cta.title')}
+            </h2>
+            <p className="mt-4 text-lg text-white/90">
+              {t('cta.subtitle')}
+            </p>
+            <div className="mt-8">
+              <Link
+                to="/auth"
+                className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-primary-600 bg-white hover:bg-primary-50 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
+              >
+                {t('cta.getStarted')}
+              </Link>
+            </div>
           </div>
         </div>
       </div>
