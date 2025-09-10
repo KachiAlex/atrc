@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
+import BookReader from './BookReader';
 
 const TraditionalRulersDashboard = () => {
   const { currentUser } = useAuth();
@@ -27,7 +28,8 @@ const TraditionalRulersDashboard = () => {
     { id: 'profile', label: 'Throne Profile', icon: '👤' },
     { id: 'documents', label: 'Documents', icon: '📄' },
     { id: 'events', label: 'Events', icon: '📅' },
-    { id: 'learning', label: 'Learning', icon: '📚' }
+    { id: 'learning', label: 'Learning', icon: '📚' },
+    { id: 'library', label: 'Digital Library', icon: '📖' }
   ];
 
   return (
@@ -274,6 +276,13 @@ const TraditionalRulersDashboard = () => {
                   </button>
                 </div>
               </div>
+            </div>
+          )}
+
+          {/* Digital Library Tab */}
+          {activeTab === 'library' && (
+            <div>
+              <BookReader />
             </div>
           )}
         </div>

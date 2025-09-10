@@ -22,6 +22,8 @@ import ProjectReports from './pages/ProjectReports';
 import Profile from './pages/Profile';
 import Settings from './pages/Settings';
 import AdminSetup from './pages/AdminSetup';
+import BookManagement from './pages/BookManagement';
+import BookReader from './pages/BookReader';
 
 import './index.css';
 
@@ -123,6 +125,22 @@ function App() {
                 <ProtectedRoute>
                   <AppLayout>
                     <Settings />
+                  </AppLayout>
+                </ProtectedRoute>
+              } />
+              
+              <Route path="/app/books" element={
+                <ProtectedRoute>
+                  <AppLayout>
+                    <BookReader />
+                  </AppLayout>
+                </ProtectedRoute>
+              } />
+              
+              <Route path="/app/admin/books" element={
+                <ProtectedRoute>
+                  <AppLayout>
+                    <BookManagement />
                   </AppLayout>
                 </ProtectedRoute>
               } />

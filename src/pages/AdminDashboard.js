@@ -3,6 +3,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { db } from '../firebase/config';
 import { collection, getDocs, query, orderBy, where, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { createCustomAdmin } from '../utils/createDefaultAdmin';
+import BookManagement from './BookManagement';
 
 const AdminDashboard = () => {
   const { currentUser } = useAuth();
@@ -196,6 +197,12 @@ const AdminDashboard = () => {
             Community Reports
           </SidebarButton>
           <SidebarButton 
+            icon="📚" 
+            onClick={() => setActiveTab('books')}
+          >
+            Book Management
+          </SidebarButton>
+          <SidebarButton 
             icon="📊" 
             onClick={() => setActiveTab('analytics')}
           >
@@ -273,6 +280,13 @@ const AdminDashboard = () => {
             onClick={setActiveTab}
           >
             Community
+          </TabButton>
+          <TabButton 
+            value="books" 
+            isActive={activeTab === 'books'} 
+            onClick={setActiveTab}
+          >
+            Books
           </TabButton>
           <TabButton 
             value="analytics" 
@@ -533,6 +547,13 @@ const AdminDashboard = () => {
                   </div>
                 )}
               </div>
+            </div>
+          )}
+
+          {/* Book Management */}
+          {activeTab === 'books' && (
+            <div className="p-0">
+              <BookManagement />
             </div>
           )}
 
