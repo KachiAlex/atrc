@@ -184,7 +184,7 @@ const AdminDashboard = () => {
           >
             Verification Cases
           </SidebarButton>
-          <SidebarButton 
+          {/* <SidebarButton 
             icon="📁" 
             onClick={() => setActiveTab('projects')}
           >
@@ -195,7 +195,7 @@ const AdminDashboard = () => {
             onClick={() => setActiveTab('community')}
           >
             Community Reports
-          </SidebarButton>
+          </SidebarButton> */}
           <SidebarButton 
             icon="📚" 
             onClick={() => setActiveTab('books')}
@@ -460,7 +460,7 @@ const AdminDashboard = () => {
           )}
 
           {/* Project Reports */}
-          {activeTab === 'projects' && !loading && (
+          {/* {activeTab === 'projects' && !loading && (
             <div className="p-6">
               <h3 className="text-xl font-semibold text-gray-900 mb-4">Project Reports</h3>
               <div className="space-y-4">
@@ -500,10 +500,10 @@ const AdminDashboard = () => {
                 )}
               </div>
             </div>
-          )}
+          )} */}
 
           {/* Community Reports */}
-          {activeTab === 'community' && !loading && (
+          {/* {activeTab === 'community' && !loading && (
             <div className="p-6">
               <h3 className="text-xl font-semibold text-gray-900 mb-4">Community Reports</h3>
               <div className="space-y-4">
@@ -548,7 +548,7 @@ const AdminDashboard = () => {
                 )}
               </div>
             </div>
-          )}
+          )} */}
 
           {/* Book Management */}
           {activeTab === 'books' && (

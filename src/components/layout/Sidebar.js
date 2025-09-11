@@ -11,9 +11,9 @@ const Sidebar = () => {
   const navigation = [
     { name: 'Dashboard', href: '/app/dashboard', icon: '🏠' },
     { name: 'Community Report', href: '/app/community', icon: '📝' },
-    { name: 'Project Reports', href: '/app/projects', icon: '📁' },
+    // { name: 'Project Reports', href: '/app/projects', icon: '📁' },
     { name: 'Digital Library', href: '/app/books', icon: '📚' },
-    { name: 'Disputes', href: '/app/disputes', icon: '⚖️' },
+    // { name: 'Disputes', href: '/app/disputes', icon: '⚖️' },
     { name: 'Events', href: '/app/events', icon: '📅' },
     { name: 'Announcements', href: '/app/announcements', icon: '📢' },
     { name: 'Reports', href: '/app/reports', icon: '📊' },
