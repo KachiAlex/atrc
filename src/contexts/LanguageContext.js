@@ -677,6 +677,21 @@ export const LanguageProvider = ({ children }) => {
       { code: 'fr', name: 'Français', flag: '🇫🇷' },
       { code: 'es', name: 'Español', flag: '🇪🇸' },
       { code: 'sw', name: 'Kiswahili', flag: '🇹🇿' },
+      { code: 'yo', name: 'Yorùbá', flag: '🇳🇬' },
+      { code: 'ig', name: 'Igbo', flag: '🇳🇬' },
+      { code: 'ha', name: 'Hausa', flag: '🇳🇬' },
+      { code: 'ef', name: 'Efik', flag: '🇳🇬' },
+      { code: 'ib', name: 'Ibibio', flag: '🇳🇬' },
+      { code: 'nu', name: 'Nupe', flag: '🇳🇬' },
+      { code: 'ti', name: 'Tiv', flag: '🇳🇬' },
+      { code: 'ur', name: 'Urhobo', flag: '🇳🇬' },
+      { code: 'ed', name: 'Edo', flag: '🇳🇬' },
+      { code: 'ij', name: 'Ijaw', flag: '🇳🇬' },
+      { code: 'ar', name: 'العربية', flag: '🇸🇦' },
+      { code: 'zu', name: 'Zulu', flag: '🇿🇦' },
+      { code: 'xh', name: 'Xhosa', flag: '🇿🇦' },
+      { code: 'af', name: 'Afrikaans', flag: '🇿🇦' },
+      { code: 'am', name: 'Amharic', flag: '🇪🇹' }
     ]
   };
 
