@@ -22,6 +22,7 @@ import ProjectReports from './pages/ProjectReports';
 import Profile from './pages/Profile';
 import Settings from './pages/Settings';
 import AdminSetup from './pages/AdminSetup';
+import AdminAccessPanel from './pages/AdminAccessPanel';
 import BookManagement from './pages/BookManagement';
 import BookReader from './pages/BookReader';
 
@@ -142,6 +143,12 @@ function App() {
                   <AppLayout>
                     <BookManagement />
                   </AppLayout>
+                </ProtectedRoute>
+              } />
+              
+              <Route path="/app/admin/panel" element={
+                <ProtectedRoute>
+                  <AdminAccessPanel />
                 </ProtectedRoute>
               } />
               

@@ -4,7 +4,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
 
 const Sidebar = () => {
-  const { currentUser } = useAuth();
+  const { currentUser, userRole } = useAuth();
   const { isDarkMode } = useTheme();
   const location = useLocation();
 
@@ -20,6 +20,11 @@ const Sidebar = () => {
     { name: 'Profile', href: '/app/profile', icon: '👤' },
     { name: 'Settings', href: '/app/settings', icon: '⚙️' }
   ];
+
+  // Add admin panel link for admin users
+  if (userRole === 'admin') {
+    navigation.splice(1, 0, { name: 'Admin Panel', href: '/app/admin/panel', icon: '🛡️' });
+  }
 
   const isActive = (path) => {
     return location.pathname === path;
