@@ -4,6 +4,12 @@ import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import BookReader from './BookReader';
+import ProgressTracker from '../components/education/ProgressTracker';
+import BookmarkManager from '../components/education/BookmarkManager';
+import LearningPaths from '../components/education/LearningPaths';
+import QuizSystem from '../components/education/QuizSystem';
+import DiscussionForum from '../components/education/DiscussionForum';
+import LiveQA from '../components/education/LiveQA';
 
 const TraditionalRulersDashboard = () => {
   const { currentUser } = useAuth();
@@ -28,7 +34,12 @@ const TraditionalRulersDashboard = () => {
     { id: 'profile', label: 'Throne Profile', icon: '👤' },
     { id: 'documents', label: 'Documents', icon: '📄' },
     { id: 'events', label: 'Events', icon: '📅' },
-    { id: 'learning', label: 'Learning', icon: '📚' },
+    { id: 'learning', label: 'Learning Center', icon: '📚' },
+    { id: 'progress', label: 'My Progress', icon: '📊' },
+    { id: 'bookmarks', label: 'Bookmarks', icon: '🔖' },
+    { id: 'paths', label: 'Learning Paths', icon: '🛤️' },
+    { id: 'quizzes', label: 'Quizzes', icon: '❓' },
+    { id: 'forum', label: 'Discussion Forum', icon: '💬' },
     { id: 'library', label: 'Digital Library', icon: '📖' }
   ];
 
@@ -235,47 +246,94 @@ const TraditionalRulersDashboard = () => {
             </div>
           )}
 
-          {/* Learning Tab */}
+          {/* Learning Center Tab */}
           {activeTab === 'learning' && (
             <div>
               <h3 className={`text-xl font-semibold mb-4 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-                Available Courses
+                Learning Center
               </h3>
-              <div className="space-y-4">
-                <div className={`p-4 rounded-lg border ${isDarkMode ? 'bg-gray-700 border-gray-600' : 'bg-gray-50 border-gray-200'}`}>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className={`p-6 rounded-lg border ${isDarkMode ? 'bg-gray-700 border-gray-600' : 'bg-gray-50 border-gray-200'} hover:shadow-md transition-shadow`}>
+                  <div className="text-3xl mb-3">📚</div>
                   <h4 className={`font-semibold mb-2 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
                     Christ-Shaped Leadership 101
                   </h4>
-                  <p className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                  <p className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'} mb-4`}>
                     Learn to lead with wisdom and integrity based on biblical principles.
                   </p>
-                  <button className="mt-2 bg-primary-600 text-white px-4 py-2 rounded-md hover:bg-primary-700 transition-colors duration-200">
-                    Enroll
+                  <button 
+                    onClick={() => navigate('/app/courses')}
+                    className="w-full bg-primary-600 text-white px-4 py-2 rounded-md hover:bg-primary-700 transition-colors duration-200"
+                  >
+                    View Course
                   </button>
                 </div>
-                <div className={`p-4 rounded-lg border ${isDarkMode ? 'bg-gray-700 border-gray-600' : 'bg-gray-50 border-gray-200'}`}>
+                <div className={`p-6 rounded-lg border ${isDarkMode ? 'bg-gray-700 border-gray-600' : 'bg-gray-50 border-gray-200'} hover:shadow-md transition-shadow`}>
+                  <div className="text-3xl mb-3">⚖️</div>
                   <h4 className={`font-semibold mb-2 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
                     Customary Law and Governance
                   </h4>
-                  <p className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                  <p className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'} mb-4`}>
                     Understanding traditional governance systems and customary law.
                   </p>
-                  <button className="mt-2 bg-primary-600 text-white px-4 py-2 rounded-md hover:bg-primary-700 transition-colors duration-200">
-                    Enroll
+                  <button 
+                    onClick={() => navigate('/app/courses')}
+                    className="w-full bg-primary-600 text-white px-4 py-2 rounded-md hover:bg-primary-700 transition-colors duration-200"
+                  >
+                    View Course
                   </button>
                 </div>
-                <div className={`p-4 rounded-lg border ${isDarkMode ? 'bg-gray-700 border-gray-600' : 'bg-gray-50 border-gray-200'}`}>
+                <div className={`p-6 rounded-lg border ${isDarkMode ? 'bg-gray-700 border-gray-600' : 'bg-gray-50 border-gray-200'} hover:shadow-md transition-shadow`}>
+                  <div className="text-3xl mb-3">🤝</div>
                   <h4 className={`font-semibold mb-2 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
                     Conflict Resolution for Rulers
                   </h4>
-                  <p className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                  <p className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'} mb-4`}>
                     Master the art of traditional dispute resolution and mediation.
                   </p>
-                  <button className="mt-2 bg-primary-600 text-white px-4 py-2 rounded-md hover:bg-primary-700 transition-colors duration-200">
-                    Enroll
+                  <button 
+                    onClick={() => navigate('/app/courses')}
+                    className="w-full bg-primary-600 text-white px-4 py-2 rounded-md hover:bg-primary-700 transition-colors duration-200"
+                  >
+                    View Course
                   </button>
                 </div>
               </div>
+            </div>
+          )}
+
+          {/* Progress Tab */}
+          {activeTab === 'progress' && (
+            <div>
+              <ProgressTracker />
+            </div>
+          )}
+
+          {/* Bookmarks Tab */}
+          {activeTab === 'bookmarks' && (
+            <div>
+              <BookmarkManager />
+            </div>
+          )}
+
+          {/* Learning Paths Tab */}
+          {activeTab === 'paths' && (
+            <div>
+              <LearningPaths />
+            </div>
+          )}
+
+          {/* Quizzes Tab */}
+          {activeTab === 'quizzes' && (
+            <div>
+              <QuizSystem />
+            </div>
+          )}
+
+          {/* Discussion Forum Tab */}
+          {activeTab === 'forum' && (
+            <div>
+              <DiscussionForum />
             </div>
           )}
 

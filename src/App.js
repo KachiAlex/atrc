@@ -5,6 +5,7 @@ import { ThemeProvider } from './contexts/ThemeContext';
 import { LanguageProvider } from './contexts/LanguageContext';
 import Navbar from './components/layout/Navbar';
 import Sidebar from './components/layout/Sidebar';
+import MobileNav from './components/layout/MobileNav';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 
 // Pages
@@ -23,17 +24,33 @@ import Profile from './pages/Profile';
 import Settings from './pages/Settings';
 import AdminSetup from './pages/AdminSetup';
 import AdminAccessPanel from './pages/AdminAccessPanel';
-import BookManagement from './pages/BookManagement';
 import BookReader from './pages/BookReader';
+import CourseManagement from './pages/CourseManagement';
+import CourseReader from './pages/CourseReader';
+import LiveMeetings from './pages/LiveMeetings';
+import LiveMeetingsViewer from './pages/LiveMeetingsViewer';
 
 import './index.css';
 
 // Main App Layout Component
 const AppLayout = ({ children }) => (
   <div className="flex h-screen">
-    <Sidebar />
+    {/* Desktop Sidebar */}
+    <div className="hidden lg:block">
+      <Sidebar />
+    </div>
+    
+    {/* Mobile Navigation */}
+    <div className="lg:hidden">
+      <MobileNav />
+    </div>
+    
     <div className="flex-1 flex flex-col overflow-hidden">
-      <Navbar />
+      {/* Desktop Navbar */}
+      <div className="hidden lg:block">
+        <Navbar />
+      </div>
+      
       <main className="flex-1 overflow-x-hidden overflow-y-auto">
         {children}
       </main>
@@ -138,17 +155,25 @@ function App() {
                 </ProtectedRoute>
               } />
               
-              <Route path="/app/admin/books" element={
+              <Route path="/app/admin/panel" element={
+                <ProtectedRoute>
+                  <AdminAccessPanel />
+                </ProtectedRoute>
+              } />
+              
+              <Route path="/app/courses" element={
                 <ProtectedRoute>
                   <AppLayout>
-                    <BookManagement />
+                    <CourseReader />
                   </AppLayout>
                 </ProtectedRoute>
               } />
               
-              <Route path="/app/admin/panel" element={
+              <Route path="/app/meetings" element={
                 <ProtectedRoute>
-                  <AdminAccessPanel />
+                  <AppLayout>
+                    <LiveMeetingsViewer />
+                  </AppLayout>
                 </ProtectedRoute>
               } />
               

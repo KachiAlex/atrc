@@ -1,25 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { collection, addDoc, getDocs, deleteDoc, doc, updateDoc, query, orderBy } from 'firebase/firestore';
-import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
-import { db, storage } from '../firebase/config';
-import { useLanguage } from '../contexts/LanguageContext';
+import { db } from '../firebase/config';
 
-const BookManagement = () => {
-  const { t } = useLanguage();
-  const [books, setBooks] = useState([]);
+const CourseManagement = () => {
+  const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(false);
   const [showForm, setShowForm] = useState(false);
-  const [editingBook, setEditingBook] = useState(null);
+  const [editingCourse, setEditingCourse] = useState(null);
   const [formData, setFormData] = useState({
     title: '',
-    author: '',
     description: '',
     category: 'leadership',
     language: 'en',
-    coverImage: null,
-    pdfFile: null,
-    coverImageUrl: '',
-    pdfUrl: '',
+    embeddedUrl: '',
+    duration: '',
+    instructor: '',
     isPublished: false
   });
 
@@ -28,7 +23,9 @@ const BookManagement = () => {
     { value: 'spiritual', label: 'Spiritual Growth' },
     { value: 'community', label: 'Community Development' },
     { value: 'history', label: 'Traditional History' },
-    { value: 'wisdom', label: 'Traditional Wisdom' }
+    { value: 'wisdom', label: 'Traditional Wisdom' },
+    { value: 'technology', label: 'Digital Literacy' },
+    { value: 'business', label: 'Business & Economics' }
   ];
 
   const languages = [
@@ -43,40 +40,33 @@ const BookManagement = () => {
   ];
 
   useEffect(() => {
-    fetchBooks();
+    fetchCourses();
   }, []);
 
-  const fetchBooks = async () => {
+  const fetchCourses = async () => {
     try {
       setLoading(true);
-      const booksRef = collection(db, 'books');
-      const q = query(booksRef, orderBy('createdAt', 'desc'));
+      const coursesRef = collection(db, 'courses');
+      const q = query(coursesRef, orderBy('createdAt', 'desc'));
       const snapshot = await getDocs(q);
-      const booksData = snapshot.docs.map(doc => ({
+      const coursesData = snapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
       }));
-      setBooks(booksData);
+      setCourses(coursesData);
     } catch (error) {
-      console.error('Error fetching books:', error);
+      console.error('Error fetching courses:', error);
     } finally {
       setLoading(false);
     }
   };
 
   const handleInputChange = (e) => {
-    const { name, value, files } = e.target;
+    const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: files ? files[0] : value
+      [name]: value
     }));
-  };
-
-  const uploadFile = async (file, path) => {
-    if (!file) return null;
-    const storageRef = ref(storage, path);
-    const snapshot = await uploadBytes(storageRef, file);
-    return await getDownloadURL(snapshot.ref);
   };
 
   const handleSubmit = async (e) => {
@@ -84,119 +74,90 @@ const BookManagement = () => {
     try {
       setLoading(true);
       
-      let coverImageUrl = formData.coverImageUrl;
-      let pdfUrl = formData.pdfUrl;
-
-      // Upload new files if provided
-      if (formData.coverImage) {
-        coverImageUrl = await uploadFile(formData.coverImage, `books/covers/${Date.now()}_${formData.coverImage.name}`);
-      }
-      if (formData.pdfFile) {
-        pdfUrl = await uploadFile(formData.pdfFile, `books/pdfs/${Date.now()}_${formData.pdfFile.name}`);
-      }
-
-      const bookData = {
-        title: formData.title,
-        author: formData.author,
-        description: formData.description,
-        category: formData.category,
-        language: formData.language,
-        coverImageUrl,
-        pdfUrl,
-        isPublished: formData.isPublished,
+      const courseData = {
+        ...formData,
         createdAt: new Date(),
         updatedAt: new Date()
       };
 
-      if (editingBook) {
-        await updateDoc(doc(db, 'books', editingBook.id), bookData);
+      if (editingCourse) {
+        await updateDoc(doc(db, 'courses', editingCourse.id), courseData);
       } else {
-        await addDoc(collection(db, 'books'), bookData);
+        await addDoc(collection(db, 'courses'), courseData);
       }
 
+      setShowForm(false);
+      setEditingCourse(null);
       setFormData({
         title: '',
-        author: '',
         description: '',
         category: 'leadership',
         language: 'en',
-        coverImage: null,
-        pdfFile: null,
+        embeddedUrl: '',
+        duration: '',
+        instructor: '',
         isPublished: false
       });
-      setShowForm(false);
-      setEditingBook(null);
-      fetchBooks();
+      fetchCourses();
     } catch (error) {
-      console.error('Error saving book:', error);
+      console.error('Error saving course:', error);
+      alert('Failed to save course');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleEdit = (book) => {
-    setEditingBook(book);
+  const handleEdit = (course) => {
+    setEditingCourse(course);
     setFormData({
-      title: book.title,
-      author: book.author,
-      description: book.description,
-      category: book.category,
-      language: book.language,
-      coverImage: null,
-      pdfFile: null,
-      isPublished: book.isPublished,
-      coverImageUrl: book.coverImageUrl,
-      pdfUrl: book.pdfUrl
+      title: course.title,
+      description: course.description,
+      category: course.category,
+      language: course.language,
+      embeddedUrl: course.embeddedUrl,
+      duration: course.duration,
+      instructor: course.instructor,
+      isPublished: course.isPublished
     });
     setShowForm(true);
   };
 
-  const handleDelete = async (book) => {
-    if (!window.confirm('Are you sure you want to delete this book?')) return;
-    
-    try {
-      setLoading(true);
-      
-      // Delete files from storage
-      if (book.coverImageUrl) {
-        const coverRef = ref(storage, book.coverImageUrl);
-        await deleteObject(coverRef);
+  const handleDelete = async (course) => {
+    if (window.confirm('Are you sure you want to delete this course?')) {
+      try {
+        await deleteDoc(doc(db, 'courses', course.id));
+        fetchCourses();
+      } catch (error) {
+        console.error('Error deleting course:', error);
+        alert('Failed to delete course');
       }
-      if (book.pdfUrl) {
-        const pdfRef = ref(storage, book.pdfUrl);
-        await deleteObject(pdfRef);
-      }
-      
-      // Delete document
-      await deleteDoc(doc(db, 'books', book.id));
-      fetchBooks();
-    } catch (error) {
-      console.error('Error deleting book:', error);
-    } finally {
-      setLoading(false);
     }
   };
 
-  const togglePublish = async (book) => {
+  const togglePublish = async (course) => {
     try {
-      await updateDoc(doc(db, 'books', book.id), {
-        isPublished: !book.isPublished,
+      await updateDoc(doc(db, 'courses', course.id), {
+        isPublished: !course.isPublished,
         updatedAt: new Date()
       });
-      fetchBooks();
+      fetchCourses();
     } catch (error) {
-      console.error('Error updating book status:', error);
+      console.error('Error updating course:', error);
+      alert('Failed to update course');
     }
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-7xl mx-auto">
-        <div className="flex justify-between items-center mb-8">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">Book Management</h1>
-            <p className="text-gray-600 mt-2">Upload and manage books for Traditional Rulers</p>
-          </div>
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Course Management</h1>
+          <p className="text-gray-600">Manage online courses and educational content for Traditional Rulers</p>
+        </div>
+
+        {/* Add Course Button */}
+        <div className="mb-6">
           <button
             onClick={() => setShowForm(true)}
             className="bg-primary text-white px-6 py-3 rounded-lg hover:bg-primary/90 transition-colors flex items-center gap-2"
@@ -204,72 +165,67 @@ const BookManagement = () => {
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
             </svg>
-            Add New Book
+            Add New Course
           </button>
         </div>
 
-        {/* Books Grid */}
+        {/* Courses Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {books.map((book) => (
-            <div key={book.id} className="bg-white rounded-lg shadow-md overflow-hidden">
-              <div className="h-48 bg-gray-200 flex items-center justify-center">
-                {book.coverImageUrl ? (
-                  <img 
-                    src={book.coverImageUrl} 
-                    alt={book.title}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <div className="text-gray-400 text-center">
-                    <svg className="w-12 h-12 mx-auto mb-2" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd" />
-                    </svg>
-                    <p>No Cover Image</p>
-                  </div>
-                )}
+          {courses.map((course) => (
+            <div key={course.id} className="bg-white rounded-lg shadow-md overflow-hidden">
+              <div className="h-48 bg-gradient-to-br from-primary-100 to-primary-200 flex items-center justify-center">
+                <div className="text-center">
+                  <svg className="w-16 h-16 text-primary-600 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                  </svg>
+                  <p className="text-primary-600 font-medium">Course Content</p>
+                </div>
               </div>
               <div className="p-4">
                 <div className="flex justify-between items-start mb-2">
-                  <h3 className="font-semibold text-lg text-gray-900 line-clamp-2">{book.title}</h3>
+                  <h3 className="font-semibold text-lg text-gray-900 line-clamp-2">{course.title}</h3>
                   <span className={`px-2 py-1 text-xs rounded-full ${
-                    book.isPublished 
+                    course.isPublished 
                       ? 'bg-green-100 text-green-800' 
                       : 'bg-yellow-100 text-yellow-800'
                   }`}>
-                    {book.isPublished ? 'Published' : 'Draft'}
+                    {course.isPublished ? 'Published' : 'Draft'}
                   </span>
                 </div>
-                <p className="text-gray-600 text-sm mb-2">by {book.author}</p>
-                <p className="text-gray-500 text-xs mb-3 line-clamp-2">{book.description}</p>
-                <div className="flex justify-between items-center">
+                <p className="text-gray-600 text-sm mb-2">by {course.instructor}</p>
+                <p className="text-gray-500 text-xs mb-3 line-clamp-2">{course.description}</p>
+                <div className="flex justify-between items-center mb-4">
                   <div className="flex gap-2">
                     <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded">
-                      {languages.find(l => l.value === book.language)?.label}
+                      {languages.find(l => l.value === course.language)?.label}
                     </span>
                     <span className="px-2 py-1 bg-purple-100 text-purple-800 text-xs rounded">
-                      {categories.find(c => c.value === book.category)?.label}
+                      {categories.find(c => c.value === course.category)?.label}
                     </span>
                   </div>
+                  {course.duration && (
+                    <span className="text-xs text-gray-500">⏱️ {course.duration}</span>
+                  )}
                 </div>
-                <div className="flex gap-2 mt-4">
+                <div className="flex gap-2">
                   <button
-                    onClick={() => handleEdit(book)}
+                    onClick={() => handleEdit(course)}
                     className="flex-1 bg-blue-500 text-white px-3 py-2 rounded text-sm hover:bg-blue-600 transition-colors"
                   >
                     Edit
                   </button>
                   <button
-                    onClick={() => togglePublish(book)}
+                    onClick={() => togglePublish(course)}
                     className={`flex-1 px-3 py-2 rounded text-sm transition-colors ${
-                      book.isPublished
+                      course.isPublished
                         ? 'bg-yellow-500 text-white hover:bg-yellow-600'
                         : 'bg-green-500 text-white hover:bg-green-600'
                     }`}
                   >
-                    {book.isPublished ? 'Unpublish' : 'Publish'}
+                    {course.isPublished ? 'Unpublish' : 'Publish'}
                   </button>
                   <button
-                    onClick={() => handleDelete(book)}
+                    onClick={() => handleDelete(course)}
                     className="flex-1 bg-red-500 text-white px-3 py-2 rounded text-sm hover:bg-red-600 transition-colors"
                   >
                     Delete
@@ -280,44 +236,44 @@ const BookManagement = () => {
           ))}
         </div>
 
-        {books.length === 0 && !loading && (
+        {courses.length === 0 && !loading && (
           <div className="text-center py-12">
             <svg className="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
             </svg>
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No books yet</h3>
-            <p className="text-gray-500 mb-4">Get started by uploading your first book for Traditional Rulers</p>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">No courses yet</h3>
+            <p className="text-gray-500 mb-4">Get started by creating your first course for Traditional Rulers</p>
             <button
               onClick={() => setShowForm(true)}
               className="bg-primary text-white px-6 py-3 rounded-lg hover:bg-primary/90 transition-colors"
             >
-              Upload First Book
+              Create First Course
             </button>
           </div>
         )}
       </div>
 
-      {/* Book Form Modal */}
+      {/* Course Form Modal */}
       {showForm && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6">
               <div className="flex justify-between items-center mb-6">
                 <h2 className="text-2xl font-bold text-gray-900">
-                  {editingBook ? 'Edit Book' : 'Add New Book'}
+                  {editingCourse ? 'Edit Course' : 'Add New Course'}
                 </h2>
                 <button
                   onClick={() => {
                     setShowForm(false);
-                    setEditingBook(null);
+                    setEditingCourse(null);
                     setFormData({
                       title: '',
-                      author: '',
                       description: '',
                       category: 'leadership',
                       language: 'en',
-                      coverImage: null,
-                      pdfFile: null,
+                      embeddedUrl: '',
+                      duration: '',
+                      instructor: '',
                       isPublished: false
                     });
                   }}
@@ -333,7 +289,7 @@ const BookManagement = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Book Title *
+                      Course Title *
                     </label>
                     <input
                       type="text"
@@ -342,21 +298,21 @@ const BookManagement = () => {
                       onChange={handleInputChange}
                       required
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                      placeholder="Enter book title"
+                      placeholder="Enter course title"
                     />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Author *
+                      Instructor *
                     </label>
                     <input
                       type="text"
-                      name="author"
-                      value={formData.author}
+                      name="instructor"
+                      value={formData.instructor}
                       onChange={handleInputChange}
                       required
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                      placeholder="Enter author name"
+                      placeholder="Enter instructor name"
                     />
                   </div>
                 </div>
@@ -372,11 +328,29 @@ const BookManagement = () => {
                     required
                     rows={3}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                    placeholder="Enter book description"
+                    placeholder="Enter course description"
                   />
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Embedded Content URL *
+                  </label>
+                  <input
+                    type="url"
+                    name="embeddedUrl"
+                    value={formData.embeddedUrl}
+                    onChange={handleInputChange}
+                    required
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                    placeholder="https://www.youtube.com/embed/... or https://vimeo.com/..."
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    Use YouTube embed URL (youtube.com/embed/...) or Vimeo embed URL
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Category *
@@ -413,79 +387,18 @@ const BookManagement = () => {
                       ))}
                     </select>
                   </div>
-                </div>
-
-                {/* Cover Image Section */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Cover Image
-                  </label>
-                  <div className="space-y-3">
-                    <div>
-                      <label className="block text-xs text-gray-600 mb-1">Upload File</label>
-                      <input
-                        type="file"
-                        name="coverImage"
-                        onChange={handleInputChange}
-                        accept="image/*"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                      />
-                    </div>
-                    <div className="text-center text-gray-500">OR</div>
-                    <div>
-                      <label className="block text-xs text-gray-600 mb-1">Image URL</label>
-                      <input
-                        type="url"
-                        name="coverImageUrl"
-                        value={formData.coverImageUrl}
-                        onChange={handleInputChange}
-                        placeholder="https://example.com/cover-image.jpg"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                      />
-                    </div>
-                    {formData.coverImageUrl && !formData.coverImage && (
-                      <div className="mt-2">
-                        <p className="text-sm text-gray-500">Current URL:</p>
-                        <p className="text-xs text-blue-600 break-all">{formData.coverImageUrl}</p>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* PDF File Section */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Book Content *
-                  </label>
-                  <div className="space-y-3">
-                    <div>
-                      <label className="block text-xs text-gray-600 mb-1">Upload PDF File</label>
-                      <input
-                        type="file"
-                        name="pdfFile"
-                        onChange={handleInputChange}
-                        accept=".pdf"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                      />
-                    </div>
-                    <div className="text-center text-gray-500">OR</div>
-                    <div>
-                      <label className="block text-xs text-gray-600 mb-1">PDF URL</label>
-                      <input
-                        type="url"
-                        name="pdfUrl"
-                        value={formData.pdfUrl}
-                        onChange={handleInputChange}
-                        placeholder="https://example.com/book.pdf"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                      />
-                    </div>
-                    {formData.pdfUrl && !formData.pdfFile && (
-                      <div className="mt-2">
-                        <p className="text-sm text-gray-500">Current URL:</p>
-                        <p className="text-xs text-blue-600 break-all">{formData.pdfUrl}</p>
-                      </div>
-                    )}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Duration
+                    </label>
+                    <input
+                      type="text"
+                      name="duration"
+                      value={formData.duration}
+                      onChange={handleInputChange}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                      placeholder="e.g., 2 hours, 30 minutes"
+                    />
                   </div>
                 </div>
 
@@ -507,7 +420,7 @@ const BookManagement = () => {
                     type="button"
                     onClick={() => {
                       setShowForm(false);
-                      setEditingBook(null);
+                      setEditingCourse(null);
                     }}
                     className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
                   >
@@ -518,7 +431,7 @@ const BookManagement = () => {
                     disabled={loading}
                     className="flex-1 bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50"
                   >
-                    {loading ? 'Saving...' : editingBook ? 'Update Book' : 'Add Book'}
+                    {loading ? 'Saving...' : editingCourse ? 'Update Course' : 'Add Course'}
                   </button>
                 </div>
               </form>
@@ -530,4 +443,4 @@ const BookManagement = () => {
   );
 };
 
-export default BookManagement;
+export default CourseManagement;

@@ -2,6 +2,7 @@ import React from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import ATRCLogo from '../ATRCLogo';
+import { HighContrastToggle, FontSizeControls } from '../ui/Accessibility';
 
 const Navbar = () => {
   const { currentUser, logout } = useAuth();
@@ -18,17 +19,20 @@ const Navbar = () => {
               <p className="text-xs text-gray-500">Leadership Institute</p>
             </div>
           </div>
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-2">
+            <FontSizeControls />
+            <HighContrastToggle />
             <button
               onClick={toggleTheme}
-              className="p-2 rounded-md hover:bg-gray-100"
+              className="p-2 rounded-md hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-primary-500"
+              aria-label={isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'}
             >
               {isDarkMode ? '☀️' : '🌙'}
             </button>
             {currentUser ? (
               <button
                 onClick={logout}
-                className="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600"
+                className="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
               >
                 Logout
               </button>

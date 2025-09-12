@@ -4,6 +4,9 @@ import { useNavigate } from 'react-router-dom';
 import { db } from '../firebase/config';
 import { collection, getDocs, query, orderBy, where, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { createCustomAdmin } from '../utils/createDefaultAdmin';
+import BookManagement from './BookManagement';
+import CourseManagement from './CourseManagement';
+import LiveMeetings from './LiveMeetings';
 
 const AdminAccessPanel = () => {
   const { currentUser, userRole } = useAuth();
@@ -217,7 +220,7 @@ const AdminAccessPanel = () => {
         {/* Tab Navigation */}
         <div className="bg-white rounded-lg shadow-md mb-6">
           <div className="border-b border-gray-200">
-            <nav className="flex space-x-8 px-6">
+            <nav className="flex flex-wrap space-x-2 px-6">
               <TabButton
                 value="overview"
                 isActive={activeTab === 'overview'}
@@ -238,6 +241,27 @@ const AdminAccessPanel = () => {
                 onClick={setActiveTab}
               >
                 🛡️ Verification Cases
+              </TabButton>
+              <TabButton
+                value="books"
+                isActive={activeTab === 'books'}
+                onClick={setActiveTab}
+              >
+                📚 Book Management
+              </TabButton>
+              <TabButton
+                value="courses"
+                isActive={activeTab === 'courses'}
+                onClick={setActiveTab}
+              >
+                🎓 Course Management
+              </TabButton>
+              <TabButton
+                value="meetings"
+                isActive={activeTab === 'meetings'}
+                onClick={setActiveTab}
+              >
+                📹 Live Meetings
               </TabButton>
               <TabButton
                 value="security"
@@ -504,6 +528,27 @@ const AdminAccessPanel = () => {
                     </div>
                   </div>
                 </div>
+              </div>
+            )}
+
+            {/* Book Management */}
+            {activeTab === 'books' && !loading && (
+              <div>
+                <BookManagement />
+              </div>
+            )}
+
+            {/* Course Management */}
+            {activeTab === 'courses' && !loading && (
+              <div>
+                <CourseManagement />
+              </div>
+            )}
+
+            {/* Live Meetings */}
+            {activeTab === 'meetings' && !loading && (
+              <div>
+                <LiveMeetings />
               </div>
             )}
           </div>

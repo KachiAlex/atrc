@@ -10,9 +10,12 @@ const Sidebar = () => {
 
   const navigation = [
     { name: 'Dashboard', href: '/app/dashboard', icon: '🏠' },
+    { name: 'Admin Panel', href: '/app/admin/panel', icon: '🛡️' },
     { name: 'Community Report', href: '/app/community', icon: '📝' },
     // { name: 'Project Reports', href: '/app/projects', icon: '📁' },
     { name: 'Digital Library', href: '/app/books', icon: '📚' },
+    { name: 'Courses', href: '/app/courses', icon: '🎓' },
+    { name: 'Live Meetings', href: '/app/meetings', icon: '📹' },
     // { name: 'Disputes', href: '/app/disputes', icon: '⚖️' },
     { name: 'Events', href: '/app/events', icon: '📅' },
     { name: 'Announcements', href: '/app/announcements', icon: '📢' },
@@ -20,11 +23,6 @@ const Sidebar = () => {
     { name: 'Profile', href: '/app/profile', icon: '👤' },
     { name: 'Settings', href: '/app/settings', icon: '⚙️' }
   ];
-
-  // Add admin panel link for admin users
-  if (userRole === 'admin') {
-    navigation.splice(1, 0, { name: 'Admin Panel', href: '/app/admin/panel', icon: '🛡️' });
-  }
 
   const isActive = (path) => {
     return location.pathname === path;

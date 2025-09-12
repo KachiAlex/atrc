@@ -165,6 +165,16 @@ const HomePage = () => {
                 {t('nav.signIn')}
               </Link>
               <Link
+                to="/app/admin/panel"
+                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                  isDarkMode 
+                    ? 'text-yellow-300 hover:text-yellow-200 hover:bg-gray-700 border border-yellow-300' 
+                    : 'text-yellow-700 hover:text-yellow-800 hover:bg-yellow-50 border border-yellow-300'
+                }`}
+              >
+                🛡️ Admin Panel
+              </Link>
+              <Link
                 to="/auth"
                 className="bg-primary-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-primary-700 transition-colors"
               >
