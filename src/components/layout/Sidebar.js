@@ -10,7 +10,6 @@ const Sidebar = () => {
 
   const navigation = [
     { name: 'Dashboard', href: '/app/dashboard', icon: '🏠' },
-    { name: 'Admin Panel', href: '/app/admin/panel', icon: '🛡️' },
     { name: 'Community Report', href: '/app/community', icon: '📝' },
     // { name: 'Project Reports', href: '/app/projects', icon: '📁' },
     { name: 'Digital Library', href: '/app/books', icon: '📚' },

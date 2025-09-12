@@ -11,7 +11,6 @@ const MobileNav = () => {
 
   const navigation = [
     { name: 'Dashboard', href: '/app/dashboard', icon: '🏠' },
-    { name: 'Admin Panel', href: '/app/admin/panel', icon: '🛡️' },
     { name: 'Community Report', href: '/app/community', icon: '📝' },
     { name: 'Digital Library', href: '/app/books', icon: '📚' },
     { name: 'Courses', href: '/app/courses', icon: '🎓' },

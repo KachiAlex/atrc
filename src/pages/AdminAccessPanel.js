@@ -172,6 +172,15 @@ const AdminAccessPanel = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-6">
             <div>
+              <div className="flex items-center space-x-4 mb-2">
+                <button
+                  onClick={() => navigate('/app/dashboard')}
+                  className="flex items-center text-primary-600 hover:text-primary-700 transition-colors"
+                >
+                  <span className="mr-2">←</span>
+                  Back to Dashboard
+                </button>
+              </div>
               <h1 className="text-3xl font-bold text-gray-900">Admin Access Panel</h1>
               <p className="text-gray-600 mt-1">System administration and user management</p>
             </div>
