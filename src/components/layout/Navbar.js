@@ -3,6 +3,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import ATRCLogo from '../ATRCLogo';
 import { HighContrastToggle, FontSizeControls } from '../ui/Accessibility';
+import PWAStatus from '../PWAStatus';
 
 const Navbar = () => {
   const { currentUser, logout } = useAuth();
@@ -20,6 +21,7 @@ const Navbar = () => {
             </div>
           </div>
           <div className="flex items-center space-x-2">
+            <PWAStatus />
             <FontSizeControls />
             <HighContrastToggle />
             <button

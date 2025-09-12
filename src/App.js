@@ -29,6 +29,7 @@ import CourseManagement from './pages/CourseManagement';
 import CourseReader from './pages/CourseReader';
 import LiveMeetings from './pages/LiveMeetings';
 import LiveMeetingsViewer from './pages/LiveMeetingsViewer';
+import PWAInstallPrompt from './components/PWAInstallPrompt';
 
 import './index.css';
 
@@ -183,6 +184,9 @@ function App() {
               {/* Catch all route */}
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
+            
+            {/* PWA Install Prompt */}
+            <PWAInstallPrompt />
           </Router>
         </AuthProvider>
       </ThemeProvider>
