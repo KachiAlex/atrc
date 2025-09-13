@@ -87,6 +87,46 @@ service cloud.firestore {
       allow delete: if isAuthenticated() && isAdmin();
     }
     
+    // Books collection
+    match /books/{bookId} {
+      allow read: if isAuthenticated() && (isAdmin() || isRuler());
+      allow create: if isAuthenticated() && isAdmin();
+      allow update: if isAuthenticated() && isAdmin();
+      allow delete: if isAuthenticated() && isAdmin();
+    }
+    
+    // Project Reports collection
+    match /projectReports/{reportId} {
+      allow read: if isAuthenticated() && (isAdmin() || isRuler());
+      allow create: if isAuthenticated() && (isAdmin() || isRuler());
+      allow update: if isAuthenticated() && (isAdmin() || isRuler());
+      allow delete: if isAuthenticated() && isAdmin();
+    }
+    
+    // Community Reports collection
+    match /communityReports/{reportId} {
+      allow read: if isAuthenticated() && (isAdmin() || isRuler());
+      allow create: if isAuthenticated() && (isAdmin() || isRuler());
+      allow update: if isAuthenticated() && (isAdmin() || isRuler());
+      allow delete: if isAuthenticated() && isAdmin();
+    }
+    
+    // Courses collection
+    match /courses/{courseId} {
+      allow read: if isAuthenticated() && (isAdmin() || isRuler());
+      allow create: if isAuthenticated() && isAdmin();
+      allow update: if isAuthenticated() && isAdmin();
+      allow delete: if isAuthenticated() && isAdmin();
+    }
+    
+    // Live Meetings collection
+    match /liveMeetings/{meetingId} {
+      allow read: if isAuthenticated() && (isAdmin() || isRuler());
+      allow create: if isAuthenticated() && isAdmin();
+      allow update: if isAuthenticated() && isAdmin();
+      allow delete: if isAuthenticated() && isAdmin();
+    }
+    
     // Default deny all other documents
     match /{document=**} {
       allow read, write: if false;

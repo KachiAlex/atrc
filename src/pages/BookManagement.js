@@ -3,25 +3,12 @@ import { collection, addDoc, getDocs, deleteDoc, doc, updateDoc, query, orderBy 
 import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 import { db, storage } from '../firebase/config';
 import { useLanguage } from '../contexts/LanguageContext';
+import BookUploadModal from '../components/BookUploadModal';
 
 const BookManagement = () => {
-  const { t } = useLanguage();
   const [books, setBooks] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [showForm, setShowForm] = useState(false);
-  const [editingBook, setEditingBook] = useState(null);
-  const [formData, setFormData] = useState({
-    title: '',
-    author: '',
-    description: '',
-    category: 'leadership',
-    language: 'en',
-    coverImage: null,
-    pdfFile: null,
-    coverImageUrl: '',
-    pdfUrl: '',
-    isPublished: false
-  });
+  const [showUploadModal, setShowUploadModal] = useState(false);
 
   const categories = [
     { value: 'leadership', label: 'Leadership & Governance' },
@@ -64,14 +51,6 @@ const BookManagement = () => {
     }
   };
 
-  const handleInputChange = (e) => {
-    const { name, value, files } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: files ? files[0] : value
-    }));
-  };
-
   const uploadFile = async (file, path) => {
     if (!file) return null;
     const storageRef = ref(storage, path);
@@ -79,8 +58,7 @@ const BookManagement = () => {
     return await getDownloadURL(snapshot.ref);
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleBookUpload = async (formData) => {
     try {
       setLoading(true);
       
@@ -88,8 +66,8 @@ const BookManagement = () => {
       let pdfUrl = formData.pdfUrl;
 
       // Upload new files if provided
-      if (formData.coverImage) {
-        coverImageUrl = await uploadFile(formData.coverImage, `books/covers/${Date.now()}_${formData.coverImage.name}`);
+      if (formData.coverImageFile) {
+        coverImageUrl = await uploadFile(formData.coverImageFile, `books/covers/${Date.now()}_${formData.coverImageFile.name}`);
       }
       if (formData.pdfFile) {
         pdfUrl = await uploadFile(formData.pdfFile, `books/pdfs/${Date.now()}_${formData.pdfFile.name}`);
@@ -103,52 +81,24 @@ const BookManagement = () => {
         language: formData.language,
         coverImageUrl,
         pdfUrl,
-        isPublished: formData.isPublished,
+        isPublished: formData.publishStatus === 'published',
         createdAt: new Date(),
         updatedAt: new Date()
       };
 
-      if (editingBook) {
-        await updateDoc(doc(db, 'books', editingBook.id), bookData);
-      } else {
-        await addDoc(collection(db, 'books'), bookData);
-      }
-
-      setFormData({
-        title: '',
-        author: '',
-        description: '',
-        category: 'leadership',
-        language: 'en',
-        coverImage: null,
-        pdfFile: null,
-        isPublished: false
-      });
-      setShowForm(false);
-      setEditingBook(null);
+      await addDoc(collection(db, 'books'), bookData);
       fetchBooks();
     } catch (error) {
       console.error('Error saving book:', error);
+      throw error;
     } finally {
       setLoading(false);
     }
   };
 
   const handleEdit = (book) => {
-    setEditingBook(book);
-    setFormData({
-      title: book.title,
-      author: book.author,
-      description: book.description,
-      category: book.category,
-      language: book.language,
-      coverImage: null,
-      pdfFile: null,
-      isPublished: book.isPublished,
-      coverImageUrl: book.coverImageUrl,
-      pdfUrl: book.pdfUrl
-    });
-    setShowForm(true);
+    // TODO: Implement edit functionality
+    console.log('Edit book:', book);
   };
 
   const handleDelete = async (book) => {
@@ -189,6 +139,8 @@ const BookManagement = () => {
     }
   };
 
+  console.log('BookManagement rendering, loading:', loading, 'books count:', books.length, 'showUploadModal:', showUploadModal);
+
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-7xl mx-auto">
@@ -198,8 +150,11 @@ const BookManagement = () => {
             <p className="text-gray-600 mt-2">Upload and manage books for Traditional Rulers</p>
           </div>
           <button
-            onClick={() => setShowForm(true)}
-            className="bg-primary text-white px-6 py-3 rounded-lg hover:bg-primary/90 transition-colors flex items-center gap-2"
+            onClick={() => {
+              console.log('Add New Book button clicked!');
+              setShowUploadModal(true);
+            }}
+            className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -288,8 +243,8 @@ const BookManagement = () => {
             <h3 className="text-lg font-medium text-gray-900 mb-2">No books yet</h3>
             <p className="text-gray-500 mb-4">Get started by uploading your first book for Traditional Rulers</p>
             <button
-              onClick={() => setShowForm(true)}
-              className="bg-primary text-white px-6 py-3 rounded-lg hover:bg-primary/90 transition-colors"
+              onClick={() => setShowUploadModal(true)}
+              className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
             >
               Upload First Book
             </button>
@@ -297,235 +252,12 @@ const BookManagement = () => {
         )}
       </div>
 
-      {/* Book Form Modal */}
-      {showForm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6">
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="text-2xl font-bold text-gray-900">
-                  {editingBook ? 'Edit Book' : 'Add New Book'}
-                </h2>
-                <button
-                  onClick={() => {
-                    setShowForm(false);
-                    setEditingBook(null);
-                    setFormData({
-                      title: '',
-                      author: '',
-                      description: '',
-                      category: 'leadership',
-                      language: 'en',
-                      coverImage: null,
-                      pdfFile: null,
-                      isPublished: false
-                    });
-                  }}
-                  className="text-gray-400 hover:text-gray-600"
-                >
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-              </div>
-
-              <form onSubmit={handleSubmit} className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Book Title *
-                    </label>
-                    <input
-                      type="text"
-                      name="title"
-                      value={formData.title}
-                      onChange={handleInputChange}
-                      required
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                      placeholder="Enter book title"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Author *
-                    </label>
-                    <input
-                      type="text"
-                      name="author"
-                      value={formData.author}
-                      onChange={handleInputChange}
-                      required
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                      placeholder="Enter author name"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Description *
-                  </label>
-                  <textarea
-                    name="description"
-                    value={formData.description}
-                    onChange={handleInputChange}
-                    required
-                    rows={3}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                    placeholder="Enter book description"
-                  />
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Category *
-                    </label>
-                    <select
-                      name="category"
-                      value={formData.category}
-                      onChange={handleInputChange}
-                      required
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                    >
-                      {categories.map(cat => (
-                        <option key={cat.value} value={cat.value}>
-                          {cat.label}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Language *
-                    </label>
-                    <select
-                      name="language"
-                      value={formData.language}
-                      onChange={handleInputChange}
-                      required
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                    >
-                      {languages.map(lang => (
-                        <option key={lang.value} value={lang.value}>
-                          {lang.label}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-
-                {/* Cover Image Section */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Cover Image
-                  </label>
-                  <div className="space-y-3">
-                    <div>
-                      <label className="block text-xs text-gray-600 mb-1">Upload File</label>
-                      <input
-                        type="file"
-                        name="coverImage"
-                        onChange={handleInputChange}
-                        accept="image/*"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                      />
-                    </div>
-                    <div className="text-center text-gray-500">OR</div>
-                    <div>
-                      <label className="block text-xs text-gray-600 mb-1">Image URL</label>
-                      <input
-                        type="url"
-                        name="coverImageUrl"
-                        value={formData.coverImageUrl}
-                        onChange={handleInputChange}
-                        placeholder="https://example.com/cover-image.jpg"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                      />
-                    </div>
-                    {formData.coverImageUrl && !formData.coverImage && (
-                      <div className="mt-2">
-                        <p className="text-sm text-gray-500">Current URL:</p>
-                        <p className="text-xs text-blue-600 break-all">{formData.coverImageUrl}</p>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* PDF File Section */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Book Content *
-                  </label>
-                  <div className="space-y-3">
-                    <div>
-                      <label className="block text-xs text-gray-600 mb-1">Upload PDF File</label>
-                      <input
-                        type="file"
-                        name="pdfFile"
-                        onChange={handleInputChange}
-                        accept=".pdf"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                      />
-                    </div>
-                    <div className="text-center text-gray-500">OR</div>
-                    <div>
-                      <label className="block text-xs text-gray-600 mb-1">PDF URL</label>
-                      <input
-                        type="url"
-                        name="pdfUrl"
-                        value={formData.pdfUrl}
-                        onChange={handleInputChange}
-                        placeholder="https://example.com/book.pdf"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                      />
-                    </div>
-                    {formData.pdfUrl && !formData.pdfFile && (
-                      <div className="mt-2">
-                        <p className="text-sm text-gray-500">Current URL:</p>
-                        <p className="text-xs text-blue-600 break-all">{formData.pdfUrl}</p>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                <div className="flex items-center">
-                  <input
-                    type="checkbox"
-                    name="isPublished"
-                    checked={formData.isPublished}
-                    onChange={(e) => setFormData(prev => ({ ...prev, isPublished: e.target.checked }))}
-                    className="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded"
-                  />
-                  <label className="ml-2 block text-sm text-gray-700">
-                    Publish immediately
-                  </label>
-                </div>
-
-                <div className="flex gap-4 pt-6">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setShowForm(false);
-                      setEditingBook(null);
-                    }}
-                    className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={loading}
-                    className="flex-1 bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50"
-                  >
-                    {loading ? 'Saving...' : editingBook ? 'Update Book' : 'Add Book'}
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Book Upload Modal */}
+      <BookUploadModal
+        isOpen={showUploadModal}
+        onClose={() => setShowUploadModal(false)}
+        onUpload={handleBookUpload}
+      />
     </div>
   );
 };
