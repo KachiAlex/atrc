@@ -1,0 +1,5 @@
+[33m3136de2[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmaster[m[33m, [m[1;31morigin/master[m[33m)[m Fix admin dashboard: remove duplicate sidebar and add back navigation
+[33mdf5e560[m Implement PWA features: service worker, install prompt, offline support, and push notifications
+[33m919fb31[m feat(pwa): add service worker, manifest, registration, and headers for offline support
+[33mea8b5f2[m chore: Add @heroicons/react dependency for educational components
+[33m64f6078[m feat: Add comprehensive educational features for Traditional Rulers

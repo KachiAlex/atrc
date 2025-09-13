@@ -11,7 +11,7 @@ import LiveMeetings from './LiveMeetings';
 const AdminAccessPanel = () => {
   const { currentUser, userRole } = useAuth();
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState('overview');
+  const [activeTab, setActiveTab] = useState('verification');
   const [loading, setLoading] = useState(true);
   const [users, setUsers] = useState([]);
   const [newAdminForm, setNewAdminForm] = useState({
@@ -166,133 +166,215 @@ const AdminAccessPanel = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-6">
+    <div className="min-h-screen bg-gray-50 flex">
+      {/* Admin Sidebar */}
+      <div className="w-64 bg-gray-100 shadow-lg">
+        <div className="p-6">
+          <div className="flex items-center space-x-3 mb-8">
+            <span className="text-2xl">👑</span>
             <div>
-              <div className="flex items-center space-x-4 mb-2">
-                <button
-                  onClick={() => navigate('/app/dashboard')}
-                  className="flex items-center text-primary-600 hover:text-primary-700 transition-colors"
-                >
-                  <span className="mr-2">←</span>
-                  Back to Dashboard
-                </button>
-              </div>
-              <h1 className="text-3xl font-bold text-gray-900">Admin Access Panel</h1>
-              <p className="text-gray-600 mt-1">System administration and user management</p>
+              <h2 className="text-xl font-bold text-gray-900">ATRFC Admin</h2>
             </div>
-            <div className="flex items-center space-x-4">
-              <div className="text-right">
-                <p className="text-sm font-medium text-gray-900">{currentUser?.displayName}</p>
-                <p className="text-xs text-gray-500">System Administrator</p>
-              </div>
-              <div className="h-10 w-10 rounded-full bg-primary-100 flex items-center justify-center">
-                <span className="text-lg">👑</span>
-              </div>
-            </div>
+          </div>
+          
+          <nav className="space-y-2">
+            <button
+              onClick={() => setActiveTab('users')}
+              className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left transition-colors ${
+                activeTab === 'users' ? 'bg-blue-100 text-blue-700' : 'text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              <span className="text-lg">👥</span>
+              <span className="font-medium">User Management</span>
+            </button>
+            
+            <button
+              onClick={() => setActiveTab('verification')}
+              className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left transition-colors ${
+                activeTab === 'verification' ? 'bg-blue-100 text-blue-700' : 'text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              <span className="text-lg">🛡️</span>
+              <span className="font-medium">Verification Cases</span>
+            </button>
+            
+            <button
+              onClick={() => setActiveTab('books')}
+              className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left transition-colors ${
+                activeTab === 'books' ? 'bg-blue-100 text-blue-700' : 'text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              <span className="text-lg">📚</span>
+              <span className="font-medium">Book Management</span>
+            </button>
+            
+            <button
+              onClick={() => setActiveTab('analytics')}
+              className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left transition-colors ${
+                activeTab === 'analytics' ? 'bg-blue-100 text-blue-700' : 'text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              <span className="text-lg">📊</span>
+              <span className="font-medium">Analytics</span>
+            </button>
+          </nav>
+          
+          <div className="mt-8 p-4 bg-gray-200 rounded-lg">
+            <p className="text-sm text-gray-600">Logged in as:</p>
+            <p className="font-semibold text-gray-900">{currentUser?.email}</p>
+            <p className="text-sm text-blue-600">Super Admin</p>
           </div>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Stats Overview */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <StatCard
-            title="Total Users"
-            value={stats.totalUsers}
-            icon="👥"
-            color="blue"
-          />
-          <StatCard
-            title="Active Rulers"
-            value={stats.activeRulers}
-            icon="👑"
-            color="green"
-          />
-          <StatCard
-            title="Pending Verifications"
-            value={stats.pendingVerifications}
-            icon="⏳"
-            color="yellow"
-          />
-          <StatCard
-            title="System Admins"
-            value={stats.totalAdmins}
-            icon="🛡️"
-            color="red"
-          />
+      {/* Main Content */}
+      <div className="flex-1 flex flex-col">
+        {/* Top Navigation Bar */}
+        <div className="bg-blue-900 text-white px-6 py-4 flex justify-between items-center">
+          <div className="flex items-center space-x-3">
+            <span className="text-lg">🏛️</span>
+            <span className="font-semibold">ATRC Leadership Institute</span>
+          </div>
+          <div className="flex items-center space-x-4">
+            <span className="text-sm">Web App</span>
+            <span className="text-sm">Font Size: A A A</span>
+            <span className="text-lg">☀️</span>
+            <button
+              onClick={() => navigate('/app/dashboard')}
+              className="bg-red-600 hover:bg-red-700 px-4 py-2 rounded text-sm font-medium transition-colors"
+            >
+              Logout
+            </button>
+          </div>
         </div>
 
-        {/* Tab Navigation */}
-        <div className="bg-white rounded-lg shadow-md mb-6">
-          <div className="border-b border-gray-200">
-            <nav className="flex flex-wrap space-x-2 px-6">
-              <TabButton
-                value="overview"
-                isActive={activeTab === 'overview'}
-                onClick={setActiveTab}
-              >
-                📊 System Overview
-              </TabButton>
-              <TabButton
-                value="users"
-                isActive={activeTab === 'users'}
-                onClick={setActiveTab}
-              >
-                👥 User Management
-              </TabButton>
-              <TabButton
-                value="verification"
-                isActive={activeTab === 'verification'}
-                onClick={setActiveTab}
-              >
-                🛡️ Verification Cases
-              </TabButton>
-              <TabButton
-                value="books"
-                isActive={activeTab === 'books'}
-                onClick={setActiveTab}
-              >
-                📚 Book Management
-              </TabButton>
-              <TabButton
-                value="courses"
-                isActive={activeTab === 'courses'}
-                onClick={setActiveTab}
-              >
-                🎓 Course Management
-              </TabButton>
-              <TabButton
-                value="meetings"
-                isActive={activeTab === 'meetings'}
-                onClick={setActiveTab}
-              >
-                📹 Live Meetings
-              </TabButton>
-              <TabButton
-                value="security"
-                isActive={activeTab === 'security'}
-                onClick={setActiveTab}
-              >
-                🔐 Security Settings
-              </TabButton>
-            </nav>
+        {/* Main Dashboard Content */}
+        <div className="flex-1 p-8">
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">Super Admin Dashboard</h1>
+            <p className="text-gray-600">Manage throne verifications, documents, and overall ATRFC activity.</p>
           </div>
 
-          {/* Tab Content */}
-          <div className="p-6">
-            {loading && (
-              <div className="text-center py-8">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600 mx-auto mb-4"></div>
-                <p className="text-gray-600">Loading admin data...</p>
+          {/* Stats Overview */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div className="bg-white rounded-lg shadow-md p-6 border-l-4 border-purple-500">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-700 mb-2">Total Users</h3>
+                  <p className="text-3xl font-bold text-gray-900">{stats.totalUsers}</p>
+                </div>
+                <div className="text-4xl text-purple-500">👥</div>
               </div>
-            )}
+            </div>
+            
+            <div className="bg-white rounded-lg shadow-md p-6 border-l-4 border-yellow-500">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-700 mb-2">Active Rulers</h3>
+                  <p className="text-3xl font-bold text-gray-900">{stats.activeRulers}</p>
+                </div>
+                <div className="text-4xl text-yellow-500">👑</div>
+              </div>
+            </div>
+            
+            <div className="bg-white rounded-lg shadow-md p-6 border-l-4 border-yellow-500">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-700 mb-2">Project Reports</h3>
+                  <p className="text-3xl font-bold text-gray-900">0</p>
+                </div>
+                <div className="text-4xl text-yellow-500">📁</div>
+              </div>
+            </div>
+            
+            <div className="bg-white rounded-lg shadow-md p-6 border-l-4 border-blue-500">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-700 mb-2">Community Reports</h3>
+                  <p className="text-3xl font-bold text-gray-900">0</p>
+                </div>
+                <div className="text-4xl text-blue-500">📝</div>
+              </div>
+            </div>
+          </div>
 
-            {/* System Overview */}
-            {activeTab === 'overview' && !loading && (
+          {/* Tab Navigation */}
+          <div className="bg-white rounded-lg shadow-md mb-6">
+            <div className="border-b border-gray-200">
+              <nav className="flex space-x-1 px-6">
+                <button
+                  onClick={() => setActiveTab('users')}
+                  className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
+                    activeTab === 'users' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'
+                  }`}
+                >
+                  Users
+                </button>
+                <button
+                  onClick={() => setActiveTab('verification')}
+                  className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
+                    activeTab === 'verification' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'
+                  }`}
+                >
+                  Verification
+                </button>
+                <button
+                  onClick={() => setActiveTab('projects')}
+                  className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
+                    activeTab === 'projects' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'
+                  }`}
+                >
+                  Projects
+                </button>
+                <button
+                  onClick={() => setActiveTab('community')}
+                  className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
+                    activeTab === 'community' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'
+                  }`}
+                >
+                  Community
+                </button>
+                <button
+                  onClick={() => setActiveTab('books')}
+                  className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
+                    activeTab === 'books' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'
+                  }`}
+                >
+                  Books
+                </button>
+                <button
+                  onClick={() => setActiveTab('analytics')}
+                  className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
+                    activeTab === 'analytics' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'
+                  }`}
+                >
+                  Analytics
+                </button>
+              </nav>
+            </div>
+
+            {/* Tab Content */}
+            <div className="p-6">
+              {loading && (
+                <div className="text-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600 mx-auto mb-4"></div>
+                  <p className="text-gray-600">Loading admin data...</p>
+                </div>
+              )}
+
+              {/* Verification Cases */}
+              {activeTab === 'verification' && !loading && (
+                <div>
+                  <h3 className="text-xl font-semibold text-gray-900 mb-6">User Verification Status</h3>
+                  <div className="text-center py-8 text-gray-500">
+                    <div className="text-4xl mb-2">✅</div>
+                    <p>No pending verifications.</p>
+                  </div>
+                </div>
+              )}
+
+              {/* System Overview */}
+              {activeTab === 'overview' && !loading && (
               <div>
                 <h3 className="text-xl font-semibold text-gray-900 mb-6">System Overview</h3>
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -554,12 +636,13 @@ const AdminAccessPanel = () => {
               </div>
             )}
 
-            {/* Live Meetings */}
-            {activeTab === 'meetings' && !loading && (
-              <div>
-                <LiveMeetings />
-              </div>
-            )}
+              {/* Live Meetings */}
+              {activeTab === 'meetings' && !loading && (
+                <div>
+                  <LiveMeetings />
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>
