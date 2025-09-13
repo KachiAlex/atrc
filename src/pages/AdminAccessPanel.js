@@ -166,7 +166,7 @@ const AdminAccessPanel = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
+    <div className="min-h-screen bg-gray-50 text-gray-900 flex">
       {/* Admin Sidebar */}
       <div className="w-64 bg-gray-100 shadow-lg">
         <div className="p-6">

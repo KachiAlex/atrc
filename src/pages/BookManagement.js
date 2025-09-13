@@ -142,7 +142,7 @@ const BookManagement = () => {
   console.log('BookManagement rendering, loading:', loading, 'books count:', books.length, 'showUploadModal:', showUploadModal);
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="min-h-screen bg-gray-50 text-gray-900 p-6">
       <div className="max-w-7xl mx-auto">
         <div className="flex justify-between items-center mb-8">
           <div>

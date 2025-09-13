@@ -78,7 +78,7 @@ const BookUploadModal = ({ isOpen, onClose, onUpload }) => {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+      <div className="bg-white text-gray-900 rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between p-6 border-b">
           <h2 className="text-xl font-semibold text-gray-900">Upload New Book</h2>
           <button
@@ -102,7 +102,7 @@ const BookUploadModal = ({ isOpen, onClose, onUpload }) => {
                 value={formData.title}
                 onChange={handleInputChange}
                 required
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600 text-gray-900 bg-white"
                 placeholder="Enter book title"
               />
             </div>
@@ -117,7 +117,7 @@ const BookUploadModal = ({ isOpen, onClose, onUpload }) => {
                 value={formData.author}
                 onChange={handleInputChange}
                 required
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600 text-gray-900 bg-white"
                 placeholder="Enter author name"
               />
             </div>
@@ -132,7 +132,7 @@ const BookUploadModal = ({ isOpen, onClose, onUpload }) => {
               value={formData.description}
               onChange={handleInputChange}
               rows={3}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600 text-gray-900 bg-white"
               placeholder="Enter book description"
             />
           </div>
@@ -146,7 +146,7 @@ const BookUploadModal = ({ isOpen, onClose, onUpload }) => {
                 name="category"
                 value={formData.category}
                 onChange={handleInputChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600 text-gray-900 bg-white"
               >
                 <option value="">Select category</option>
                 {categories.map(cat => (
@@ -163,7 +163,7 @@ const BookUploadModal = ({ isOpen, onClose, onUpload }) => {
                 name="language"
                 value={formData.language}
                 onChange={handleInputChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600 text-gray-900 bg-white"
               >
                 {languages.map(lang => (
                   <option key={lang} value={lang}>{lang}</option>
@@ -179,7 +179,7 @@ const BookUploadModal = ({ isOpen, onClose, onUpload }) => {
                 name="publishStatus"
                 value={formData.publishStatus}
                 onChange={handleInputChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600 text-gray-900 bg-white"
               >
                 <option value="draft">Draft</option>
                 <option value="published">Published</option>
@@ -255,7 +255,7 @@ const BookUploadModal = ({ isOpen, onClose, onUpload }) => {
                 name="coverImageUrl"
                 value={formData.coverImageUrl}
                 onChange={handleInputChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600 text-gray-900 bg-white"
                 placeholder="Enter cover image URL"
               />
             )}
@@ -302,7 +302,7 @@ const BookUploadModal = ({ isOpen, onClose, onUpload }) => {
                 value={formData.pdfUrl}
                 onChange={handleInputChange}
                 required
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600 text-gray-900 bg-white"
                 placeholder="Enter PDF file URL"
               />
             )}
