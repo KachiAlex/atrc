@@ -1,10 +1,11 @@
 import React from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 import TraditionalRulersDashboard from '../pages/TraditionalRulersDashboard';
-import AdminDashboard from '../pages/AdminDashboard';
 
 const RoleBasedDashboard = () => {
   const { userRole, loading } = useAuth();
+  const navigate = useNavigate();
 
   console.log('RoleBasedDashboard - userRole:', userRole, 'loading:', loading);
 
@@ -26,8 +27,9 @@ const RoleBasedDashboard = () => {
   // Route to appropriate dashboard based on user role
   switch (userRole) {
     case 'admin':
-      console.log('RoleBasedDashboard - Rendering AdminDashboard');
-      return <AdminDashboard />;
+      console.log('RoleBasedDashboard - Redirecting admin to admin panel');
+      navigate('/app/admin/panel');
+      return null;
     case 'ruler':
       console.log('RoleBasedDashboard - Rendering TraditionalRulersDashboard');
       return <TraditionalRulersDashboard />;
