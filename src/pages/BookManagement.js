@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { collection, addDoc, getDocs, deleteDoc, doc, updateDoc, query, orderBy } from 'firebase/firestore';
+import { collection, addDoc, getDocs, deleteDoc, doc, updateDoc, query, orderBy, where } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 import { db, storage } from '../firebase/config';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -37,7 +37,7 @@ const BookManagement = () => {
     try {
       setLoading(true);
       const booksRef = collection(db, 'books');
-      const q = query(booksRef, orderBy('createdAt', 'desc'));
+      const q = query(booksRef, where('isPublished', '==', true), orderBy('createdAt', 'desc'));
       const snapshot = await getDocs(q);
       const booksData = snapshot.docs.map(doc => ({
         id: doc.id,
@@ -127,17 +127,6 @@ const BookManagement = () => {
     }
   };
 
-  const togglePublish = async (book) => {
-    try {
-      await updateDoc(doc(db, 'books', book.id), {
-        isPublished: !book.isPublished,
-        updatedAt: new Date()
-      });
-      fetchBooks();
-    } catch (error) {
-      console.error('Error updating book status:', error);
-    }
-  };
 
   console.log('BookManagement rendering, loading:', loading, 'books count:', books.length, 'showUploadModal:', showUploadModal);
 
@@ -186,13 +175,6 @@ const BookManagement = () => {
               <div className="p-4">
                 <div className="flex justify-between items-start mb-2">
                   <h3 className="font-semibold text-lg text-gray-900 line-clamp-2">{book.title}</h3>
-                  <span className={`px-2 py-1 text-xs rounded-full ${
-                    book.isPublished 
-                      ? 'bg-green-100 text-green-800' 
-                      : 'bg-yellow-100 text-yellow-800'
-                  }`}>
-                    {book.isPublished ? 'Published' : 'Draft'}
-                  </span>
                 </div>
                 <p className="text-gray-600 text-sm mb-2">by {book.author}</p>
                 <p className="text-gray-500 text-xs mb-3 line-clamp-2">{book.description}</p>
@@ -214,16 +196,6 @@ const BookManagement = () => {
                     Edit
                   </button>
                   <button
-                    onClick={() => togglePublish(book)}
-                    className={`flex-1 px-3 py-2 rounded text-sm transition-colors ${
-                      book.isPublished
-                        ? 'bg-yellow-500 text-white hover:bg-yellow-600'
-                        : 'bg-green-500 text-white hover:bg-green-600'
-                    }`}
-                  >
-                    {book.isPublished ? 'Unpublish' : 'Publish'}
-                  </button>
-                  <button
                     onClick={() => handleDelete(book)}
                     className="flex-1 bg-red-500 text-white px-3 py-2 rounded text-sm hover:bg-red-600 transition-colors"
                   >
@@ -242,12 +214,7 @@ const BookManagement = () => {
             </svg>
             <h3 className="text-lg font-medium text-gray-900 mb-2">No books yet</h3>
             <p className="text-gray-500 mb-4">Get started by uploading your first book for Traditional Rulers</p>
-            <button
-              onClick={() => setShowUploadModal(true)}
-              className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
-            >
-              Upload First Book
-            </button>
+            <p className="text-sm text-gray-400">Use the "Add New Book" button above to get started</p>
           </div>
         )}
       </div>

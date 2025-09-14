@@ -308,6 +308,25 @@ const BookUploadModal = ({ isOpen, onClose, onUpload }) => {
             )}
           </div>
 
+          {/* Publish Status */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              📢 Publish Status
+            </label>
+            <select
+              name="publishStatus"
+              value={formData.publishStatus}
+              onChange={handleInputChange}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600 text-gray-900 bg-white"
+            >
+              <option value="draft">Save as Draft</option>
+              <option value="published">Publish Immediately</option>
+            </select>
+            <p className="text-xs text-gray-500 mt-1">
+              Published books will be visible to all rulers in the Digital Library
+            </p>
+          </div>
+
           {/* Action Buttons */}
           <div className="flex justify-end space-x-3 pt-4 border-t">
             <button

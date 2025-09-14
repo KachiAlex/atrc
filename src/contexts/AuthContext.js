@@ -24,16 +24,22 @@ export const AuthProvider = ({ children }) => {
       
       // Create user document in Firestore with default role
       const userDocRef = doc(db, 'users', result.user.uid);
-      await setDoc(userDocRef, {
+      const userDocData = {
         email: email,
         role: userData.role || 'ruler', // Default role is 'ruler'
         displayName: userData.displayName || '',
         createdAt: new Date(),
+        isActive: true,
         ...userData
-      });
+      };
+      
+      console.log('Creating user document with data:', userDocData);
+      await setDoc(userDocRef, userDocData);
+      console.log('User document created successfully');
       
       return result;
     } catch (error) {
+      console.error('Error in signup:', error);
       throw error;
     }
   };
@@ -64,7 +70,22 @@ export const AuthProvider = ({ children }) => {
             setUserRole(userData.role || 'ruler');
           } else {
             console.log('User document does not exist, creating default role');
-            setUserRole('ruler'); // Default role
+            // Try to create the user document if it doesn't exist
+            try {
+              const userDocRef = doc(db, 'users', user.uid);
+              await setDoc(userDocRef, {
+                email: user.email,
+                role: 'ruler',
+                displayName: user.displayName || '',
+                createdAt: new Date(),
+                isActive: true
+              });
+              console.log('Created missing user document');
+              setUserRole('ruler');
+            } catch (createError) {
+              console.error('Error creating user document:', createError);
+              setUserRole('ruler'); // Default role even if creation fails
+            }
           }
         } catch (error) {
           console.error('Error fetching user role:', error);

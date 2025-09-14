@@ -128,6 +128,60 @@ service firebase.storage {
                        (isAdmin() || isRuler());
     }
     
+    // Book covers
+    match /books/covers/{fileName} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated() && 
+                      isValidImageType() && 
+                      isValidFileSize(5); // 5MB limit
+      allow delete: if isAuthenticated();
+    }
+    
+    // Book files (PDFs)
+    match /books/pdfs/{fileName} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated() && 
+                      isValidDocumentType() &&
+                      isValidFileSize(50); // 50MB limit
+      allow delete: if isAuthenticated();
+    }
+    
+    // Book files (general)
+    match /books/files/{fileName} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated() && 
+                      (isValidDocumentType() || isValidImageType()) &&
+                      isValidFileSize(50); // 50MB limit
+      allow delete: if isAuthenticated();
+    }
+    
+    // Course thumbnails
+    match /courses/thumbnails/{fileName} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated() && 
+                      isValidImageType() && 
+                      isValidFileSize(5); // 5MB limit
+      allow delete: if isAuthenticated();
+    }
+    
+    // Course videos
+    match /courses/videos/{fileName} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated() && 
+                      isValidVideoType() &&
+                      isValidFileSize(100); // 100MB limit
+      allow delete: if isAuthenticated();
+    }
+    
+    // Course materials
+    match /courses/materials/{fileName} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated() && 
+                      (isValidDocumentType() || isValidImageType() || isValidVideoType() || isValidAudioType()) &&
+                      isValidFileSize(50); // 50MB limit
+      allow delete: if isAuthenticated();
+    }
+    
     // Default deny all other files
     match /{allPaths=**} {
       allow read, write: if false;

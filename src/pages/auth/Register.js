@@ -43,29 +43,28 @@ const Register = () => {
 
     try {
       setLoading(true);
-      const { user } = await signup(formData.email, formData.password);
       
-      // Create user profile in Firestore
-      const userProfile = {
-        uid: user.uid,
+      // Prepare user data for signup
+      const userData = {
         firstName: formData.firstName,
         lastName: formData.lastName,
-        email: formData.email,
+        displayName: `${formData.firstName} ${formData.lastName}`,
         role: formData.role,
         community: formData.community,
         phone: formData.phone,
         title: formData.title,
         isActive: true,
-        createdAt: new Date(),
         updatedAt: new Date()
       };
-
-      // This would typically be handled by a cloud function
-      // For now, we'll just show success
+      
+      const { user } = await signup(formData.email, formData.password, userData);
+      
       toast.success('Registration successful!');
       navigate('/app/dashboard');
     } catch (error) {
       console.error('Registration error:', error);
+      console.error('Error code:', error.code);
+      console.error('Error message:', error.message);
       
       // Handle specific Firebase auth errors
       let errorMessage = 'Failed to register. Please try again.';
@@ -90,6 +89,7 @@ const Register = () => {
           errorMessage = error.message || 'Failed to register. Please try again.';
       }
       
+      console.log('Showing error toast:', errorMessage);
       toast.error(errorMessage);
     } finally {
       setLoading(false);

@@ -209,6 +209,16 @@ const AdminAccessPanel = () => {
             </button>
             
             <button
+              onClick={() => setActiveTab('courses')}
+              className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left transition-colors ${
+                activeTab === 'courses' ? 'bg-blue-100 text-blue-700' : 'text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              <span className="text-lg">🎓</span>
+              <span className="font-medium">Course Management</span>
+            </button>
+            
+            <button
               onClick={() => setActiveTab('analytics')}
               className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left transition-colors ${
                 activeTab === 'analytics' ? 'bg-blue-100 text-blue-700' : 'text-gray-700 hover:bg-gray-200'
@@ -341,6 +351,14 @@ const AdminAccessPanel = () => {
                   }`}
                 >
                   Books
+                </button>
+                <button
+                  onClick={() => setActiveTab('courses')}
+                  className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
+                    activeTab === 'courses' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'
+                  }`}
+                >
+                  Courses
                 </button>
                 <button
                   onClick={() => setActiveTab('analytics')}
