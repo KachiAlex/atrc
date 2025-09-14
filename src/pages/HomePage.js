@@ -4,7 +4,6 @@ import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import LanguageSelector from '../components/LanguageSelector';
 import ATRCLogo from '../components/ATRCLogo';
-import TraditionalRulerCard from '../components/TraditionalRulerCard';
 
 const HomePage = () => {
   const { isDarkMode, toggleTheme } = useTheme();
@@ -133,62 +132,6 @@ const HomePage = () => {
     { number: '24/7', label: t('stats.support') }
   ];
 
-  const traditionalRulers = [
-    {
-      id: 1,
-      name: "Oba Adeyemi III",
-      title: "Alaafin of Oyo",
-      kingdom: "Oyo Kingdom, Nigeria",
-      image: "https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400&h=500&fit=crop&crop=face",
-      description: "A distinguished traditional ruler known for his wisdom and leadership in preserving Yoruba culture and traditions.",
-      achievements: ["Cultural Preservation", "Community Development", "Youth Empowerment"]
-    },
-    {
-      id: 2,
-      name: "Kabaka Mutebi II",
-      title: "King of Buganda",
-      kingdom: "Buganda Kingdom, Uganda",
-      image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=500&fit=crop&crop=face",
-      description: "A modern traditional leader who has successfully bridged traditional governance with contemporary development.",
-      achievements: ["Education Advancement", "Economic Development", "Cultural Heritage"]
-    },
-    {
-      id: 3,
-      name: "Oba Rilwan Akiolu",
-      title: "Oba of Lagos",
-      kingdom: "Lagos Kingdom, Nigeria",
-      image: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=500&fit=crop&crop=face",
-      description: "A progressive traditional ruler who has been instrumental in modernizing traditional governance practices.",
-      achievements: ["Urban Development", "Technology Integration", "Social Welfare"]
-    },
-    {
-      id: 4,
-      name: "Asantehene Otumfuo Osei Tutu II",
-      title: "King of Ashanti",
-      kingdom: "Ashanti Kingdom, Ghana",
-      image: "https://images.unsplash.com/photo-1560250097-0b93528c311a?w=400&h=500&fit=crop&crop=face",
-      description: "A revered monarch known for his commitment to education and development in the Ashanti region.",
-      achievements: ["Educational Excellence", "Healthcare Initiatives", "Cultural Promotion"]
-    },
-    {
-      id: 5,
-      name: "Emir Muhammadu Sanusi II",
-      title: "Emir of Kano",
-      kingdom: "Kano Emirate, Nigeria",
-      image: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&h=500&fit=crop&crop=face",
-      description: "A forward-thinking traditional leader who has championed economic reforms and social development.",
-      achievements: ["Economic Reforms", "Social Justice", "Interfaith Dialogue"]
-    },
-    {
-      id: 6,
-      name: "Mwami Ndeze III",
-      title: "King of Rwanda",
-      kingdom: "Rwanda Kingdom",
-      image: "https://images.unsplash.com/photo-1595152772835-219674b2a8a6?w=400&h=500&fit=crop&crop=face",
-      description: "A traditional ruler dedicated to reconciliation and unity in post-conflict Rwanda.",
-      achievements: ["Reconciliation", "National Unity", "Cultural Revival"]
-    }
-  ];
 
   return (
     <div className={`min-h-screen ${isDarkMode ? 'bg-gray-900 text-white' : 'bg-gray-50 text-gray-900'}`}>
@@ -415,68 +358,6 @@ const HomePage = () => {
         </div>
       </div>
 
-      {/* Traditional Rulers Gallery Section */}
-      <div 
-        id="rulers" 
-        data-animate
-        className={`py-20 ${isDarkMode ? 'bg-gray-800' : 'bg-white'} ${
-          visibleSections.has('rulers') ? 'animate-fadeInUp' : 'opacity-0'
-        }`}
-      >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className={`text-center transform transition-all duration-1000 ${
-            visibleSections.has('rulers') ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'
-          }`}>
-            <h2 className={`text-3xl font-extrabold ${isDarkMode ? 'text-white' : 'text-gray-900'} sm:text-4xl`}>
-              Our Distinguished Traditional Rulers
-            </h2>
-            <p className={`mt-4 text-lg max-w-3xl mx-auto ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-              Meet the esteemed traditional leaders who are shaping the future of African communities through wisdom, innovation, and cultural preservation.
-            </p>
-          </div>
-
-          <div className="mt-16">
-            <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
-              {traditionalRulers.map((ruler, index) => (
-                <TraditionalRulerCard
-                  key={ruler.id}
-                  ruler={ruler}
-                  index={index}
-                  isDarkMode={isDarkMode}
-                  visibleSections={visibleSections}
-                  sectionId="rulers"
-                />
-              ))}
-            </div>
-          </div>
-
-          {/* Call to Action */}
-          <div className="mt-16 text-center">
-            <div className={`${isDarkMode ? 'bg-gray-900' : 'bg-gray-50'} rounded-2xl p-8`}>
-              <h3 className={`text-2xl font-bold mb-4 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-                Join Our Network of Traditional Leaders
-              </h3>
-              <p className={`text-lg mb-6 max-w-2xl mx-auto ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-                Connect with fellow traditional rulers, share knowledge, and collaborate on community development initiatives across Africa.
-              </p>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Link
-                  to="/auth"
-                  className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-lg text-white bg-primary-600 hover:bg-primary-700 transition-colors duration-200"
-                >
-                  Become a Member
-                </Link>
-                <Link
-                  to="/login"
-                  className="inline-flex items-center px-6 py-3 border border-gray-300 text-base font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 transition-colors duration-200"
-                >
-                  Learn More
-                </Link>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
 
       {/* Cultural Heritage Section */}
       <div 
