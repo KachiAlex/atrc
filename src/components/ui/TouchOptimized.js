@@ -5,41 +5,36 @@ export const TouchButton = ({
   children, 
   onClick, 
   className = '', 
-  disabled = false,
-  variant = 'primary',
+  variant = 'primary', 
   size = 'md',
+  disabled = false,
   ...props 
 }) => {
-  const baseClasses = 'inline-flex items-center justify-center font-medium rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2';
+  const baseClasses = 'touch-manipulation select-none transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2';
   
-  const sizeClasses = {
-    sm: 'px-3 py-2 text-sm min-h-[44px]',
-    md: 'px-4 py-3 text-base min-h-[48px]',
-    lg: 'px-6 py-4 text-lg min-h-[52px]'
+  const variants = {
+    primary: 'bg-primary-600 text-white hover:bg-primary-700 active:bg-primary-800 focus:ring-primary-500',
+    secondary: 'bg-gray-200 text-gray-900 hover:bg-gray-300 active:bg-gray-400 focus:ring-gray-500',
+    danger: 'bg-red-500 text-white hover:bg-red-600 active:bg-red-700 focus:ring-red-500',
+    success: 'bg-green-500 text-white hover:bg-green-600 active:bg-green-700 focus:ring-green-500',
+    outline: 'border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 active:bg-gray-100 focus:ring-gray-500'
   };
   
-  const variantClasses = {
-    primary: 'bg-primary-600 text-white hover:bg-primary-700 focus:ring-primary-500 active:bg-primary-800',
-    secondary: 'bg-gray-200 text-gray-900 hover:bg-gray-300 focus:ring-gray-500 active:bg-gray-400',
-    danger: 'bg-red-600 text-white hover:bg-red-700 focus:ring-red-500 active:bg-red-800',
-    success: 'bg-green-600 text-white hover:bg-green-700 focus:ring-green-500 active:bg-green-800'
+  const sizes = {
+    sm: 'px-3 py-2 text-sm rounded-md',
+    md: 'px-4 py-3 text-base rounded-lg',
+    lg: 'px-6 py-4 text-lg rounded-xl'
   };
   
-  const disabledClasses = 'opacity-50 cursor-not-allowed';
+  const disabledClasses = disabled 
+    ? 'opacity-50 cursor-not-allowed' 
+    : 'cursor-pointer';
   
-  const classes = `
-    ${baseClasses}
-    ${sizeClasses[size]}
-    ${variantClasses[variant]}
-    ${disabled ? disabledClasses : ''}
-    ${className}
-  `.trim();
-
   return (
     <button
-      className={classes}
       onClick={onClick}
       disabled={disabled}
+      className={`${baseClasses} ${variants[variant]} ${sizes[size]} ${disabledClasses} ${className}`}
       {...props}
     >
       {children}
@@ -50,26 +45,20 @@ export const TouchButton = ({
 // Touch-optimized card component
 export const TouchCard = ({ 
   children, 
-  onClick, 
   className = '', 
+  onClick,
   hoverable = true,
   ...props 
 }) => {
-  const baseClasses = 'bg-white rounded-lg shadow-md overflow-hidden transition-all duration-200';
-  const hoverClasses = hoverable ? 'hover:shadow-lg active:shadow-md active:scale-[0.98]' : '';
-  const touchClasses = 'min-h-[120px] cursor-pointer';
+  const baseClasses = 'transition-all duration-300 touch-manipulation';
+  const hoverClasses = hoverable 
+    ? 'hover:shadow-lg hover:-translate-y-1 active:translate-y-0 active:shadow-md' 
+    : '';
   
-  const classes = `
-    ${baseClasses}
-    ${hoverClasses}
-    ${onClick ? touchClasses : ''}
-    ${className}
-  `.trim();
-
   return (
     <div
-      className={classes}
       onClick={onClick}
+      className={`${baseClasses} ${hoverClasses} ${className}`}
       {...props}
     >
       {children}
@@ -79,26 +68,21 @@ export const TouchCard = ({
 
 // Touch-optimized input component
 export const TouchInput = ({ 
-  className = '',
+  className = '', 
   size = 'md',
   ...props 
 }) => {
-  const baseClasses = 'w-full border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors';
-  const sizeClasses = {
-    sm: 'px-3 py-2 text-sm min-h-[44px]',
-    md: 'px-4 py-3 text-base min-h-[48px]',
-    lg: 'px-6 py-4 text-lg min-h-[52px]'
+  const baseClasses = 'touch-manipulation transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent';
+  
+  const sizes = {
+    sm: 'px-3 py-2 text-sm rounded-md',
+    md: 'px-4 py-3 text-base rounded-lg',
+    lg: 'px-6 py-4 text-lg rounded-xl'
   };
   
-  const classes = `
-    ${baseClasses}
-    ${sizeClasses[size]}
-    ${className}
-  `.trim();
-
   return (
     <input
-      className={classes}
+      className={`${baseClasses} ${sizes[size]} ${className}`}
       {...props}
     />
   );
@@ -107,60 +91,25 @@ export const TouchInput = ({
 // Touch-optimized select component
 export const TouchSelect = ({ 
   children,
-  className = '',
+  className = '', 
   size = 'md',
   ...props 
 }) => {
-  const baseClasses = 'w-full border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors bg-white';
-  const sizeClasses = {
-    sm: 'px-3 py-2 text-sm min-h-[44px]',
-    md: 'px-4 py-3 text-base min-h-[48px]',
-    lg: 'px-6 py-4 text-lg min-h-[52px]'
+  const baseClasses = 'touch-manipulation transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent';
+  
+  const sizes = {
+    sm: 'px-3 py-2 text-sm rounded-md',
+    md: 'px-4 py-3 text-base rounded-lg',
+    lg: 'px-6 py-4 text-lg rounded-xl'
   };
   
-  const classes = `
-    ${baseClasses}
-    ${sizeClasses[size]}
-    ${className}
-  `.trim();
-
   return (
     <select
-      className={classes}
+      className={`${baseClasses} ${sizes[size]} ${className}`}
       {...props}
     >
       {children}
     </select>
-  );
-};
-
-// Touch-optimized navigation item
-export const TouchNavItem = ({ 
-  children, 
-  onClick, 
-  isActive = false,
-  className = '',
-  ...props 
-}) => {
-  const baseClasses = 'flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200 min-h-[48px]';
-  const activeClasses = isActive 
-    ? 'bg-primary-100 text-primary-700' 
-    : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900 active:bg-gray-100';
-  
-  const classes = `
-    ${baseClasses}
-    ${activeClasses}
-    ${className}
-  `.trim();
-
-  return (
-    <button
-      className={classes}
-      onClick={onClick}
-      {...props}
-    >
-      {children}
-    </button>
   );
 };
 
@@ -172,72 +121,97 @@ export const SwipeHandler = ({
   onSwipeUp, 
   onSwipeDown,
   threshold = 50,
-  className = '',
-  ...props 
+  className = ''
 }) => {
-  const [touchStart, setTouchStart] = React.useState(null);
-  const [touchEnd, setTouchEnd] = React.useState(null);
-
   const handleTouchStart = (e) => {
-    setTouchEnd(null);
-    setTouchStart(e.targetTouches[0].clientX);
+    const touch = e.touches[0];
+    e.target.startX = touch.clientX;
+    e.target.startY = touch.clientY;
   };
-
-  const handleTouchMove = (e) => {
-    setTouchEnd(e.targetTouches[0].clientX);
-  };
-
-  const handleTouchEnd = () => {
-    if (!touchStart || !touchEnd) return;
+  
+  const handleTouchEnd = (e) => {
+    const touch = e.changedTouches[0];
+    const deltaX = touch.clientX - e.target.startX;
+    const deltaY = touch.clientY - e.target.startY;
     
-    const distance = touchStart - touchEnd;
-    const isLeftSwipe = distance > threshold;
-    const isRightSwipe = distance < -threshold;
-
-    if (isLeftSwipe && onSwipeLeft) {
-      onSwipeLeft();
-    }
-    if (isRightSwipe && onSwipeRight) {
-      onSwipeRight();
+    if (Math.abs(deltaX) > Math.abs(deltaY)) {
+      // Horizontal swipe
+      if (deltaX > threshold && onSwipeRight) {
+        onSwipeRight();
+      } else if (deltaX < -threshold && onSwipeLeft) {
+        onSwipeLeft();
+      }
+    } else {
+      // Vertical swipe
+      if (deltaY > threshold && onSwipeDown) {
+        onSwipeDown();
+      } else if (deltaY < -threshold && onSwipeUp) {
+        onSwipeUp();
+      }
     }
   };
-
+  
   return (
     <div
-      className={className}
+      className={`touch-manipulation ${className}`}
       onTouchStart={handleTouchStart}
-      onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
-      {...props}
     >
       {children}
     </div>
   );
 };
 
-// Touch-optimized modal
-export const TouchModal = ({ 
-  isOpen, 
-  onClose, 
+// Pull-to-refresh component
+export const PullToRefresh = ({ 
   children, 
-  className = '',
-  ...props 
+  onRefresh, 
+  threshold = 80,
+  className = ''
 }) => {
-  if (!isOpen) return null;
-
+  const [isPulling, setIsPulling] = React.useState(false);
+  const [pullDistance, setPullDistance] = React.useState(0);
+  
+  const handleTouchStart = (e) => {
+    e.target.startY = e.touches[0].clientY;
+  };
+  
+  const handleTouchMove = (e) => {
+    const currentY = e.touches[0].clientY;
+    const deltaY = currentY - e.target.startY;
+    
+    if (deltaY > 0 && window.scrollY === 0) {
+      setIsPulling(true);
+      setPullDistance(Math.min(deltaY * 0.5, threshold));
+      e.preventDefault();
+    }
+  };
+  
+  const handleTouchEnd = () => {
+    if (pullDistance >= threshold) {
+      onRefresh();
+    }
+    setIsPulling(false);
+    setPullDistance(0);
+  };
+  
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto">
-      <div className="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
-        {/* Backdrop */}
+    <div
+      className={`relative ${className}`}
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
+    >
+      {isPulling && (
         <div 
-          className="fixed inset-0 transition-opacity bg-gray-500 bg-opacity-75"
-          onClick={onClose}
-        />
-        
-        {/* Modal */}
-        <div className={`inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full ${className}`} {...props}>
-          {children}
+          className="absolute top-0 left-0 right-0 bg-primary-600 text-white text-center py-2 z-10"
+          style={{ transform: `translateY(-${pullDistance}px)` }}
+        >
+          {pullDistance >= threshold ? 'Release to refresh' : 'Pull to refresh'}
         </div>
+      )}
+      <div style={{ transform: `translateY(${pullDistance}px)` }}>
+        {children}
       </div>
     </div>
   );
@@ -248,7 +222,6 @@ export default {
   TouchCard,
   TouchInput,
   TouchSelect,
-  TouchNavItem,
   SwipeHandler,
-  TouchModal
+  PullToRefresh
 };

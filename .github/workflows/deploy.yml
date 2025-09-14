@@ -31,6 +31,6 @@ jobs:
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: '${{ secrets.GITHUB_TOKEN }}'
-          firebaseServiceAccount: '${{ secrets.FIREBASE_TOKEN }}'
+          firebaseServiceAccount: '${{ Dabonega$reus2660 }}'
           channelId: live
           projectId: traditional-rulers-app

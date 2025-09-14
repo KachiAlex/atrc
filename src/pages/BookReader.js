@@ -1,10 +1,25 @@
 import React, { useState, useEffect } from 'react';
 import { collection, getDocs, query, where, orderBy } from 'firebase/firestore';
 import { db } from '../firebase/config';
+import { useAuth } from '../contexts/AuthContext';
+import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { CardSkeleton } from '../components/ui/LoadingSkeleton';
+import { 
+  BookOpenIcon, 
+  MagnifyingGlassIcon, 
+  FunnelIcon,
+  XMarkIcon,
+  ChevronLeftIcon,
+  LanguageIcon,
+  ShareIcon,
+  BookmarkIcon
+} from '@heroicons/react/24/outline';
+import toast from 'react-hot-toast';
 
 const BookReader = () => {
+  const { currentUser } = useAuth();
+  const { isDarkMode } = useTheme();
   const { t, language, changeLanguage } = useLanguage();
   const [books, setBooks] = useState([]);
   const [filteredBooks, setFilteredBooks] = useState([]);
@@ -15,12 +30,14 @@ const BookReader = () => {
   const [selectedLanguage, setSelectedLanguage] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [isReading, setIsReading] = useState(false);
+  const [showFilters, setShowFilters] = useState(false);
   const [showTranslationModal, setShowTranslationModal] = useState(false);
   const [selectedBookForTranslation, setSelectedBookForTranslation] = useState(null);
   const [targetLanguage, setTargetLanguage] = useState('en');
   const [isTranslating, setIsTranslating] = useState(false);
   const [showTranslatedResults, setShowTranslatedResults] = useState(false);
   const [translatedContent, setTranslatedContent] = useState(null);
+  const [bookmarkedBooks, setBookmarkedBooks] = useState(new Set());
 
   const categories = [
     { value: 'all', label: 'All Categories' },
@@ -265,68 +282,129 @@ const BookReader = () => {
 
   if (isReading && selectedBook) {
     return (
-      <div className="min-h-screen bg-gray-50 text-gray-900">
-        {/* Reader Header */}
-        <div className="bg-white shadow-sm border-b">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-between items-center py-4">
-              <div className="flex items-center gap-4">
+      <div className={`min-h-screen ${isDarkMode ? 'bg-gray-900' : 'bg-gray-50'} text-gray-900`}>
+        {/* Enhanced Mobile Reader Header */}
+        <div className={`${isDarkMode ? 'bg-gray-800' : 'bg-white'} shadow-sm border-b sticky top-0 z-10`}>
+          <div className="px-4 py-3">
+            <div className="flex justify-between items-center">
+              <button
+                onClick={closeReader}
+                className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors p-2 -ml-2 rounded-lg hover:bg-gray-100"
+              >
+                <ChevronLeftIcon className="w-5 h-5" />
+                <span className="hidden sm:inline">Back</span>
+              </button>
+              
+              <div className="flex-1 mx-4 min-w-0">
+                <h1 className={`text-lg sm:text-xl font-semibold truncate ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                  {selectedBook.title}
+                </h1>
+                <p className={`text-sm truncate ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                  by {selectedBook.author}
+                </p>
+              </div>
+              
+              <div className="flex items-center gap-2">
                 <button
-                  onClick={closeReader}
-                  className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
+                  onClick={() => {
+                    // Share functionality
+                    if (navigator.share) {
+                      navigator.share({
+                        title: selectedBook.title,
+                        text: `Check out this book: ${selectedBook.title} by ${selectedBook.author}`,
+                        url: window.location.href
+                      });
+                    } else {
+                      toast.success('Book link copied to clipboard!');
+                    }
+                  }}
+                  className={`p-2 rounded-lg transition-colors ${
+                    isDarkMode 
+                      ? 'text-gray-400 hover:text-white hover:bg-gray-700'
+                      : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                  }`}
                 >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                  </svg>
-                  Back to Library
+                  <ShareIcon className="w-5 h-5" />
                 </button>
-                <div>
-                  <h1 className="text-xl font-semibold text-gray-900">{selectedBook.title}</h1>
-                  <p className="text-sm text-gray-600">by {selectedBook.author}</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-4">
-                <div className="flex items-center gap-2">
-                  <span className="text-sm text-gray-600">Language:</span>
-                  <select
-                    value={language}
-                    onChange={(e) => changeLanguage(e.target.value)}
-                    className="px-3 py-1 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-primary focus:border-transparent"
-                  >
-                    {languages.slice(1).map(lang => (
-                      <option key={lang.value} value={lang.value}>
-                        {lang.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <button className="p-2 text-gray-600 hover:text-gray-900 transition-colors">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-                  </svg>
+                
+                <button
+                  onClick={() => {
+                    // Bookmark functionality
+                    setBookmarkedBooks(prev => {
+                      const newSet = new Set(prev);
+                      if (newSet.has(selectedBook.id)) {
+                        newSet.delete(selectedBook.id);
+                        toast.success('Book removed from bookmarks');
+                      } else {
+                        newSet.add(selectedBook.id);
+                        toast.success('Book added to bookmarks');
+                      }
+                      return newSet;
+                    });
+                  }}
+                  className={`p-2 rounded-lg transition-colors ${
+                    bookmarkedBooks.has(selectedBook.id)
+                      ? 'text-red-500 bg-red-50'
+                      : isDarkMode 
+                        ? 'text-gray-400 hover:text-white hover:bg-gray-700'
+                        : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                  }`}
+                >
+                  <BookmarkIcon className={`w-5 h-5 ${bookmarkedBooks.has(selectedBook.id) ? 'fill-current' : ''}`} />
                 </button>
               </div>
+            </div>
+            
+            {/* Mobile Language Selector */}
+            <div className="mt-3 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <LanguageIcon className={`w-4 h-4 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`} />
+                <select
+                  value={language}
+                  onChange={(e) => changeLanguage(e.target.value)}
+                  className={`px-3 py-1 border rounded text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent ${
+                    isDarkMode 
+                      ? 'bg-gray-700 border-gray-600 text-white'
+                      : 'bg-white border-gray-300 text-gray-900'
+                  }`}
+                >
+                  {languages.slice(1).map(lang => (
+                    <option key={lang.value} value={lang.value}>
+                      {lang.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              
+              <button
+                onClick={() => openTranslationModal(selectedBook)}
+                className="flex items-center gap-1 text-sm bg-blue-500 text-white px-3 py-1 rounded-lg hover:bg-blue-600 transition-colors"
+              >
+                <LanguageIcon className="w-4 h-4" />
+                Translate
+              </button>
             </div>
           </div>
         </div>
 
-        {/* PDF Reader */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="bg-white rounded-lg shadow-lg overflow-hidden">
-            <div className="h-[calc(100vh-200px)]">
+        {/* Enhanced PDF Reader */}
+        <div className="px-2 sm:px-4 py-2">
+          <div className={`${isDarkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-lg overflow-hidden`}>
+            <div className="h-[calc(100vh-180px)] sm:h-[calc(100vh-200px)]">
               {selectedBook.pdfUrl ? (
                 <iframe
-                  src={`${selectedBook.pdfUrl}#toolbar=1&navpanes=1&scrollbar=1`}
+                  src={`${selectedBook.pdfUrl}#toolbar=1&navpanes=1&scrollbar=1&zoom=page-width`}
                   className="w-full h-full border-0"
                   title={selectedBook.title}
                 />
               ) : (
                 <div className="flex items-center justify-center h-full text-gray-500">
                   <div className="text-center">
-                    <svg className="w-16 h-16 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                    </svg>
-                    <p>PDF not available</p>
+                    <BookOpenIcon className="w-16 h-16 mx-auto mb-4 text-gray-400" />
+                    <p className={`text-lg ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>PDF not available</p>
+                    <p className={`text-sm mt-2 ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>
+                      The book content is not yet available for reading
+                    </p>
                   </div>
                 </div>
               )}
@@ -338,91 +416,168 @@ const BookReader = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 text-gray-900">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
-        {/* Header */}
+    <div className={`min-h-screen ${isDarkMode ? 'bg-gray-900' : 'bg-gray-50'} text-gray-900`}>
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8 py-4 sm:py-8">
+        {/* Enhanced Header */}
         <div className="text-center mb-6 sm:mb-8">
-          <h1 className="text-2xl sm:text-4xl font-bold text-gray-900 mb-2 sm:mb-4">Digital Library</h1>
-          <p className="text-base sm:text-xl text-gray-600 max-w-3xl mx-auto px-4">
+          <h1 className={`text-2xl sm:text-4xl font-bold mb-2 sm:mb-4 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+            Digital Library
+          </h1>
+          <p className={`text-base sm:text-xl max-w-3xl mx-auto px-4 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
             Discover wisdom, leadership insights, and spiritual growth through our curated collection of books for Traditional Rulers
           </p>
         </div>
 
-        {/* Filters */}
-        <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6 mb-6 sm:mb-8">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Search Books</label>
-              <input
-                type="text"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="Search by title, author, or description..."
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-              />
+        {/* Mobile-Optimized Search Bar */}
+        <div className={`${isDarkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-sm p-4 mb-4`}>
+          <div className="relative">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <MagnifyingGlassIcon className="h-5 w-5 text-gray-400" />
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Category</label>
-              <select
-                value={selectedCategory}
-                onChange={(e) => setSelectedCategory(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Search books..."
+              className={`block w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent ${
+                isDarkMode 
+                  ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' 
+                  : 'bg-white border-gray-300 text-gray-900'
+              }`}
+            />
+            <button
+              onClick={() => setShowFilters(!showFilters)}
+              className={`absolute inset-y-0 right-0 pr-3 flex items-center ${
+                isDarkMode ? 'text-gray-400' : 'text-gray-500'
+              }`}
+            >
+              <FunnelIcon className="h-5 w-5" />
+            </button>
+          </div>
+        </div>
+
+        {/* Collapsible Filters for Mobile */}
+        {showFilters && (
+          <div className={`${isDarkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-sm p-4 mb-6`}>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className={`text-lg font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                Filters
+              </h3>
+              <button
+                onClick={() => setShowFilters(false)}
+                className={`p-1 rounded-md ${isDarkMode ? 'text-gray-400 hover:text-white hover:bg-gray-700' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'}`}
               >
-                {categories.map(cat => (
-                  <option key={cat.value} value={cat.value}>
-                    {cat.label}
-                  </option>
-                ))}
-              </select>
+                <XMarkIcon className="w-5 h-5" />
+              </button>
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Language</label>
-              <select
-                value={selectedLanguage}
-                onChange={(e) => setSelectedLanguage(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-              >
-                {languages.map(lang => (
-                  <option key={lang.value} value={lang.value}>
-                    {lang.label}
-                  </option>
-                ))}
-              </select>
+            
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className={`block text-sm font-medium mb-2 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                  Category
+                </label>
+                <select
+                  value={selectedCategory}
+                  onChange={(e) => setSelectedCategory(e.target.value)}
+                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent ${
+                    isDarkMode 
+                      ? 'bg-gray-700 border-gray-600 text-white'
+                      : 'bg-white border-gray-300 text-gray-900'
+                  }`}
+                >
+                  {categories.map(cat => (
+                    <option key={cat.value} value={cat.value}>
+                      {cat.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              
+              <div>
+                <label className={`block text-sm font-medium mb-2 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                  Language
+                </label>
+                <select
+                  value={selectedLanguage}
+                  onChange={(e) => setSelectedLanguage(e.target.value)}
+                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent ${
+                    isDarkMode 
+                      ? 'bg-gray-700 border-gray-600 text-white'
+                      : 'bg-white border-gray-300 text-gray-900'
+                  }`}
+                >
+                  {languages.map(lang => (
+                    <option key={lang.value} value={lang.value}>
+                      {lang.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
-            <div className="flex items-end">
+            
+            <div className="mt-4 flex gap-2">
               <button
                 onClick={() => {
                   setSearchTerm('');
                   setSelectedCategory('all');
                   setSelectedLanguage('all');
                 }}
-                className="w-full px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                className={`flex-1 px-4 py-2 border rounded-lg transition-colors ${
+                  isDarkMode 
+                    ? 'border-gray-600 text-gray-300 hover:bg-gray-700'
+                    : 'border-gray-300 text-gray-700 hover:bg-gray-50'
+                }`}
               >
-                Clear Filters
+                Clear All
+              </button>
+              <button
+                onClick={() => setShowFilters(false)}
+                className="flex-1 bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition-colors"
+              >
+                Apply Filters
               </button>
             </div>
           </div>
+        )}
+
+        {/* Enhanced Results Count */}
+        <div className="mb-4">
+          <div className="flex items-center justify-between">
+            <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+              Showing {filteredBooks.length} of {books.length} books
+            </p>
+            {(searchTerm || selectedCategory !== 'all' || selectedLanguage !== 'all') && (
+              <button
+                onClick={() => {
+                  setSearchTerm('');
+                  setSelectedCategory('all');
+                  setSelectedLanguage('all');
+                }}
+                className={`text-xs px-2 py-1 rounded-md transition-colors ${
+                  isDarkMode 
+                    ? 'text-gray-400 hover:text-white hover:bg-gray-700'
+                    : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
+                }`}
+              >
+                Clear all
+              </button>
+            )}
+          </div>
         </div>
 
-        {/* Results Count */}
-        <div className="mb-6">
-          <p className="text-gray-600">
-            Showing {filteredBooks.length} of {books.length} books
-          </p>
-        </div>
-
-        {/* Books Grid */}
+        {/* Enhanced Books Grid */}
         {loading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
             {Array.from({ length: 8 }).map((_, index) => (
               <CardSkeleton key={index} />
             ))}
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
             {filteredBooks.map((book) => (
-              <div key={book.id} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
-                <div className="h-64 bg-gray-200 flex items-center justify-center">
+              <div key={book.id} className={`${isDarkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-1 touch-manipulation`}>
+                {/* Book Cover */}
+                <div className="relative h-48 sm:h-56 bg-gray-200 flex items-center justify-center">
                   {book.coverImageUrl ? (
                     <img 
                       src={book.coverImageUrl} 
@@ -431,45 +586,82 @@ const BookReader = () => {
                     />
                   ) : (
                     <div className="text-gray-400 text-center">
-                      <svg className="w-16 h-16 mx-auto mb-2" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd" />
-                      </svg>
+                      <BookOpenIcon className="w-16 h-16 mx-auto mb-2" />
                       <p className="text-sm">No Cover</p>
                     </div>
                   )}
-                </div>
-                <div className="p-4">
-                  <h3 className="font-semibold text-lg text-gray-900 mb-2 line-clamp-2">{book.title}</h3>
-                  <p className="text-gray-600 text-sm mb-2">by {book.author}</p>
-                  <p className="text-gray-500 text-xs mb-3 line-clamp-3">{book.description}</p>
                   
-                  <div className="flex flex-wrap gap-2 mb-4">
-                    <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded">
+                  {/* Bookmark Button */}
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setBookmarkedBooks(prev => {
+                        const newSet = new Set(prev);
+                        if (newSet.has(book.id)) {
+                          newSet.delete(book.id);
+                          toast.success('Book removed from bookmarks');
+                        } else {
+                          newSet.add(book.id);
+                          toast.success('Book added to bookmarks');
+                        }
+                        return newSet;
+                      });
+                    }}
+                    className={`absolute top-2 right-2 p-2 rounded-full transition-colors ${
+                      bookmarkedBooks.has(book.id)
+                        ? 'bg-red-500 text-white'
+                        : isDarkMode 
+                          ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                          : 'bg-white text-gray-500 hover:bg-gray-100'
+                    }`}
+                  >
+                    <BookmarkIcon className={`w-4 h-4 ${bookmarkedBooks.has(book.id) ? 'fill-current' : ''}`} />
+                  </button>
+                </div>
+                
+                {/* Book Info */}
+                <div className="p-3 sm:p-4">
+                  <h3 className={`font-semibold text-base sm:text-lg mb-2 line-clamp-2 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                    {book.title}
+                  </h3>
+                  <p className={`text-sm mb-2 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                    by {book.author}
+                  </p>
+                  <p className={`text-xs mb-3 line-clamp-2 ${isDarkMode ? 'text-gray-500' : 'text-gray-500'}`}>
+                    {book.description}
+                  </p>
+                  
+                  {/* Tags */}
+                  <div className="flex flex-wrap gap-1 mb-3">
+                    <span className={`px-2 py-1 text-xs rounded-full ${
+                      isDarkMode ? 'bg-blue-900 text-blue-300' : 'bg-blue-100 text-blue-800'
+                    }`}>
                       {getLanguageLabel(book.language)}
                     </span>
-                    <span className="px-2 py-1 bg-purple-100 text-purple-800 text-xs rounded">
+                    <span className={`px-2 py-1 text-xs rounded-full ${
+                      isDarkMode ? 'bg-purple-900 text-purple-300' : 'bg-purple-100 text-purple-800'
+                    }`}>
                       {getCategoryLabel(book.category)}
                     </span>
                   </div>
 
+                  {/* Action Buttons */}
                   <div className="flex gap-2">
                     <button
                       onClick={() => openBook(book)}
-                      className="flex-1 bg-primary-600 text-white py-2 px-4 rounded-lg hover:bg-primary-700 transition-colors flex items-center justify-center gap-2"
+                      className="flex-1 bg-primary-600 text-white py-2.5 px-3 rounded-lg hover:bg-primary-700 transition-colors flex items-center justify-center gap-2 text-sm font-medium touch-manipulation"
                     >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                      </svg>
-                      Read Book
+                      <BookOpenIcon className="w-4 h-4" />
+                      <span className="hidden sm:inline">Read Book</span>
+                      <span className="sm:hidden">Read</span>
                     </button>
+                    
                     <button
                       onClick={() => openTranslationModal(book)}
-                      className="bg-secondary-600 text-white py-2 px-3 rounded-lg hover:bg-secondary-700 transition-colors flex items-center justify-center"
+                      className="bg-blue-500 text-white py-2.5 px-3 rounded-lg hover:bg-blue-600 transition-colors flex items-center justify-center touch-manipulation"
                       title="Translate Book"
                     >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129" />
-                      </svg>
+                      <LanguageIcon className="w-4 h-4" />
                     </button>
                   </div>
                 </div>

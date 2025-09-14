@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
@@ -9,18 +9,16 @@ import BookmarkManager from '../components/education/BookmarkManager';
 import LearningPaths from '../components/education/LearningPaths';
 import QuizSystem from '../components/education/QuizSystem';
 import DiscussionForum from '../components/education/DiscussionForum';
-import LiveQA from '../components/education/LiveQA';
 
 const TraditionalRulersDashboard = () => {
   const { currentUser } = useAuth();
   const { isDarkMode } = useTheme();
-  const { t } = useLanguage();
   const navigate = useNavigate();
 
   console.log('TraditionalRulersDashboard - Component rendered');
   const [activeTab, setActiveTab] = useState('profile');
   const [status] = useState("Verified");
-  const [stats, setStats] = useState({
+  const [stats] = useState({
     myCommunities: 3,
     activeDisputes: 2,
     upcomingEvents: 4,

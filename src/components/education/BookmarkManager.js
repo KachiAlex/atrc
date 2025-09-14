@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { db } from '../../firebase/config';
-import { doc, getDoc, setDoc, updateDoc, collection, query, where, getDocs, deleteDoc } from 'firebase/firestore';
-import { BookmarkIcon, PencilIcon, TrashIcon, EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
+import { doc, setDoc, updateDoc, collection, query, where, getDocs, deleteDoc } from 'firebase/firestore';
+import { BookmarkIcon, PencilIcon, TrashIcon, EyeIcon } from '@heroicons/react/24/outline';
 
 const BookmarkManager = () => {
   const { currentUser } = useAuth();
@@ -18,9 +18,9 @@ const BookmarkManager = () => {
       fetchBookmarks();
       fetchNotes();
     }
-  }, [currentUser]);
+  }, [currentUser, fetchBookmarks, fetchNotes]);
 
-  const fetchBookmarks = async () => {
+  const fetchBookmarks = useCallback(async () => {
     try {
       const bookmarksRef = collection(db, 'userBookmarks');
       const q = query(bookmarksRef, where('userId', '==', currentUser.uid));
@@ -35,9 +35,9 @@ const BookmarkManager = () => {
     } catch (error) {
       console.error('Error fetching bookmarks:', error);
     }
-  };
+  }, [currentUser]);
 
-  const fetchNotes = async () => {
+  const fetchNotes = useCallback(async () => {
     try {
       const notesRef = collection(db, 'userNotes');
       const q = query(notesRef, where('userId', '==', currentUser.uid));
@@ -54,7 +54,7 @@ const BookmarkManager = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentUser]);
 
   const addBookmark = async (item) => {
     try {

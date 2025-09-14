@@ -26,9 +26,7 @@ import Settings from './pages/Settings';
 import AdminSetup from './pages/AdminSetup';
 import AdminAccessPanel from './pages/AdminAccessPanel';
 import BookReader from './pages/BookReader';
-import CourseManagement from './pages/CourseManagement';
 import CourseReader from './pages/CourseReader';
-import LiveMeetings from './pages/LiveMeetings';
 import LiveMeetingsViewer from './pages/LiveMeetingsViewer';
 import PWAInstallPrompt from './components/PWAInstallPrompt';
 
