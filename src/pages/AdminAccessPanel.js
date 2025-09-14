@@ -100,7 +100,16 @@ const AdminAccessPanel = () => {
   const handleUpdateUserRole = async (userId, newRole) => {
     try {
       const userRef = doc(db, 'users', userId);
-      await updateDoc(userRef, { role: newRole });
+      const updateData = { role: newRole };
+      
+      // If approving as ruler, also update verification status
+      if (newRole === 'ruler') {
+        updateData.verificationStatus = 'verified';
+        updateData.verifiedAt = new Date();
+        updateData.verifiedBy = currentUser?.email;
+      }
+      
+      await updateDoc(userRef, updateData);
       alert('User role updated successfully!');
       fetchDashboardData(); // Refresh data
     } catch (error) {
@@ -119,6 +128,126 @@ const AdminAccessPanel = () => {
         console.error('Error deleting user:', error);
         alert('Failed to delete user');
       }
+    }
+  };
+
+  const handleRejectVerification = async (userId) => {
+    if (window.confirm('Are you sure you want to reject this verification request?')) {
+      try {
+        const userRef = doc(db, 'users', userId);
+        await updateDoc(userRef, { 
+          verificationStatus: 'rejected',
+          role: 'learner',
+          rejectedAt: new Date(),
+          rejectedBy: currentUser?.email
+        });
+        alert('Verification request rejected successfully!');
+        fetchDashboardData(); // Refresh data
+      } catch (error) {
+        console.error('Error rejecting verification:', error);
+        alert('Failed to reject verification request');
+      }
+    }
+  };
+
+  const handleRequestMoreInfo = async (userId) => {
+    const additionalInfo = prompt('What additional information do you need from this user?');
+    if (additionalInfo) {
+      try {
+        const userRef = doc(db, 'users', userId);
+        await updateDoc(userRef, { 
+          verificationStatus: 'pending',
+          requestedInfo: additionalInfo,
+          requestedAt: new Date(),
+          requestedBy: currentUser?.email
+        });
+        alert('Information request sent to user successfully!');
+        fetchDashboardData(); // Refresh data
+      } catch (error) {
+        console.error('Error requesting more info:', error);
+        alert('Failed to send information request');
+      }
+    }
+  };
+
+  const handleViewFullProfile = (userId) => {
+    const user = users.find(u => u.id === userId);
+    if (user) {
+      // Create a detailed profile view
+      const profileWindow = window.open('', '_blank', 'width=800,height=600');
+      profileWindow.document.write(`
+        <html>
+          <head>
+            <title>User Profile - ${user.displayName || 'Unknown'}</title>
+            <style>
+              body { font-family: Arial, sans-serif; margin: 20px; background: #f5f5f5; }
+              .container { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+              .header { border-bottom: 2px solid #e5e5e5; padding-bottom: 20px; margin-bottom: 20px; }
+              .section { margin-bottom: 20px; }
+              .label { font-weight: bold; color: #666; }
+              .value { margin-bottom: 10px; }
+              .documents { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; }
+              .document { background: #f0f8ff; padding: 10px; border-radius: 4px; border: 1px solid #ddd; }
+            </style>
+          </head>
+          <body>
+            <div class="container">
+              <div class="header">
+                <h1>👑 ${user.displayName || 'No Name Provided'}</h1>
+                <p>Email: ${user.email}</p>
+                <p>Status: <span style="color: ${user.verificationStatus === 'pending' ? 'orange' : user.verificationStatus === 'verified' ? 'green' : 'red'}">${user.verificationStatus}</span></p>
+              </div>
+              
+              <div class="section">
+                <h3>🏛️ Throne Information</h3>
+                <div class="value"><span class="label">Throne Name:</span> ${user.throneName || 'Not provided'}</div>
+                <div class="value"><span class="label">Title:</span> ${user.title || 'Not provided'}</div>
+                <div class="value"><span class="label">Kingdom/Community:</span> ${user.kingdom || 'Not provided'}</div>
+                <div class="value"><span class="label">State/Region:</span> ${user.state || 'Not provided'}</div>
+                <div class="value"><span class="label">Country:</span> ${user.country || 'Not provided'}</div>
+              </div>
+              
+              <div class="section">
+                <h3>📋 Contact Information</h3>
+                <div class="value"><span class="label">Phone Number:</span> ${user.phoneNumber || 'Not provided'}</div>
+                <div class="value"><span class="label">Address:</span> ${user.address || 'Not provided'}</div>
+              </div>
+              
+              <div class="section">
+                <h3>📄 Submitted Documents</h3>
+                ${user.documents && user.documents.length > 0 ? 
+                  `<div class="documents">
+                    ${user.documents.map(doc => `
+                      <div class="document">
+                        <strong>${doc.name || 'Document'}</strong><br>
+                        Type: ${doc.type || 'Unknown'}<br>
+                        ${doc.url ? `<a href="${doc.url}" target="_blank">View Document</a>` : 'No URL provided'}
+                      </div>
+                    `).join('')}
+                  </div>` : 
+                  '<p>No documents submitted</p>'
+                }
+              </div>
+              
+              ${user.additionalInfo ? `
+                <div class="section">
+                  <h3>ℹ️ Additional Information</h3>
+                  <p>${user.additionalInfo}</p>
+                </div>
+              ` : ''}
+              
+              <div class="section">
+                <h3>📊 Verification History</h3>
+                <div class="value"><span class="label">Application Date:</span> ${user.createdAt ? new Date(user.createdAt.seconds * 1000).toLocaleString() : 'Unknown'}</div>
+                ${user.verifiedAt ? `<div class="value"><span class="label">Verified At:</span> ${new Date(user.verifiedAt.seconds * 1000).toLocaleString()}</div>` : ''}
+                ${user.rejectedAt ? `<div class="value"><span class="label">Rejected At:</span> ${new Date(user.rejectedAt.seconds * 1000).toLocaleString()}</div>` : ''}
+                ${user.requestedInfo ? `<div class="value"><span class="label">Requested Info:</span> ${user.requestedInfo}</div>` : ''}
+              </div>
+            </div>
+          </body>
+        </html>
+      `);
+      profileWindow.document.close();
     }
   };
 
@@ -555,49 +684,235 @@ const AdminAccessPanel = () => {
             {/* Verification Cases */}
             {activeTab === 'verification' && !loading && (
               <div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-6">User Verification Status</h3>
-                <div className="space-y-4">
+                <div className="flex justify-between items-center mb-6">
+                  <h3 className="text-xl font-semibold text-gray-900">User Verification Status</h3>
+                  <div className="flex space-x-2">
+                    <button
+                      onClick={() => setActiveTab('users')}
+                      className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 transition-colors"
+                    >
+                      View All Users
+                    </button>
+                  </div>
+                </div>
+
+                {/* Verification Stats */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                  <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                    <div className="flex items-center">
+                      <div className="text-2xl mr-3">⏳</div>
+                      <div>
+                        <p className="text-sm font-medium text-yellow-800">Pending Verification</p>
+                        <p className="text-2xl font-bold text-yellow-900">
+                          {users.filter(user => user.verificationStatus === 'pending').length}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                    <div className="flex items-center">
+                      <div className="text-2xl mr-3">✅</div>
+                      <div>
+                        <p className="text-sm font-medium text-green-800">Verified Rulers</p>
+                        <p className="text-2xl font-bold text-green-900">
+                          {users.filter(user => user.verificationStatus === 'verified' && user.role === 'ruler').length}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                    <div className="flex items-center">
+                      <div className="text-2xl mr-3">❌</div>
+                      <div>
+                        <p className="text-sm font-medium text-red-800">Rejected</p>
+                        <p className="text-2xl font-bold text-red-900">
+                          {users.filter(user => user.verificationStatus === 'rejected').length}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-6">
                   {users.filter(user => user.verificationStatus === 'pending').map((user) => (
                     <div
                       key={user.id}
-                      className="flex items-center justify-between border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"
+                      className="border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow bg-white"
                     >
-                      <div className="flex-1">
-                        <div className="flex items-center space-x-3">
-                          <div className="h-10 w-10 rounded-full bg-primary-100 flex items-center justify-center">
-                            <span className="text-lg">👤</span>
+                      {/* User Header */}
+                      <div className="flex items-start justify-between mb-4">
+                        <div className="flex items-center space-x-4">
+                          <div className="h-16 w-16 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+                            <span className="text-2xl text-white">👑</span>
                           </div>
                           <div>
-                            <p className="font-medium text-gray-900">{user.displayName || 'No Name'}</p>
-                            <p className="text-sm text-gray-500">{user.email}</p>
-                            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                              Pending Verification
-                            </span>
+                            <h4 className="text-xl font-semibold text-gray-900">
+                              {user.displayName || 'No Name Provided'}
+                            </h4>
+                            <p className="text-sm text-gray-500 mb-1">{user.email}</p>
+                            <div className="flex items-center space-x-2">
+                              <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                ⏳ Pending Verification
+                              </span>
+                              <span className="text-xs text-gray-500">
+                                Applied: {user.createdAt ? new Date(user.createdAt.seconds * 1000).toLocaleDateString() : 'Unknown'}
+                              </span>
+                            </div>
                           </div>
                         </div>
                       </div>
-                      <div className="flex space-x-2">
+
+                      {/* Throne Information */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                        <div className="bg-gray-50 rounded-lg p-4">
+                          <h5 className="font-semibold text-gray-900 mb-3 flex items-center">
+                            <span className="mr-2">🏛️</span>
+                            Throne Information
+                          </h5>
+                          <div className="space-y-2">
+                            <div>
+                              <span className="text-sm font-medium text-gray-600">Throne Name:</span>
+                              <p className="text-gray-900">{user.throneName || 'Not provided'}</p>
+                            </div>
+                            <div>
+                              <span className="text-sm font-medium text-gray-600">Title:</span>
+                              <p className="text-gray-900">{user.title || 'Not provided'}</p>
+                            </div>
+                            <div>
+                              <span className="text-sm font-medium text-gray-600">Kingdom/Community:</span>
+                              <p className="text-gray-900">{user.kingdom || 'Not provided'}</p>
+                            </div>
+                            <div>
+                              <span className="text-sm font-medium text-gray-600">State/Region:</span>
+                              <p className="text-gray-900">{user.state || 'Not provided'}</p>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="bg-gray-50 rounded-lg p-4">
+                          <h5 className="font-semibold text-gray-900 mb-3 flex items-center">
+                            <span className="mr-2">📋</span>
+                            Verification Details
+                          </h5>
+                          <div className="space-y-2">
+                            <div>
+                              <span className="text-sm font-medium text-gray-600">Application Date:</span>
+                              <p className="text-gray-900">
+                                {user.createdAt ? new Date(user.createdAt.seconds * 1000).toLocaleDateString() : 'Unknown'}
+                              </p>
+                            </div>
+                            <div>
+                              <span className="text-sm font-medium text-gray-600">Phone Number:</span>
+                              <p className="text-gray-900">{user.phoneNumber || 'Not provided'}</p>
+                            </div>
+                            <div>
+                              <span className="text-sm font-medium text-gray-600">Current Role:</span>
+                              <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                                user.role === 'ruler' ? 'bg-blue-100 text-blue-800' :
+                                user.role === 'admin' ? 'bg-red-100 text-red-800' :
+                                'bg-gray-100 text-gray-800'
+                              }`}>
+                                {user.role || 'learner'}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Documents Section */}
+                      <div className="mb-6">
+                        <h5 className="font-semibold text-gray-900 mb-3 flex items-center">
+                          <span className="mr-2">📄</span>
+                          Submitted Documents
+                        </h5>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                          {user.documents && user.documents.length > 0 ? (
+                            user.documents.map((doc, index) => (
+                              <div key={index} className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-center">
+                                    <span className="text-blue-600 mr-2">📄</span>
+                                    <div>
+                                      <p className="text-sm font-medium text-blue-900">{doc.name || `Document ${index + 1}`}</p>
+                                      <p className="text-xs text-blue-700">{doc.type || 'Unknown type'}</p>
+                                    </div>
+                                  </div>
+                                  {doc.url && (
+                                    <a
+                                      href={doc.url}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="text-blue-600 hover:text-blue-800 text-sm"
+                                    >
+                                      View
+                                    </a>
+                                  )}
+                                </div>
+                              </div>
+                            ))
+                          ) : (
+                            <div className="col-span-full bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                              <div className="flex items-center">
+                                <span className="text-yellow-600 mr-2">⚠️</span>
+                                <p className="text-yellow-800">No documents submitted</p>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Additional Information */}
+                      {user.additionalInfo && (
+                        <div className="mb-6">
+                          <h5 className="font-semibold text-gray-900 mb-3 flex items-center">
+                            <span className="mr-2">ℹ️</span>
+                            Additional Information
+                          </h5>
+                          <div className="bg-gray-50 rounded-lg p-4">
+                            <p className="text-gray-700">{user.additionalInfo}</p>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Action Buttons */}
+                      <div className="flex flex-wrap gap-3 pt-4 border-t border-gray-200">
                         <button
                           onClick={() => handleUpdateUserRole(user.id, 'ruler')}
-                          className="flex items-center px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-md hover:bg-green-700 transition-colors"
+                          className="flex items-center px-6 py-2 bg-green-600 text-white text-sm font-medium rounded-md hover:bg-green-700 transition-colors"
                         >
-                          <span className="mr-1">✓</span>
-                          Approve
+                          <span className="mr-2">✅</span>
+                          Approve & Verify
                         </button>
                         <button
-                          onClick={() => handleDeleteUser(user.id)}
-                          className="flex items-center px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-md hover:bg-red-700 transition-colors"
+                          onClick={() => handleRejectVerification(user.id)}
+                          className="flex items-center px-6 py-2 bg-red-600 text-white text-sm font-medium rounded-md hover:bg-red-700 transition-colors"
                         >
-                          <span className="mr-1">✗</span>
+                          <span className="mr-2">❌</span>
                           Reject
+                        </button>
+                        <button
+                          onClick={() => handleRequestMoreInfo(user.id)}
+                          className="flex items-center px-6 py-2 bg-yellow-600 text-white text-sm font-medium rounded-md hover:bg-yellow-700 transition-colors"
+                        >
+                          <span className="mr-2">📝</span>
+                          Request More Info
+                        </button>
+                        <button
+                          onClick={() => handleViewFullProfile(user.id)}
+                          className="flex items-center px-6 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 transition-colors"
+                        >
+                          <span className="mr-2">👁️</span>
+                          View Full Profile
                         </button>
                       </div>
                     </div>
                   ))}
+                  
                   {users.filter(user => user.verificationStatus === 'pending').length === 0 && (
-                    <div className="text-center py-8 text-gray-500">
-                      <div className="text-4xl mb-2">✅</div>
-                      <p>No pending verifications.</p>
+                    <div className="text-center py-12 text-gray-500">
+                      <div className="text-6xl mb-4">✅</div>
+                      <h3 className="text-xl font-semibold text-gray-900 mb-2">All Caught Up!</h3>
+                      <p>No pending verifications at this time.</p>
                     </div>
                   )}
                 </div>
