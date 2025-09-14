@@ -210,22 +210,6 @@ const HomePage = () => {
               </div>
             </div>
             
-            {/* Desktop Navigation */}
-            <div className="hidden md:flex items-center space-x-8">
-              <a href="#features" className={`hover:text-primary-500 transition-colors duration-200 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                Features
-              </a>
-              <a href="#rulers" className={`hover:text-primary-500 transition-colors duration-200 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                Traditional Rulers
-              </a>
-              <a href="#heritage" className={`hover:text-primary-500 transition-colors duration-200 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                Cultural Heritage
-              </a>
-              <a href="#stats" className={`hover:text-primary-500 transition-colors duration-200 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                Statistics
-              </a>
-            </div>
-            
             <div className="flex items-center space-x-4">
               <LanguageSelector />
               <button
@@ -234,16 +218,6 @@ const HomePage = () => {
               >
                 {isDarkMode ? '☀️' : '🌙'}
               </button>
-              <Link
-                to="/login"
-                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                  isDarkMode 
-                    ? 'text-gray-300 hover:text-white hover:bg-gray-700' 
-                    : 'text-gray-700 hover:text-gray-900 hover:bg-gray-100'
-                }`}
-              >
-                {t('nav.signIn')}
-              </Link>
               <Link
                 to="/auth"
                 className="bg-primary-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-primary-700 transition-colors"
