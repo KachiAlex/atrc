@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { db } from '../firebase/config';
-import { collection, getDocs, query, orderBy, where, doc, updateDoc, deleteDoc } from 'firebase/firestore';
+import { collection, getDocs, query, orderBy, where, doc, updateDoc, deleteDoc, addDoc, serverTimestamp } from 'firebase/firestore';
 import { createCustomAdmin } from '../utils/createDefaultAdmin';
 import BookManagement from './BookManagement';
 import CourseManagement from './CourseManagement';
@@ -14,17 +14,32 @@ const AdminAccessPanel = () => {
   const [activeTab, setActiveTab] = useState('verification');
   const [loading, setLoading] = useState(true);
   const [users, setUsers] = useState([]);
+  const [projects, setProjects] = useState([]);
+  const [communityReports, setCommunityReports] = useState([]);
   const [newAdminForm, setNewAdminForm] = useState({
     email: '',
     password: '',
     displayName: ''
   });
   const [showCreateAdmin, setShowCreateAdmin] = useState(false);
+  const [showCreateProject, setShowCreateProject] = useState(false);
+  const [newProjectForm, setNewProjectForm] = useState({
+    title: '',
+    description: '',
+    community: '',
+    budget: '',
+    timeline: '',
+    status: 'planning'
+  });
   const [stats, setStats] = useState({
     totalUsers: 0,
     activeRulers: 0,
     pendingVerifications: 0,
-    totalAdmins: 0
+    totalAdmins: 0,
+    totalProjects: 0,
+    activeProjects: 0,
+    completedProjects: 0,
+    totalCommunityReports: 0
   });
 
   // Redirect if not admin
@@ -50,16 +65,34 @@ const AdminAccessPanel = () => {
       const usersData = usersSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       setUsers(usersData);
 
+      // Fetch projects
+      const projectsQuery = query(collection(db, 'projectReports'), orderBy('createdAt', 'desc'));
+      const projectsSnapshot = await getDocs(projectsQuery);
+      const projectsData = projectsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      setProjects(projectsData);
+
+      // Fetch community reports
+      const communityQuery = query(collection(db, 'communityReports'), orderBy('createdAt', 'desc'));
+      const communitySnapshot = await getDocs(communityQuery);
+      const communityData = communitySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      setCommunityReports(communityData);
+
       // Calculate stats
       const activeRulers = usersData.filter(user => user.role === 'ruler').length;
       const pendingVerifications = usersData.filter(user => user.verificationStatus === 'pending').length;
       const totalAdmins = usersData.filter(user => user.role === 'admin').length;
+      const activeProjects = projectsData.filter(project => project.status === 'ongoing' || project.status === 'active').length;
+      const completedProjects = projectsData.filter(project => project.status === 'completed').length;
 
       setStats({
         totalUsers: usersData.length,
         activeRulers,
         pendingVerifications,
-        totalAdmins
+        totalAdmins,
+        totalProjects: projectsData.length,
+        activeProjects,
+        completedProjects,
+        totalCommunityReports: communityData.length
       });
 
     } catch (error) {
@@ -251,6 +284,68 @@ const AdminAccessPanel = () => {
     }
   };
 
+  const handleCreateProject = async (e) => {
+    e.preventDefault();
+    if (!newProjectForm.title || !newProjectForm.description || !newProjectForm.community) {
+      alert('Please fill in all required fields');
+      return;
+    }
+
+    try {
+      await addDoc(collection(db, 'projectReports'), {
+        ...newProjectForm,
+        budget: parseFloat(newProjectForm.budget) || 0,
+        createdBy: currentUser?.email,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
+      });
+
+      alert('Project created successfully!');
+      setNewProjectForm({
+        title: '',
+        description: '',
+        community: '',
+        budget: '',
+        timeline: '',
+        status: 'planning'
+      });
+      setShowCreateProject(false);
+      fetchDashboardData(); // Refresh data
+    } catch (error) {
+      console.error('Error creating project:', error);
+      alert('Failed to create project');
+    }
+  };
+
+  const handleUpdateProjectStatus = async (projectId, newStatus) => {
+    try {
+      const projectRef = doc(db, 'projectReports', projectId);
+      await updateDoc(projectRef, { 
+        status: newStatus,
+        updatedAt: serverTimestamp(),
+        updatedBy: currentUser?.email
+      });
+      alert('Project status updated successfully!');
+      fetchDashboardData(); // Refresh data
+    } catch (error) {
+      console.error('Error updating project status:', error);
+      alert('Failed to update project status');
+    }
+  };
+
+  const handleDeleteProject = async (projectId) => {
+    if (window.confirm('Are you sure you want to delete this project?')) {
+      try {
+        await deleteDoc(doc(db, 'projectReports', projectId));
+        alert('Project deleted successfully!');
+        fetchDashboardData(); // Refresh data
+      } catch (error) {
+        console.error('Error deleting project:', error);
+        alert('Failed to delete project');
+      }
+    }
+  };
+
   const StatCard = ({ title, value, icon, color = 'blue' }) => (
     <div className="bg-white rounded-lg shadow-md p-6 border-l-4 border-primary-500">
       <div className="flex items-center justify-between">
@@ -424,8 +519,8 @@ const AdminAccessPanel = () => {
             <div className="bg-white rounded-lg shadow-md p-6 border-l-4 border-yellow-500">
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-700 mb-2">Project Reports</h3>
-                  <p className="text-3xl font-bold text-gray-900">0</p>
+                  <h3 className="text-lg font-semibold text-gray-700 mb-2">Active Projects</h3>
+                  <p className="text-3xl font-bold text-gray-900">{stats.activeProjects}</p>
                 </div>
                 <div className="text-4xl text-yellow-500">📁</div>
               </div>
@@ -435,7 +530,7 @@ const AdminAccessPanel = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <h3 className="text-lg font-semibold text-gray-700 mb-2">Community Reports</h3>
-                  <p className="text-3xl font-bold text-gray-900">0</p>
+                  <p className="text-3xl font-bold text-gray-900">{stats.totalCommunityReports}</p>
                 </div>
                 <div className="text-4xl text-blue-500">📝</div>
               </div>
@@ -954,6 +1049,367 @@ const AdminAccessPanel = () => {
                       <div className="p-3 bg-white rounded-md">
                         <p className="text-sm text-gray-600">System status: Operational</p>
                       </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Projects Management */}
+            {activeTab === 'projects' && !loading && (
+              <div>
+                <div className="flex justify-between items-center mb-6">
+                  <h3 className="text-xl font-semibold text-gray-900">Project Management</h3>
+                  <button
+                    onClick={() => setShowCreateProject(true)}
+                    className="bg-primary-600 text-white px-4 py-2 rounded-md hover:bg-primary-700 transition-colors"
+                  >
+                    Create Project
+                  </button>
+                </div>
+
+                {/* Create Project Form */}
+                {showCreateProject && (
+                  <div className="mb-6 p-4 bg-gray-50 rounded-lg">
+                    <h4 className="text-lg font-medium mb-4">Create New Project</h4>
+                    <form onSubmit={handleCreateProject} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <input
+                        type="text"
+                        placeholder="Project Title"
+                        value={newProjectForm.title}
+                        onChange={(e) => setNewProjectForm({...newProjectForm, title: e.target.value})}
+                        className="border rounded px-3 py-2"
+                        required
+                      />
+                      <input
+                        type="text"
+                        placeholder="Community"
+                        value={newProjectForm.community}
+                        onChange={(e) => setNewProjectForm({...newProjectForm, community: e.target.value})}
+                        className="border rounded px-3 py-2"
+                        required
+                      />
+                      <textarea
+                        placeholder="Project Description"
+                        value={newProjectForm.description}
+                        onChange={(e) => setNewProjectForm({...newProjectForm, description: e.target.value})}
+                        className="border rounded px-3 py-2 md:col-span-2"
+                        rows="3"
+                        required
+                      />
+                      <input
+                        type="number"
+                        placeholder="Budget (₦)"
+                        value={newProjectForm.budget}
+                        onChange={(e) => setNewProjectForm({...newProjectForm, budget: e.target.value})}
+                        className="border rounded px-3 py-2"
+                      />
+                      <input
+                        type="text"
+                        placeholder="Timeline"
+                        value={newProjectForm.timeline}
+                        onChange={(e) => setNewProjectForm({...newProjectForm, timeline: e.target.value})}
+                        className="border rounded px-3 py-2"
+                      />
+                      <select
+                        value={newProjectForm.status}
+                        onChange={(e) => setNewProjectForm({...newProjectForm, status: e.target.value})}
+                        className="border rounded px-3 py-2"
+                      >
+                        <option value="planning">Planning</option>
+                        <option value="ongoing">Ongoing</option>
+                        <option value="completed">Completed</option>
+                        <option value="on_hold">On Hold</option>
+                      </select>
+                      <div className="md:col-span-2 flex gap-2">
+                        <button type="submit" className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700">
+                          Create Project
+                        </button>
+                        <button 
+                          type="button" 
+                          onClick={() => setShowCreateProject(false)}
+                          className="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </form>
+                  </div>
+                )}
+
+                {/* Projects List */}
+                <div className="space-y-4">
+                  {projects.map((project) => (
+                    <div key={project.id} className="border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow">
+                      <div className="flex items-start justify-between mb-4">
+                        <div className="flex-1">
+                          <h4 className="text-xl font-semibold text-gray-900 mb-2">{project.title}</h4>
+                          <p className="text-gray-600 mb-3">{project.description}</p>
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                            <div>
+                              <span className="font-medium text-gray-700">Community:</span>
+                              <p className="text-gray-600">{project.community}</p>
+                            </div>
+                            <div>
+                              <span className="font-medium text-gray-700">Budget:</span>
+                              <p className="text-gray-600">₦{project.budget?.toLocaleString() || 'Not specified'}</p>
+                            </div>
+                            <div>
+                              <span className="font-medium text-gray-700">Timeline:</span>
+                              <p className="text-gray-600">{project.timeline || 'Not specified'}</p>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex flex-col items-end space-y-2">
+                          <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                            project.status === 'completed' ? 'bg-green-100 text-green-800' :
+                            project.status === 'ongoing' ? 'bg-blue-100 text-blue-800' :
+                            project.status === 'on_hold' ? 'bg-yellow-100 text-yellow-800' :
+                            'bg-gray-100 text-gray-800'
+                          }`}>
+                            {project.status}
+                          </span>
+                          <span className="text-xs text-gray-500">
+                            Created: {project.createdAt ? new Date(project.createdAt.seconds * 1000).toLocaleDateString() : 'Unknown'}
+                          </span>
+                        </div>
+                      </div>
+                      
+                      <div className="flex flex-wrap gap-2 pt-4 border-t border-gray-200">
+                        <select
+                          value={project.status}
+                          onChange={(e) => handleUpdateProjectStatus(project.id, e.target.value)}
+                          className="border rounded px-3 py-1 text-sm"
+                        >
+                          <option value="planning">Planning</option>
+                          <option value="ongoing">Ongoing</option>
+                          <option value="completed">Completed</option>
+                          <option value="on_hold">On Hold</option>
+                        </select>
+                        <button
+                          onClick={() => handleDeleteProject(project.id)}
+                          className="text-red-600 hover:text-red-800 text-sm px-3 py-1 border border-red-300 rounded hover:bg-red-50"
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                  
+                  {projects.length === 0 && (
+                    <div className="text-center py-12 text-gray-500">
+                      <div className="text-6xl mb-4">📁</div>
+                      <h3 className="text-xl font-semibold text-gray-900 mb-2">No Projects Yet</h3>
+                      <p>Create your first project to get started.</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Community Management */}
+            {activeTab === 'community' && !loading && (
+              <div>
+                <div className="flex justify-between items-center mb-6">
+                  <h3 className="text-xl font-semibold text-gray-900">Community Reports</h3>
+                  <div className="text-sm text-gray-600">
+                    Total Reports: {stats.totalCommunityReports}
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  {communityReports.map((report) => (
+                    <div key={report.id} className="border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow">
+                      <div className="flex items-start justify-between mb-4">
+                        <div className="flex-1">
+                          <h4 className="text-xl font-semibold text-gray-900 mb-2">{report.title}</h4>
+                          <p className="text-gray-600 mb-3">{report.description}</p>
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                            <div>
+                              <span className="font-medium text-gray-700">Community:</span>
+                              <p className="text-gray-600">{report.community}</p>
+                            </div>
+                            <div>
+                              <span className="font-medium text-gray-700">Category:</span>
+                              <p className="text-gray-600">{report.category}</p>
+                            </div>
+                            <div>
+                              <span className="font-medium text-gray-700">Priority:</span>
+                              <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                report.priority === 'high' ? 'bg-red-100 text-red-800' :
+                                report.priority === 'medium' ? 'bg-yellow-100 text-yellow-800' :
+                                'bg-green-100 text-green-800'
+                              }`}>
+                                {report.priority}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex flex-col items-end space-y-2">
+                          <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                            report.status === 'resolved' ? 'bg-green-100 text-green-800' :
+                            report.status === 'in_progress' ? 'bg-blue-100 text-blue-800' :
+                            'bg-gray-100 text-gray-800'
+                          }`}>
+                            {report.status}
+                          </span>
+                          <span className="text-xs text-gray-500">
+                            Submitted: {report.createdAt ? new Date(report.createdAt.seconds * 1000).toLocaleDateString() : 'Unknown'}
+                          </span>
+                        </div>
+                      </div>
+                      
+                      {report.attachmentUrl && (
+                        <div className="pt-4 border-t border-gray-200">
+                          <a
+                            href={report.attachmentUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-600 hover:text-blue-800 text-sm"
+                          >
+                            📎 View Attachment
+                          </a>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                  
+                  {communityReports.length === 0 && (
+                    <div className="text-center py-12 text-gray-500">
+                      <div className="text-6xl mb-4">📝</div>
+                      <h3 className="text-xl font-semibold text-gray-900 mb-2">No Community Reports</h3>
+                      <p>Community reports will appear here when submitted.</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Analytics Dashboard */}
+            {activeTab === 'analytics' && !loading && (
+              <div>
+                <h3 className="text-xl font-semibold text-gray-900 mb-6">Platform Analytics</h3>
+                
+                {/* Key Metrics */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                  <div className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg p-6 text-white">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-blue-100 text-sm">Total Users</p>
+                        <p className="text-3xl font-bold">{stats.totalUsers}</p>
+                      </div>
+                      <div className="text-3xl">👥</div>
+                    </div>
+                  </div>
+                  
+                  <div className="bg-gradient-to-r from-green-500 to-green-600 rounded-lg p-6 text-white">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-green-100 text-sm">Verified Rulers</p>
+                        <p className="text-3xl font-bold">{stats.activeRulers}</p>
+                      </div>
+                      <div className="text-3xl">👑</div>
+                    </div>
+                  </div>
+                  
+                  <div className="bg-gradient-to-r from-yellow-500 to-yellow-600 rounded-lg p-6 text-white">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-yellow-100 text-sm">Active Projects</p>
+                        <p className="text-3xl font-bold">{stats.activeProjects}</p>
+                      </div>
+                      <div className="text-3xl">📁</div>
+                    </div>
+                  </div>
+                  
+                  <div className="bg-gradient-to-r from-purple-500 to-purple-600 rounded-lg p-6 text-white">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-purple-100 text-sm">Community Reports</p>
+                        <p className="text-3xl font-bold">{stats.totalCommunityReports}</p>
+                      </div>
+                      <div className="text-3xl">📝</div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Charts and Detailed Analytics */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  {/* User Growth Chart */}
+                  <div className="bg-white rounded-lg shadow-md p-6">
+                    <h4 className="text-lg font-semibold text-gray-900 mb-4">User Growth</h4>
+                    <div className="h-64 flex items-end justify-between space-x-2">
+                      <div className="flex flex-col items-center">
+                        <div className="w-8 bg-blue-500 rounded-t" style={{height: '60%'}}></div>
+                        <span className="text-xs mt-2 text-gray-500">Jan</span>
+                      </div>
+                      <div className="flex flex-col items-center">
+                        <div className="w-8 bg-blue-500 rounded-t" style={{height: '70%'}}></div>
+                        <span className="text-xs mt-2 text-gray-500">Feb</span>
+                      </div>
+                      <div className="flex flex-col items-center">
+                        <div className="w-8 bg-blue-500 rounded-t" style={{height: '80%'}}></div>
+                        <span className="text-xs mt-2 text-gray-500">Mar</span>
+                      </div>
+                      <div className="flex flex-col items-center">
+                        <div className="w-8 bg-blue-500 rounded-t" style={{height: '90%'}}></div>
+                        <span className="text-xs mt-2 text-gray-500">Apr</span>
+                      </div>
+                      <div className="flex flex-col items-center">
+                        <div className="w-8 bg-blue-500 rounded-t" style={{height: '100%'}}></div>
+                        <span className="text-xs mt-2 text-gray-500">May</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Project Status Distribution */}
+                  <div className="bg-white rounded-lg shadow-md p-6">
+                    <h4 className="text-lg font-semibold text-gray-900 mb-4">Project Status</h4>
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center">
+                          <div className="w-4 h-4 bg-green-500 rounded-full mr-3"></div>
+                          <span className="text-gray-600">Completed</span>
+                        </div>
+                        <span className="font-semibold text-gray-900">{stats.completedProjects}</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center">
+                          <div className="w-4 h-4 bg-blue-500 rounded-full mr-3"></div>
+                          <span className="text-gray-600">Active</span>
+                        </div>
+                        <span className="font-semibold text-gray-900">{stats.activeProjects}</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center">
+                          <div className="w-4 h-4 bg-yellow-500 rounded-full mr-3"></div>
+                          <span className="text-gray-600">Planning</span>
+                        </div>
+                        <span className="font-semibold text-gray-900">{stats.totalProjects - stats.activeProjects - stats.completedProjects}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Recent Activity */}
+                <div className="mt-6 bg-white rounded-lg shadow-md p-6">
+                  <h4 className="text-lg font-semibold text-gray-900 mb-4">Recent Activity</h4>
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between p-3 bg-gray-50 rounded-md">
+                      <span className="text-sm text-gray-600">New user registrations</span>
+                      <span className="text-sm font-medium text-green-600">+{Math.floor(Math.random() * 10) + 1} this week</span>
+                    </div>
+                    <div className="flex items-center justify-between p-3 bg-gray-50 rounded-md">
+                      <span className="text-sm text-gray-600">Verification requests</span>
+                      <span className="text-sm font-medium text-blue-600">+{stats.pendingVerifications} pending</span>
+                    </div>
+                    <div className="flex items-center justify-between p-3 bg-gray-50 rounded-md">
+                      <span className="text-sm text-gray-600">Project submissions</span>
+                      <span className="text-sm font-medium text-yellow-600">+{Math.floor(Math.random() * 5) + 1} this month</span>
+                    </div>
+                    <div className="flex items-center justify-between p-3 bg-gray-50 rounded-md">
+                      <span className="text-sm text-gray-600">System uptime</span>
+                      <span className="text-sm font-medium text-green-600">99.9%</span>
                     </div>
                   </div>
                 </div>
