@@ -575,8 +575,8 @@ const CourseReader = () => {
                 <h3 className="font-semibold text-gray-900 mb-2">Course Video</h3>
                 <VideoEmbed 
                   videoUrl={selectedCourse.videoUrl} 
-                  title={selectedCourse.title}
-                />
+                    title={selectedCourse.title}
+                  />
               </div>
               
               <div className="flex gap-4">
@@ -587,14 +587,14 @@ const CourseReader = () => {
                   Close
                 </button>
                 {selectedCourse.videoUrl && (
-                  <a
+                <a
                     href={selectedCourse.videoUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex-1 bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary/90 transition-colors text-center"
-                  >
-                    Open in New Tab
-                  </a>
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex-1 bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary/90 transition-colors text-center"
+                >
+                  Open in New Tab
+                </a>
                 )}
               </div>
             </div>
