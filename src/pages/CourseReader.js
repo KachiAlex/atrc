@@ -6,6 +6,7 @@ import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { CardSkeleton } from '../components/ui/LoadingSkeleton';
 import { TouchButton, TouchCard, SwipeHandler } from '../components/ui/TouchOptimized';
+import VideoEmbed from '../components/VideoEmbed';
 import { 
   BookOpenIcon, 
   ClockIcon, 
@@ -571,16 +572,11 @@ const CourseReader = () => {
               </div>
               
               <div className="bg-gray-100 rounded-lg p-4 mb-4">
-                <h3 className="font-semibold text-gray-900 mb-2">Course Content</h3>
-                <div className="aspect-video bg-white rounded border">
-                  <iframe
-                    src={selectedCourse.embeddedUrl}
-                    title={selectedCourse.title}
-                    className="w-full h-full rounded"
-                    allowFullScreen
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  />
-                </div>
+                <h3 className="font-semibold text-gray-900 mb-2">Course Video</h3>
+                <VideoEmbed 
+                  videoUrl={selectedCourse.videoUrl} 
+                  title={selectedCourse.title}
+                />
               </div>
               
               <div className="flex gap-4">
@@ -590,14 +586,16 @@ const CourseReader = () => {
                 >
                   Close
                 </button>
-                <a
-                  href={selectedCourse.embeddedUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex-1 bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary/90 transition-colors text-center"
-                >
-                  Open in New Tab
-                </a>
+                {selectedCourse.videoUrl && (
+                  <a
+                    href={selectedCourse.videoUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex-1 bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary/90 transition-colors text-center"
+                  >
+                    Open in New Tab
+                  </a>
+                )}
               </div>
             </div>
           </div>

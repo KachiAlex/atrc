@@ -3,12 +3,15 @@ import { collection, query, orderBy, onSnapshot, doc, updateDoc, deleteDoc } fro
 import { ref, deleteObject } from 'firebase/storage';
 import { db, storage } from '../firebase/config';
 import CourseUploadModal from '../components/CourseUploadModal';
+import VideoEmbed from '../components/VideoEmbed';
 import toast from 'react-hot-toast';
 
 const CourseManagement = () => {
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showUploadModal, setShowUploadModal] = useState(false);
+  const [showVideoModal, setShowVideoModal] = useState(false);
+  const [selectedVideo, setSelectedVideo] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterCategory, setFilterCategory] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
@@ -46,6 +49,16 @@ const CourseManagement = () => {
   const handleUpload = () => {
     setShowUploadModal(false);
     toast.success('Course uploaded successfully!');
+  };
+
+  const openVideoModal = (course) => {
+    setSelectedVideo(course);
+    setShowVideoModal(true);
+  };
+
+  const closeVideoModal = () => {
+    setSelectedVideo(null);
+    setShowVideoModal(false);
   };
 
   const togglePublish = async (courseId, currentStatus) => {
@@ -259,6 +272,15 @@ const CourseManagement = () => {
                   >
                     {course.isPublished ? 'Unpublish' : 'Publish'}
                   </button>
+                  {course.videoUrl && (
+                    <button
+                      onClick={() => openVideoModal(course)}
+                      className="px-3 py-2 text-sm font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-md transition-colors"
+                      title="Preview Video"
+                    >
+                      🎥
+                    </button>
+                  )}
                   <button
                     onClick={() => deleteCourse(course)}
                     className="px-3 py-2 text-sm font-medium text-red-600 bg-red-50 hover:bg-red-100 rounded-md transition-colors"
@@ -278,6 +300,58 @@ const CourseManagement = () => {
         onClose={() => setShowUploadModal(false)}
         onUpload={handleUpload}
       />
+
+      {/* Video Preview Modal */}
+      {showVideoModal && selectedVideo && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-2xl font-bold text-gray-900">Video Preview</h2>
+                <button
+                  onClick={closeVideoModal}
+                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+
+              <div className="mb-4">
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">{selectedVideo.title}</h3>
+                <p className="text-gray-600">by {selectedVideo.instructor}</p>
+              </div>
+
+              <div className="mb-6">
+                <VideoEmbed 
+                  videoUrl={selectedVideo.videoUrl} 
+                  title={selectedVideo.title}
+                />
+              </div>
+
+              <div className="flex justify-end space-x-3">
+                <button
+                  onClick={closeVideoModal}
+                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors"
+                >
+                  Close
+                </button>
+                {selectedVideo.videoUrl && (
+                  <a
+                    href={selectedVideo.videoUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-colors"
+                  >
+                    Open in New Tab
+                  </a>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

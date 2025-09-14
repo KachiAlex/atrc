@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { collection, addDoc } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { db, storage } from '../firebase/config';
+import VideoUploadManager from './VideoUploadManager';
 import toast from 'react-hot-toast';
 
 const CourseUploadModal = ({ isOpen, onClose, onUpload }) => {
@@ -16,11 +17,9 @@ const CourseUploadModal = ({ isOpen, onClose, onUpload }) => {
     publishStatus: 'published',
     thumbnailFile: null,
     thumbnailUrl: '',
-    videoFile: null,
     videoUrl: '',
     materials: []
   });
-  const [uploadType, setUploadType] = useState('file'); // 'file' or 'url'
   const [loading, setLoading] = useState(false);
 
   const categories = [
@@ -62,6 +61,13 @@ const CourseUploadModal = ({ isOpen, onClose, onUpload }) => {
     }));
   };
 
+  const handleVideoUrlChange = (url) => {
+    setFormData(prev => ({
+      ...prev,
+      videoUrl: url
+    }));
+  };
+
   const uploadFile = async (file, path) => {
     if (!file) return null;
     const storageRef = ref(storage, path);
@@ -75,18 +81,11 @@ const CourseUploadModal = ({ isOpen, onClose, onUpload }) => {
 
     try {
       let thumbnailUrl = formData.thumbnailUrl;
-      let videoUrl = formData.videoUrl;
 
       // Upload thumbnail if file is provided
       if (formData.thumbnailFile) {
         const thumbnailPath = `courses/thumbnails/${Date.now()}_${formData.thumbnailFile.name}`;
         thumbnailUrl = await uploadFile(formData.thumbnailFile, thumbnailPath);
-      }
-
-      // Upload video if file is provided
-      if (formData.videoFile) {
-        const videoPath = `courses/videos/${Date.now()}_${formData.videoFile.name}`;
-        videoUrl = await uploadFile(formData.videoFile, videoPath);
       }
 
       const courseData = {
@@ -98,7 +97,7 @@ const CourseUploadModal = ({ isOpen, onClose, onUpload }) => {
         duration: formData.duration,
         level: formData.level,
         thumbnailUrl,
-        videoUrl,
+        videoUrl: formData.videoUrl,
         materials: formData.materials,
         isPublished: formData.publishStatus === 'published',
         createdAt: new Date(),
@@ -126,7 +125,6 @@ const CourseUploadModal = ({ isOpen, onClose, onUpload }) => {
         publishStatus: 'published',
         thumbnailFile: null,
         thumbnailUrl: '',
-        videoFile: null,
         videoUrl: '',
         materials: []
       });
@@ -278,126 +276,46 @@ const CourseUploadModal = ({ isOpen, onClose, onUpload }) => {
               </div>
             </div>
 
-            {/* Upload Type Toggle */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                📁 Upload Type
-              </label>
-              <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg">
-                <button
-                  type="button"
-                  onClick={() => setUploadType('file')}
-                  className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                    uploadType === 'file'
-                    ? 'bg-white text-blue-600 shadow-sm'
-                    : 'text-gray-600 hover:text-gray-900'
-                  }`}
-                >
-                  📁 File Upload
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setUploadType('url')}
-                  className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                    uploadType === 'url'
-                    ? 'bg-white text-blue-600 shadow-sm'
-                    : 'text-gray-600 hover:text-gray-900'
-                  }`}
-                >
-                  🔗 URL Link
-                </button>
-              </div>
-            </div>
 
             {/* Thumbnail */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 🖼️ Course Thumbnail
               </label>
-              {uploadType === 'file' ? (
-                <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
-                  <input
-                    type="file"
-                    name="thumbnailFile"
-                    accept="image/*"
-                    onChange={handleInputChange}
-                    className="hidden"
-                    id="thumbnailFile"
-                  />
-                  <label
-                    htmlFor="thumbnailFile"
-                    className="cursor-pointer flex flex-col items-center"
-                  >
-                    📁
-                    <span className="text-sm text-gray-600">
-                      Click to upload thumbnail
-                    </span>
-                    <span className="text-xs text-gray-500 mt-1">
-                      PNG, JPG, GIF up to 10MB
-                    </span>
-                  </label>
-                  {formData.thumbnailFile && (
-                    <p className="text-sm text-green-600 mt-2">
-                      Selected: {formData.thumbnailFile.name}
-                    </p>
-                  )}
-                </div>
-              ) : (
+              <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
                 <input
-                  type="url"
-                  name="thumbnailUrl"
-                  value={formData.thumbnailUrl}
+                  type="file"
+                  name="thumbnailFile"
+                  accept="image/*"
                   onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600 text-gray-900 bg-white"
-                  placeholder="Enter thumbnail image URL"
+                  className="hidden"
+                  id="thumbnailFile"
                 />
-              )}
+                <label
+                  htmlFor="thumbnailFile"
+                  className="cursor-pointer flex flex-col items-center"
+                >
+                  📁
+                  <span className="text-sm text-gray-600">
+                    Click to upload thumbnail
+                  </span>
+                  <span className="text-xs text-gray-500 mt-1">
+                    PNG, JPG, GIF up to 10MB
+                  </span>
+                </label>
+                {formData.thumbnailFile && (
+                  <p className="text-sm text-green-600 mt-2">
+                    Selected: {formData.thumbnailFile.name}
+                  </p>
+                )}
+              </div>
             </div>
 
             {/* Video Content */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                🎥 Video Content
-              </label>
-              {uploadType === 'file' ? (
-                <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
-                  <input
-                    type="file"
-                    name="videoFile"
-                    accept="video/*"
-                    onChange={handleInputChange}
-                    className="hidden"
-                    id="videoFile"
-                  />
-                  <label
-                    htmlFor="videoFile"
-                    className="cursor-pointer flex flex-col items-center"
-                  >
-                    📁
-                    <span className="text-sm text-gray-600">
-                      Click to upload video
-                    </span>
-                    <span className="text-xs text-gray-500 mt-1">
-                      MP4, AVI, MOV up to 100MB
-                    </span>
-                  </label>
-                  {formData.videoFile && (
-                    <p className="text-sm text-green-600 mt-2">
-                      Selected: {formData.videoFile.name}
-                    </p>
-                  )}
-                </div>
-              ) : (
-                <input
-                  type="url"
-                  name="videoUrl"
-                  value={formData.videoUrl}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600 text-gray-900 bg-white"
-                  placeholder="Enter video URL (YouTube, Vimeo, etc.)"
-                />
-              )}
-            </div>
+            <VideoUploadManager
+              onVideoUrlSet={handleVideoUrlChange}
+              initialVideoUrl={formData.videoUrl}
+            />
 
             {/* Publish Status */}
             <div>
