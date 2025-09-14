@@ -166,9 +166,9 @@ const AdminAccessPanel = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 text-gray-900 flex">
+    <div className="min-h-screen bg-gray-50 text-gray-900 flex flex-col lg:flex-row">
       {/* Admin Sidebar */}
-      <div className="w-64 bg-gray-100 shadow-lg">
+      <div className="w-full lg:w-64 bg-gray-100 shadow-lg lg:shadow-lg">
         <div className="p-6">
           <div className="flex items-center space-x-3 mb-8">
             <span className="text-2xl">👑</span>
@@ -177,55 +177,60 @@ const AdminAccessPanel = () => {
             </div>
           </div>
           
-          <nav className="space-y-2">
+          <nav className="space-y-2 lg:space-y-2 flex flex-wrap lg:flex-col gap-2 lg:gap-0">
             <button
               onClick={() => setActiveTab('users')}
-              className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left transition-colors ${
+              className={`flex-1 lg:w-full flex items-center justify-center lg:justify-start space-x-2 lg:space-x-3 px-3 lg:px-4 py-2 lg:py-3 rounded-lg text-left transition-colors text-sm lg:text-base ${
                 activeTab === 'users' ? 'bg-blue-100 text-blue-700' : 'text-gray-700 hover:bg-gray-200'
               }`}
             >
               <span className="text-lg">👥</span>
-              <span className="font-medium">User Management</span>
+              <span className="font-medium hidden sm:inline">User Management</span>
+              <span className="font-medium sm:hidden">Users</span>
             </button>
             
             <button
               onClick={() => setActiveTab('verification')}
-              className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left transition-colors ${
+              className={`flex-1 lg:w-full flex items-center justify-center lg:justify-start space-x-2 lg:space-x-3 px-3 lg:px-4 py-2 lg:py-3 rounded-lg text-left transition-colors text-sm lg:text-base ${
                 activeTab === 'verification' ? 'bg-blue-100 text-blue-700' : 'text-gray-700 hover:bg-gray-200'
               }`}
             >
               <span className="text-lg">🛡️</span>
-              <span className="font-medium">Verification Cases</span>
+              <span className="font-medium hidden sm:inline">Verification</span>
+              <span className="font-medium sm:hidden">Verify</span>
             </button>
             
             <button
               onClick={() => setActiveTab('books')}
-              className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left transition-colors ${
+              className={`flex-1 lg:w-full flex items-center justify-center lg:justify-start space-x-2 lg:space-x-3 px-3 lg:px-4 py-2 lg:py-3 rounded-lg text-left transition-colors text-sm lg:text-base ${
                 activeTab === 'books' ? 'bg-blue-100 text-blue-700' : 'text-gray-700 hover:bg-gray-200'
               }`}
             >
               <span className="text-lg">📚</span>
-              <span className="font-medium">Book Management</span>
+              <span className="font-medium hidden sm:inline">Books</span>
+              <span className="font-medium sm:hidden">Books</span>
             </button>
             
             <button
               onClick={() => setActiveTab('courses')}
-              className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left transition-colors ${
+              className={`flex-1 lg:w-full flex items-center justify-center lg:justify-start space-x-2 lg:space-x-3 px-3 lg:px-4 py-2 lg:py-3 rounded-lg text-left transition-colors text-sm lg:text-base ${
                 activeTab === 'courses' ? 'bg-blue-100 text-blue-700' : 'text-gray-700 hover:bg-gray-200'
               }`}
             >
               <span className="text-lg">🎓</span>
-              <span className="font-medium">Course Management</span>
+              <span className="font-medium hidden sm:inline">Courses</span>
+              <span className="font-medium sm:hidden">Courses</span>
             </button>
             
             <button
               onClick={() => setActiveTab('analytics')}
-              className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left transition-colors ${
+              className={`flex-1 lg:w-full flex items-center justify-center lg:justify-start space-x-2 lg:space-x-3 px-3 lg:px-4 py-2 lg:py-3 rounded-lg text-left transition-colors text-sm lg:text-base ${
                 activeTab === 'analytics' ? 'bg-blue-100 text-blue-700' : 'text-gray-700 hover:bg-gray-200'
               }`}
             >
               <span className="text-lg">📊</span>
-              <span className="font-medium">Analytics</span>
+              <span className="font-medium hidden sm:inline">Analytics</span>
+              <span className="font-medium sm:hidden">Stats</span>
             </button>
           </nav>
           
@@ -238,20 +243,20 @@ const AdminAccessPanel = () => {
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col min-w-0">
         {/* Top Navigation Bar */}
-        <div className="bg-blue-900 text-white px-6 py-4 flex justify-between items-center">
-          <div className="flex items-center space-x-3">
+        <div className="bg-blue-900 text-white px-4 sm:px-6 py-4 flex justify-between items-center">
+          <div className="flex items-center space-x-2 sm:space-x-3">
             <span className="text-lg">🏛️</span>
-            <span className="font-semibold">ATRC Leadership Institute</span>
+            <span className="font-semibold text-sm sm:text-base">ATRC Leadership Institute</span>
           </div>
-          <div className="flex items-center space-x-4">
-            <span className="text-sm">Web App</span>
-            <span className="text-sm">Font Size: A A A</span>
+          <div className="flex items-center space-x-2 sm:space-x-4">
+            <span className="text-xs sm:text-sm hidden sm:inline">Web App</span>
+            <span className="text-xs sm:text-sm hidden lg:inline">Font Size: A A A</span>
             <span className="text-lg">☀️</span>
             <button
               onClick={() => navigate('/app/dashboard')}
-              className="bg-red-600 hover:bg-red-700 px-4 py-2 rounded text-sm font-medium transition-colors"
+              className="bg-red-600 hover:bg-red-700 px-2 sm:px-4 py-2 rounded text-xs sm:text-sm font-medium transition-colors"
             >
               Logout
             </button>
@@ -259,7 +264,7 @@ const AdminAccessPanel = () => {
         </div>
 
         {/* Main Dashboard Content */}
-        <div className="flex-1 p-8">
+        <div className="flex-1 p-4 sm:p-8">
           <div className="mb-8">
             <h1 className="text-3xl font-bold text-gray-900 mb-2">Super Admin Dashboard</h1>
             <p className="text-gray-600">Manage throne verifications, documents, and overall ATRFC activity.</p>
