@@ -198,9 +198,9 @@ const HomePage = () => {
         </div>
 
         {/* Content */}
-        <div className="relative z-10 h-full flex items-center">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
-            <div className="text-center">
+        <div className="relative z-10 h-full flex items-center justify-center">
+          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
+            <div className="text-center flex flex-col items-center justify-center">
               {bannerSlides.map((slide, index) => (
                 <div
                   key={slide.id}
@@ -285,12 +285,12 @@ const HomePage = () => {
       <div 
         id="stats" 
         data-animate
-        className={`py-12 ${isDarkMode ? 'bg-gray-800' : 'bg-white'} ${
+        className={`py-16 ${isDarkMode ? 'bg-gray-800' : 'bg-white'} ${
           visibleSections.has('stats') ? 'animate-fadeInUp' : 'opacity-0'
         }`}
       >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 gap-8 md:grid-cols-4">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-2 gap-8 md:grid-cols-4 justify-items-center">
             {stats.map((stat, index) => (
               <div 
                 key={index} 
@@ -314,24 +314,24 @@ const HomePage = () => {
       <div 
         id="features" 
         data-animate
-        className={`py-16 ${isDarkMode ? 'bg-gray-900' : 'bg-gray-50'} ${
+        className={`py-20 ${isDarkMode ? 'bg-gray-900' : 'bg-gray-50'} ${
           visibleSections.has('features') ? 'animate-fadeInUp' : 'opacity-0'
         }`}
       >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className={`text-center transform transition-all duration-1000 ${
             visibleSections.has('features') ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'
           }`}>
             <h2 className={`text-3xl font-extrabold ${isDarkMode ? 'text-white' : 'text-gray-900'} sm:text-4xl`}>
               {t('features.title')}
             </h2>
-            <p className={`mt-4 text-lg ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+            <p className={`mt-4 text-lg max-w-3xl mx-auto ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
               {t('features.subtitle')}
             </p>
           </div>
 
-          <div className="mt-12">
-            <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="mt-16">
+            <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3 justify-items-center">
               {features.map((feature, index) => (
                 <div 
                   key={index} 
@@ -366,7 +366,7 @@ const HomePage = () => {
           visibleSections.has('leadership-gallery') ? 'animate-fadeInUp' : 'opacity-0'
         }`}
       >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className={`text-center transform transition-all duration-1000 ${
             visibleSections.has('leadership-gallery') ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'
           }`}>
@@ -486,7 +486,7 @@ const HomePage = () => {
           visibleSections.has('heritage') ? 'animate-fadeInUp' : 'opacity-0'
         }`}
       >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className={`text-center transform transition-all duration-1000 ${
             visibleSections.has('heritage') ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'
           }`}>
@@ -498,7 +498,7 @@ const HomePage = () => {
             </p>
           </div>
 
-          <div className="mt-16 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="mt-16 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 justify-items-center">
             {[
               {
                 icon: "🏛️",
@@ -549,11 +549,11 @@ const HomePage = () => {
       <div 
         id="cta" 
         data-animate
-        className={`py-16 atrc-gradient-bg ${
+        className={`py-20 atrc-gradient-bg ${
           visibleSections.has('cta') ? 'animate-fadeInUp' : 'opacity-0'
         }`}
       >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <div className={`transform transition-all duration-1000 ${
             visibleSections.has('cta') ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'
           }`}>
@@ -577,7 +577,7 @@ const HomePage = () => {
 
       {/* Footer */}
       <footer className={`${isDarkMode ? 'bg-gray-800' : 'bg-white'} border-t border-gray-200`}>
-        <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-6xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div className="col-span-1 md:col-span-2">
               <div className="flex items-center">
