@@ -387,7 +387,7 @@ const HomePage = () => {
                 <div className="relative">
                   <img 
                     src="https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=800&h=600&fit=crop&crop=center" 
-                    alt="Traditional rulers in ceremonial gathering at church"
+                    alt="Traditional rulers and elders in church ceremony with prayer and reverence"
                     className="w-full h-80 object-cover"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
@@ -396,7 +396,7 @@ const HomePage = () => {
                       Spiritual Leadership
                     </h3>
                     <p className={`text-sm ${isDarkMode ? 'text-gray-200' : 'text-gray-100'}`}>
-                      Traditional rulers gathered in solemn ceremony, demonstrating the integration of spiritual and cultural leadership
+                      Traditional rulers and elders in prayerful ceremony, showcasing the deep spiritual devotion and cultural reverence
                     </p>
                   </div>
                 </div>
@@ -408,7 +408,7 @@ const HomePage = () => {
                     </span>
                   </div>
                   <p className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-                    A powerful representation of how traditional African leadership maintains its spiritual foundation while embracing modern community development.
+                    A profound moment of spiritual unity, where traditional African leaders demonstrate their deep faith and cultural heritage within sacred spaces.
                   </p>
                 </div>
               </div>
@@ -422,7 +422,7 @@ const HomePage = () => {
                 <div className="relative">
                   <img 
                     src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&h=600&fit=crop&crop=center" 
-                    alt="Traditional rulers in ceremonial interaction with candle ceremony"
+                    alt="Traditional rulers in sacred ceremony with candle ritual and ornate regalia"
                     className="w-full h-80 object-cover"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
@@ -431,7 +431,7 @@ const HomePage = () => {
                       Sacred Ceremony
                     </h3>
                     <p className={`text-sm ${isDarkMode ? 'text-gray-200' : 'text-gray-100'}`}>
-                      Traditional rulers engaged in a sacred candle ceremony, symbolizing wisdom, unity, and divine guidance
+                      Traditional rulers in sacred ritual with ornate regalia and ceremonial candle, embodying ancient wisdom and spiritual authority
                     </p>
                   </div>
                 </div>
@@ -443,7 +443,7 @@ const HomePage = () => {
                     </span>
                   </div>
                   <p className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-                    This ceremonial interaction showcases the deep spiritual and cultural traditions that guide traditional African leadership.
+                    An ancient ritual of wisdom and authority, where traditional rulers perform sacred ceremonies with elaborate regalia and spiritual reverence.
                   </p>
                 </div>
               </div>
