@@ -358,6 +358,125 @@ const HomePage = () => {
         </div>
       </div>
 
+      {/* Traditional Leadership Gallery Section */}
+      <div 
+        id="leadership-gallery" 
+        data-animate
+        className={`py-20 ${isDarkMode ? 'bg-gray-800' : 'bg-white'} ${
+          visibleSections.has('leadership-gallery') ? 'animate-fadeInUp' : 'opacity-0'
+        }`}
+      >
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className={`text-center transform transition-all duration-1000 ${
+            visibleSections.has('leadership-gallery') ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'
+          }`}>
+            <h2 className={`text-3xl font-extrabold ${isDarkMode ? 'text-white' : 'text-gray-900'} sm:text-4xl`}>
+              Traditional Leadership in Action
+            </h2>
+            <p className={`mt-4 text-lg max-w-3xl mx-auto ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+              Witness the profound wisdom and cultural richness of traditional African leadership through these ceremonial gatherings.
+            </p>
+          </div>
+
+          <div className="mt-16 grid grid-cols-1 lg:grid-cols-2 gap-12">
+            {/* First Image - Church Gathering */}
+            <div className={`transform transition-all duration-1000 ${
+              visibleSections.has('leadership-gallery') ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'
+            }`}>
+              <div className={`${isDarkMode ? 'bg-gray-900' : 'bg-gray-50'} rounded-2xl overflow-hidden shadow-2xl hover:shadow-3xl transition-shadow duration-300`}>
+                <div className="relative">
+                  <img 
+                    src="https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=800&h=600&fit=crop&crop=center" 
+                    alt="Traditional rulers in ceremonial gathering at church"
+                    className="w-full h-80 object-cover"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+                  <div className="absolute bottom-4 left-4 right-4">
+                    <h3 className={`text-xl font-bold ${isDarkMode ? 'text-white' : 'text-white'} mb-2`}>
+                      Spiritual Leadership
+                    </h3>
+                    <p className={`text-sm ${isDarkMode ? 'text-gray-200' : 'text-gray-100'}`}>
+                      Traditional rulers gathered in solemn ceremony, demonstrating the integration of spiritual and cultural leadership
+                    </p>
+                  </div>
+                </div>
+                <div className="p-6">
+                  <div className="flex items-center space-x-2 mb-3">
+                    <span className="text-2xl">⛪</span>
+                    <span className={`text-sm font-medium ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                      Ceremonial Gathering
+                    </span>
+                  </div>
+                  <p className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                    A powerful representation of how traditional African leadership maintains its spiritual foundation while embracing modern community development.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Second Image - Ceremonial Interaction */}
+            <div className={`transform transition-all duration-1000 delay-200 ${
+              visibleSections.has('leadership-gallery') ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'
+            }`}>
+              <div className={`${isDarkMode ? 'bg-gray-900' : 'bg-gray-50'} rounded-2xl overflow-hidden shadow-2xl hover:shadow-3xl transition-shadow duration-300`}>
+                <div className="relative">
+                  <img 
+                    src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&h=600&fit=crop&crop=center" 
+                    alt="Traditional rulers in ceremonial interaction with candle ceremony"
+                    className="w-full h-80 object-cover"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+                  <div className="absolute bottom-4 left-4 right-4">
+                    <h3 className={`text-xl font-bold ${isDarkMode ? 'text-white' : 'text-white'} mb-2`}>
+                      Sacred Ceremony
+                    </h3>
+                    <p className={`text-sm ${isDarkMode ? 'text-gray-200' : 'text-gray-100'}`}>
+                      Traditional rulers engaged in a sacred candle ceremony, symbolizing wisdom, unity, and divine guidance
+                    </p>
+                  </div>
+                </div>
+                <div className="p-6">
+                  <div className="flex items-center space-x-2 mb-3">
+                    <span className="text-2xl">🕯️</span>
+                    <span className={`text-sm font-medium ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                      Sacred Ritual
+                    </span>
+                  </div>
+                  <p className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                    This ceremonial interaction showcases the deep spiritual and cultural traditions that guide traditional African leadership.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Call to Action */}
+          <div className="mt-16 text-center">
+            <div className={`${isDarkMode ? 'bg-gray-900' : 'bg-gray-50'} rounded-2xl p-8`}>
+              <h3 className={`text-2xl font-bold mb-4 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                Experience Traditional Wisdom
+              </h3>
+              <p className={`text-lg mb-6 max-w-2xl mx-auto ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                Join our platform to connect with traditional leaders, learn from their wisdom, and contribute to preserving African cultural heritage.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <Link
+                  to="/auth"
+                  className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-lg text-white bg-primary-600 hover:bg-primary-700 transition-colors duration-200"
+                >
+                  Join Our Community
+                </Link>
+                <Link
+                  to="/login"
+                  className="inline-flex items-center px-6 py-3 border border-gray-300 text-base font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 transition-colors duration-200"
+                >
+                  Learn More
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
 
       {/* Cultural Heritage Section */}
       <div 
