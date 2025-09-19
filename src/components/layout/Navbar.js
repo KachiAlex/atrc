@@ -1,7 +1,7 @@
 import React from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
-import ATRCLogo from '../ATRCLogo';
+import LogoImage from '../LogoImage';
 import { HighContrastToggle, FontSizeControls } from '../ui/Accessibility';
 import PWAStatus from '../PWAStatus';
 
@@ -14,7 +14,7 @@ const Navbar = () => {
       <div className="max-w-7xl mx-auto px-4">
         <div className="flex justify-between h-16">
           <div className="flex items-center">
-            <ATRCLogo size="small" />
+            <LogoImage type="traditional-rulers" size="small" />
             <div className="ml-3">
               <h1 className="text-xl font-bold atrc-gradient-text">ATRC</h1>
               <p className="text-xs text-gray-500">Leadership Institute</p>

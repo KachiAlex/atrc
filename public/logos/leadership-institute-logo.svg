@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="400" height="400" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+  <defs>
+    <linearGradient id="goldGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fbbf24"/>
+      <stop offset="100%" stop-color="#d97706"/>
+    </linearGradient>
+    <linearGradient id="navyGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1e3a8a"/>
+      <stop offset="100%" stop-color="#1e40af"/>
+    </linearGradient>
+  </defs>
+  
+  <!-- Cross at Top -->
+  <g transform="translate(200, 80)">
+    <rect x="-6" y="-25" width="12" height="40" fill="url(#goldGradient)" rx="2"/>
+    <rect x="-20" y="-11" width="40" height="12" fill="url(#goldGradient)" rx="2"/>
+    <!-- Cross Details -->
+    <rect x="-4" y="-23" width="8" height="36" fill="#f59e0b" rx="1"/>
+    <rect x="-18" y="-9" width="36" height="8" fill="#f59e0b" rx="1"/>
+  </g>
+  
+  <!-- Upper Shield/House Shape -->
+  <g transform="translate(200, 140)">
+    <path d="M-80 20 L0 -40 L80 20 L80 60 L-80 60 Z" fill="url(#goldGradient)" stroke="#d97706" stroke-width="3"/>
+    <path d="M-75 20 L0 -35 L75 20 L75 55 L-75 55 Z" fill="url(#navyGradient)"/>
+    
+    <!-- Open Book in Upper Section -->
+    <g transform="translate(0, 10)">
+      <path d="M-25 -10 Q-25 -15 -20 -15 L20 -15 Q25 -15 25 -10 L25 10 Q25 15 20 15 L3 15 L0 18 L-3 15 L-20 15 Q-25 15 -25 10 Z" 
+            fill="white" stroke="#e5e7eb" stroke-width="1"/>
+      <!-- Book Pages -->
+      <line x1="-20" y1="-8" x2="20" y2="-8" stroke="#333" stroke-width="0.5"/>
+      <line x1="-20" y1="-4" x2="20" y2="-4" stroke="#333" stroke-width="0.5"/>
+      <line x1="-20" y1="0" x2="20" y2="0" stroke="#333" stroke-width="0.5"/>
+      <line x1="-20" y1="4" x2="20" y2="4" stroke="#333" stroke-width="0.5"/>
+      <line x1="-20" y1="8" x2="20" y2="8" stroke="#333" stroke-width="0.5"/>
+      <!-- Center Line -->
+      <line x1="0" y1="-10" x2="0" y2="15" stroke="#333" stroke-width="1"/>
+    </g>
+    
+    <!-- Scripture Reference -->
+    <text x="0" y="-20" font-family="serif" font-size="12" font-weight="bold" fill="white" text-anchor="middle">
+      Proverbs 8:15-16
+    </text>
+  </g>
+  
+  <!-- Main Text -->
+  <text x="200" y="220" font-family="Arial, sans-serif" font-size="24" font-weight="bold" fill="url(#navyGradient)" text-anchor="middle">
+    LEADERSHIP INSTITUTE
+  </text>
+  
+  <!-- Lower Shield -->
+  <g transform="translate(200, 280)">
+    <path d="M-90 -20 L90 -20 L90 40 Q90 50 80 60 L10 80 Q0 85 0 85 Q0 85 -10 80 L-80 60 Q-90 50 -90 40 Z" 
+          fill="url(#goldGradient)" stroke="#d97706" stroke-width="3"/>
+    <path d="M-85 -15 L85 -15 L85 35 Q85 45 75 55 L8 75 Q0 80 0 80 Q0 80 -8 75 L-75 55 Q-85 45 -85 35 Z" 
+          fill="url(#navyGradient)"/>
+    
+    <!-- Sophia Text -->
+    <text x="0" y="-5" font-family="serif" font-size="16" font-weight="bold" fill="white" text-anchor="middle">
+      Σοφια (Sophía)
+    </text>
+    
+    <!-- Crown in Lower Shield -->
+    <g transform="translate(0, 20)">
+      <path d="M-20 0 L-15 -8 L-8 -2 L0 -10 L8 -2 L15 -8 L20 0 L20 8 L-20 8 Z" 
+            fill="url(#goldGradient)" stroke="#d97706" stroke-width="1"/>
+      <path d="M-18 0 L-13 -6 L-6 -1 L0 -8 L6 -1 L13 -6 L18 0 L18 6 L-18 6 Z" 
+            fill="#7c3aed"/>
+      
+      <!-- Crown Jewels -->
+      <circle cx="-8" cy="-1" r="1" fill="#dc2626"/>
+      <circle cx="0" cy="-5" r="1.5" fill="#dc2626"/>
+      <circle cx="8" cy="-1" r="1" fill="#dc2626"/>
+      
+      <!-- Small Cross on Crown -->
+      <g transform="translate(0, -10)">
+        <rect x="-1" y="-3" width="2" height="5" fill="#fbbf24" rx="0.5"/>
+        <rect x="-2.5" y="-1.5" width="5" height="2" fill="#fbbf24" rx="0.5"/>
+      </g>
+    </g>
+  </g>
+  
+  <!-- Curved Text Around Lower Shield -->
+  <path id="leftCurve" d="M 80 320 Q 120 280 160 320" fill="none"/>
+  <text font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="url(#navyGradient)" text-anchor="middle">
+    <textPath href="#leftCurve" startOffset="50%">AFRICA TRADITIONAL</textPath>
+  </text>
+  
+  <path id="rightCurve" d="M 240 320 Q 280 280 320 320" fill="none"/>
+  <text font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="url(#navyGradient)" text-anchor="middle">
+    <textPath href="#rightCurve" startOffset="50%">RULERS FOR CHRIST</textPath>
+  </text>
+</svg>

@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import LanguageSelector from '../components/LanguageSelector';
-import ATRCLogo from '../components/ATRCLogo';
+import LogoImage from '../components/LogoImage';
 
 const HomePage = () => {
   const { isDarkMode, toggleTheme } = useTheme();
@@ -141,7 +141,7 @@ const HomePage = () => {
           <div className="flex justify-between h-16">
             <div className="flex items-center">
               <div className="flex-shrink-0">
-                <ATRCLogo size="small" />
+                <LogoImage type="traditional-rulers" size="small" />
               </div>
               <div className="ml-3">
                 <h1 className={`text-xl font-bold atrc-gradient-text`}>
@@ -581,7 +581,7 @@ const HomePage = () => {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div className="col-span-1 md:col-span-2">
               <div className="flex items-center">
-                <ATRCLogo size="small" />
+                <LogoImage type="traditional-rulers" size="small" />
                 <div className="ml-3">
                   <h3 className={`text-lg font-semibold atrc-gradient-text`}>
                     ATRFC

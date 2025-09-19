@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 
 const ATRCLogo = ({ size = 'medium', className = '' }) => {
   const sizeClasses = {
@@ -8,143 +8,94 @@ const ATRCLogo = ({ size = 'medium', className = '' }) => {
     xlarge: 'w-20 h-20'
   };
 
+  // Generate stable unique IDs to avoid conflicts when multiple logos are on the same page
+  const uniqueId = useMemo(() => Math.random().toString(36).substr(2, 9), []);
+
   return (
     <div className={`${sizeClasses[size]} ${className}`}>
       <svg
-        viewBox="0 0 200 200"
+        viewBox="0 0 400 400"
         className="w-full h-full"
         xmlns="http://www.w3.org/2000/svg"
       >
-        {/* Shield Background */}
         <defs>
-          <linearGradient id="shieldGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#1e3a8a" />
-            <stop offset="100%" stopColor="#1e40af" />
+          <radialGradient id={`circleGradient-${uniqueId}`} cx="50%" cy="30%">
+            <stop offset="0%" stopColor="#4338ca"/>
+            <stop offset="100%" stopColor="#1e1b4b"/>
+          </radialGradient>
+          <radialGradient id={`innerGradient-${uniqueId}`} cx="50%" cy="30%">
+            <stop offset="0%" stopColor="#fbbf24"/>
+            <stop offset="100%" stopColor="#d97706"/>
+          </radialGradient>
+          <linearGradient id={`crownGradient-${uniqueId}`} x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#fbbf24"/>
+            <stop offset="50%" stopColor="#f59e0b"/>
+            <stop offset="100%" stopColor="#d97706"/>
           </linearGradient>
-          <linearGradient id="goldGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#fbbf24" />
-            <stop offset="100%" stopColor="#f59e0b" />
-          </linearGradient>
-          <linearGradient id="crownGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#7c3aed" />
-            <stop offset="100%" stopColor="#5b21b6" />
+          <linearGradient id={`purpleGradient-${uniqueId}`} x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#7c3aed"/>
+            <stop offset="100%" stopColor="#5b21b6"/>
           </linearGradient>
         </defs>
         
-        {/* Shield Shape */}
-        <path
-          d="M100 20 L180 50 L180 140 L100 180 L20 140 L20 50 Z"
-          fill="url(#shieldGradient)"
-          stroke="url(#goldGradient)"
-          strokeWidth="2"
-        />
+        {/* Outer Blue Circle */}
+        <circle cx="200" cy="200" r="190" fill={`url(#circleGradient-${uniqueId})`} stroke="#1e40af" strokeWidth="4"/>
         
-        {/* Golden Cross at Top */}
-        <g transform="translate(100, 35)">
-          <rect x="-3" y="-8" width="6" height="16" fill="url(#goldGradient)" rx="1" />
-          <rect x="-8" y="-3" width="16" height="6" fill="url(#goldGradient)" rx="1" />
-        </g>
+        {/* Inner Gold Circle */}
+        <circle cx="200" cy="200" r="140" fill={`url(#innerGradient-${uniqueId})`}/>
+        
+        {/* White Triangle Background */}
+        <path d="M200 80 L320 240 L80 240 Z" fill="white" stroke="#d1d5db" strokeWidth="2"/>
         
         {/* Open Book */}
-        <g transform="translate(100, 65)">
-          <path
-            d="M-15 -8 L-8 -12 L8 -12 L15 -8 L15 8 L8 12 L-8 12 L-15 8 Z"
-            fill="white"
-            stroke="url(#goldGradient)"
-            strokeWidth="1"
-          />
-          {/* Book Lines */}
-          <line x1="-10" y1="-4" x2="10" y2="-4" stroke="url(#goldGradient)" strokeWidth="0.5" />
-          <line x1="-10" y1="-1" x2="10" y2="-1" stroke="url(#goldGradient)" strokeWidth="0.5" />
-          <line x1="-10" y1="2" x2="10" y2="2" stroke="url(#goldGradient)" strokeWidth="0.5" />
-          <line x1="-10" y1="5" x2="10" y2="5" stroke="url(#goldGradient)" strokeWidth="0.5" />
+        <g transform="translate(200, 280)">
+          <path d="M-40 -20 Q-40 -25 -35 -25 L35 -25 Q40 -25 40 -20 L40 10 Q40 15 35 15 L5 15 L0 20 L-5 15 L-35 15 Q-40 15 -40 10 Z" 
+                fill="#8b5cf6" stroke="#7c3aed" strokeWidth="1"/>
+          {/* Book pages */}
+          <line x1="-30" y1="-15" x2="30" y2="-15" stroke="#e5e7eb" strokeWidth="1"/>
+          <line x1="-30" y1="-10" x2="30" y2="-10" stroke="#e5e7eb" strokeWidth="1"/>
+          <line x1="-30" y1="-5" x2="30" y2="-5" stroke="#e5e7eb" strokeWidth="1"/>
+          <line x1="-30" y1="0" x2="30" y2="0" stroke="#e5e7eb" strokeWidth="1"/>
+          <line x1="-30" y1="5" x2="30" y2="5" stroke="#e5e7eb" strokeWidth="1"/>
         </g>
-        
-        {/* Proverbs 8:15-16 Text */}
-        <text
-          x="100"
-          y="90"
-          textAnchor="middle"
-          fill="white"
-          fontSize="8"
-          fontFamily="serif"
-          fontWeight="bold"
-        >
-          Proverbs 8:15-16
-        </text>
-        
-        {/* First Golden Bar */}
-        <rect x="30" y="100" width="140" height="2" fill="url(#goldGradient)" rx="1" />
-        
-        {/* Leadership Institute Text */}
-        <text
-          x="100"
-          y="120"
-          textAnchor="middle"
-          fill="white"
-          fontSize="12"
-          fontFamily="sans-serif"
-          fontWeight="bold"
-        >
-          LEADERSHIP INSTITUTE
-        </text>
-        
-        {/* Second Golden Bar */}
-        <rect x="30" y="130" width="140" height="2" fill="url(#goldGradient)" rx="1" />
-        
-        {/* Sophia Text */}
-        <text
-          x="100"
-          y="150"
-          textAnchor="middle"
-          fill="white"
-          fontSize="10"
-          fontFamily="serif"
-          fontWeight="bold"
-        >
-          Σοφια (Sophía)
-        </text>
         
         {/* Crown */}
-        <g transform="translate(100, 160)">
-          <path
-            d="M-12 -5 L-8 -8 L-4 -5 L0 -8 L4 -5 L8 -8 L12 -5 L12 5 L8 3 L4 5 L0 3 L-4 5 L-8 3 L-12 5 Z"
-            fill="url(#crownGradient)"
-            stroke="url(#goldGradient)"
-            strokeWidth="0.5"
-          />
-          {/* Crown Jewels */}
-          <circle cx="-6" cy="-2" r="1" fill="url(#goldGradient)" />
-          <circle cx="0" cy="-3" r="1.5" fill="url(#goldGradient)" />
-          <circle cx="6" cy="-2" r="1" fill="url(#goldGradient)" />
+        <g transform="translate(200, 160)">
+          {/* Crown base */}
+          <ellipse cx="0" cy="15" rx="45" ry="8" fill={`url(#crownGradient-${uniqueId})`}/>
+          
+          {/* Crown main body */}
+          <path d="M-40 0 Q-40 -10 -35 -15 L-25 -20 L-15 -10 L-5 -25 L5 -25 L15 -10 L25 -20 L35 -15 Q40 -10 40 0 L40 15 L-40 15 Z" 
+                fill={`url(#crownGradient-${uniqueId})`} stroke="#d97706" strokeWidth="1"/>
+          
+          {/* Crown velvet interior */}
+          <path d="M-35 0 L-20 -8 L-10 -5 L0 -20 L10 -5 L20 -8 L35 0 L35 12 L-35 12 Z" 
+                fill={`url(#purpleGradient-${uniqueId})`}/>
+          
+          {/* Crown jewels */}
+          <circle cx="-20" cy="-5" r="3" fill="#dc2626"/>
+          <circle cx="0" cy="-15" r="4" fill="#dc2626"/>
+          <circle cx="20" cy="-5" r="3" fill="#dc2626"/>
+          <circle cx="-10" cy="0" r="2" fill="#fbbf24"/>
+          <circle cx="10" cy="0" r="2" fill="#fbbf24"/>
+          
+          {/* Cross on top */}
+          <g transform="translate(0, -25)">
+            <rect x="-2" y="-8" width="4" height="12" fill={`url(#crownGradient-${uniqueId})`} rx="1"/>
+            <rect x="-6" y="-4" width="12" height="4" fill={`url(#crownGradient-${uniqueId})`} rx="1"/>
+          </g>
         </g>
         
-        {/* Curved Text - Africa Traditional */}
-        <text
-          x="50"
-          y="175"
-          textAnchor="middle"
-          fill="white"
-          fontSize="7"
-          fontFamily="sans-serif"
-          fontWeight="bold"
-          transform="rotate(-15 50 175)"
-        >
-          AFRICA TRADITIONAL
+        {/* Curved Text - Top */}
+        <path id={`topCurve-${uniqueId}`} d="M 80 120 Q 200 60 320 120" fill="none"/>
+        <text fontFamily="Arial, sans-serif" fontSize="18" fontWeight="bold" fill="white" textAnchor="middle">
+          <textPath href={`#topCurve-${uniqueId}`} startOffset="50%">AFRICA TRADITIONAL RULERS FOR CHRIST</textPath>
         </text>
         
-        {/* Curved Text - Rulers for Christ */}
-        <text
-          x="150"
-          y="175"
-          textAnchor="middle"
-          fill="white"
-          fontSize="7"
-          fontFamily="sans-serif"
-          fontWeight="bold"
-          transform="rotate(15 150 175)"
-        >
-          RULERS FOR CHRIST
+        {/* Bottom Text */}
+        <path id={`bottomCurve-${uniqueId}`} d="M 120 340 Q 200 320 280 340" fill="none"/>
+        <text fontFamily="Arial, sans-serif" fontSize="16" fontWeight="bold" fill="white" textAnchor="middle">
+          <textPath href={`#bottomCurve-${uniqueId}`} startOffset="50%">PSALM 45:6-8</textPath>
         </text>
       </svg>
     </div>
