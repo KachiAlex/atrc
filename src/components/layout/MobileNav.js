@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
+import LogoImage from '../LogoImage';
 
 const MobileNav = () => {
   const { currentUser, logout } = useAuth();
@@ -37,8 +38,8 @@ const MobileNav = () => {
         <div className="px-3 sm:px-4 py-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center min-w-0 flex-1">
-              <div className="h-8 w-8 rounded-full bg-gradient-to-br from-primary-100 to-primary-200 flex items-center justify-center flex-shrink-0">
-                <span className="text-lg">👑</span>
+              <div className="flex-shrink-0">
+                <LogoImage type="traditional-rulers" size="small" />
               </div>
               <div className="ml-3 min-w-0 flex-1">
                 <h1 className={`text-lg font-semibold truncate ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>

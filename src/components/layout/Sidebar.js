@@ -2,6 +2,7 @@ import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
+import LogoImage from '../LogoImage';
 
 const Sidebar = () => {
   const { currentUser, userRole } = useAuth();
@@ -32,9 +33,7 @@ const Sidebar = () => {
       <div className="p-6">
         <div className="flex items-center">
           <div className="flex-shrink-0">
-            <div className="h-8 w-8 rounded-full bg-primary-100 flex items-center justify-center">
-              <span className="text-lg">👑</span>
-            </div>
+            <LogoImage type="traditional-rulers" size="small" />
           </div>
           <div className="ml-3">
             <h1 className={`text-lg font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
