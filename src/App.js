@@ -30,6 +30,7 @@ import CourseReader from './pages/CourseReader';
 import LiveMeetingsViewer from './pages/LiveMeetingsViewer';
 import PWAInstallPrompt from './components/PWAInstallPrompt';
 import LogoTest from './components/LogoTest';
+import LogoDebug from './components/LogoDebug';
 
 import './index.css';
 
@@ -71,6 +72,7 @@ function App() {
                   {/* Public Routes */}
                   <Route path="/" element={<HomePage />} />
                   <Route path="/logo-test" element={<LogoTest />} />
+                  <Route path="/logo-debug" element={<LogoDebug />} />
                   <Route path="/login" element={<Login />} />
                   <Route path="/register" element={<Register />} />
                   <Route path="/auth" element={<ModernAuth />} />

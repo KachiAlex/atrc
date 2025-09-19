@@ -30,8 +30,13 @@ const LogoImage = ({
         className="w-full h-full object-contain"
         onError={(e) => {
           // Fallback if image fails to load
-          e.target.style.display = 'none';
           console.error(`Failed to load logo: ${logoSources[type]}`);
+          console.error('Error details:', e);
+          // Don't hide the image, show a red border to debug
+          e.target.style.border = '2px solid red';
+        }}
+        onLoad={() => {
+          console.log(`Successfully loaded logo: ${logoSources[type]}`);
         }}
       />
     </div>
