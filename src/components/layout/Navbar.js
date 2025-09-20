@@ -14,11 +14,7 @@ const Navbar = () => {
       <div className="max-w-7xl mx-auto px-4">
         <div className="flex justify-between h-16">
           <div className="flex items-center">
-            <LogoImage type="traditional-rulers" size="small" />
-            <div className="ml-3">
-              <h1 className="text-xl font-bold atrc-gradient-text">ATRC</h1>
-              <p className="text-xs text-gray-500">Leadership Institute</p>
-            </div>
+            {/* Logo removed - only show in sidebar */}
           </div>
           <div className="flex items-center space-x-2">
             <PWAStatus />
