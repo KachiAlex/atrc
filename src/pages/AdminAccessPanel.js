@@ -56,6 +56,24 @@ const AdminAccessPanel = () => {
     }
   }, [userRole]);
 
+  const handleVerifyUser = async (userId, isVerified) => {
+    try {
+      const userRef = doc(db, 'users', userId);
+      await updateDoc(userRef, {
+        isVerified: isVerified,
+        verifiedAt: isVerified ? new Date() : null,
+        verifiedBy: isVerified ? currentUser.uid : null
+      });
+      
+      // Refresh user data
+      fetchDashboardData();
+      
+      console.log(`User ${isVerified ? 'verified' : 'unverified'} successfully`);
+    } catch (error) {
+      console.error('Error updating user verification:', error);
+    }
+  };
+
   const fetchDashboardData = async () => {
     setLoading(true);
     try {
@@ -133,14 +151,11 @@ const AdminAccessPanel = () => {
   const handleUpdateUserRole = async (userId, newRole) => {
     try {
       const userRef = doc(db, 'users', userId);
-      const updateData = { role: newRole };
-      
-      // If approving as ruler, also update verification status
-      if (newRole === 'ruler') {
-        updateData.verificationStatus = 'verified';
-        updateData.verifiedAt = new Date();
-        updateData.verifiedBy = currentUser?.email;
-      }
+      const updateData = { 
+        role: newRole,
+        updatedAt: new Date(),
+        updatedBy: currentUser?.email
+      };
       
       await updateDoc(userRef, updateData);
       alert('User role updated successfully!');
@@ -164,24 +179,6 @@ const AdminAccessPanel = () => {
     }
   };
 
-  const handleRejectVerification = async (userId) => {
-    if (window.confirm('Are you sure you want to reject this verification request?')) {
-      try {
-        const userRef = doc(db, 'users', userId);
-        await updateDoc(userRef, { 
-          verificationStatus: 'rejected',
-          role: 'learner',
-          rejectedAt: new Date(),
-          rejectedBy: currentUser?.email
-        });
-        alert('Verification request rejected successfully!');
-        fetchDashboardData(); // Refresh data
-      } catch (error) {
-        console.error('Error rejecting verification:', error);
-        alert('Failed to reject verification request');
-      }
-    }
-  };
 
   const handleRequestMoreInfo = async (userId) => {
     const additionalInfo = prompt('What additional information do you need from this user?');
@@ -799,7 +796,7 @@ const AdminAccessPanel = () => {
                       <div>
                         <p className="text-sm font-medium text-yellow-800">Pending Verification</p>
                         <p className="text-2xl font-bold text-yellow-900">
-                          {users.filter(user => user.verificationStatus === 'pending').length}
+                          {users.filter(user => !user.isVerified).length}
                         </p>
                       </div>
                     </div>
@@ -810,7 +807,7 @@ const AdminAccessPanel = () => {
                       <div>
                         <p className="text-sm font-medium text-green-800">Verified Rulers</p>
                         <p className="text-2xl font-bold text-green-900">
-                          {users.filter(user => user.verificationStatus === 'verified' && user.role === 'ruler').length}
+                          {users.filter(user => user.isVerified === true && user.role === 'ruler').length}
                         </p>
                       </div>
                     </div>
@@ -821,7 +818,7 @@ const AdminAccessPanel = () => {
                       <div>
                         <p className="text-sm font-medium text-red-800">Rejected</p>
                         <p className="text-2xl font-bold text-red-900">
-                          {users.filter(user => user.verificationStatus === 'rejected').length}
+                          {users.filter(user => user.isVerified === false && user.isActive === false).length}
                         </p>
                       </div>
                     </div>
@@ -829,7 +826,7 @@ const AdminAccessPanel = () => {
                 </div>
 
                 <div className="space-y-6">
-                  {users.filter(user => user.verificationStatus === 'pending').map((user) => (
+                  {users.map((user) => (
                     <div
                       key={user.id}
                       className="border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow bg-white"
@@ -846,11 +843,22 @@ const AdminAccessPanel = () => {
                             </h4>
                             <p className="text-sm text-gray-500 mb-1">{user.email}</p>
                             <div className="flex items-center space-x-2">
-                              <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                                ⏳ Pending Verification
+                              <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
+                                user.isVerified 
+                                  ? 'bg-green-100 text-green-800' 
+                                  : 'bg-yellow-100 text-yellow-800'
+                              }`}>
+                                {user.isVerified ? '✅ Verified' : '⏳ Pending Verification'}
+                              </span>
+                              <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                                user.role === 'admin' ? 'bg-purple-100 text-purple-800' :
+                                user.role === 'ruler' ? 'bg-blue-100 text-blue-800' :
+                                'bg-gray-100 text-gray-800'
+                              }`}>
+                                {user.role}
                               </span>
                               <span className="text-xs text-gray-500">
-                                Applied: {user.createdAt ? new Date(user.createdAt.seconds * 1000).toLocaleDateString() : 'Unknown'}
+                                Joined: {user.createdAt ? new Date(user.createdAt.seconds * 1000).toLocaleDateString() : 'Unknown'}
                               </span>
                             </div>
                           </div>
@@ -971,19 +979,29 @@ const AdminAccessPanel = () => {
 
                       {/* Action Buttons */}
                       <div className="flex flex-wrap gap-3 pt-4 border-t border-gray-200">
+                        {user.isVerified ? (
+                          <button
+                            onClick={() => handleVerifyUser(user.id, false)}
+                            className="flex items-center px-6 py-2 bg-yellow-600 text-white text-sm font-medium rounded-md hover:bg-yellow-700 transition-colors"
+                          >
+                            <span className="mr-2">⏸️</span>
+                            Unverify User
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() => handleVerifyUser(user.id, true)}
+                            className="flex items-center px-6 py-2 bg-green-600 text-white text-sm font-medium rounded-md hover:bg-green-700 transition-colors"
+                          >
+                            <span className="mr-2">✅</span>
+                            Verify User
+                          </button>
+                        )}
                         <button
-                          onClick={() => handleUpdateUserRole(user.id, 'ruler')}
-                          className="flex items-center px-6 py-2 bg-green-600 text-white text-sm font-medium rounded-md hover:bg-green-700 transition-colors"
-                        >
-                          <span className="mr-2">✅</span>
-                          Approve & Verify
-                        </button>
-                        <button
-                          onClick={() => handleRejectVerification(user.id)}
+                          onClick={() => handleDeleteUser(user.id)}
                           className="flex items-center px-6 py-2 bg-red-600 text-white text-sm font-medium rounded-md hover:bg-red-700 transition-colors"
                         >
-                          <span className="mr-2">❌</span>
-                          Reject
+                          <span className="mr-2">🗑️</span>
+                          Delete User
                         </button>
                         <button
                           onClick={() => handleRequestMoreInfo(user.id)}

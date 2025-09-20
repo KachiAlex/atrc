@@ -30,6 +30,7 @@ export const AuthProvider = ({ children }) => {
         displayName: userData.displayName || '',
         createdAt: new Date(),
         isActive: true,
+        isVerified: false, // New users are not verified by default
         ...userData
       };
       
@@ -78,7 +79,8 @@ export const AuthProvider = ({ children }) => {
                 role: 'ruler',
                 displayName: user.displayName || '',
                 createdAt: new Date(),
-                isActive: true
+                isActive: true,
+                isVerified: false // New users are not verified by default
               });
               console.log('Created missing user document');
               setUserRole('ruler');
