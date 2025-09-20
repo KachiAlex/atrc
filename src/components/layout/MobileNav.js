@@ -9,12 +9,11 @@ const MobileNav = () => {
   const { isDarkMode, toggleTheme } = useTheme();
   const location = useLocation();
   const [isOpen, setIsOpen] = useState(false);
+  const [isLeadershipInstituteOpen, setIsLeadershipInstituteOpen] = useState(false);
 
   const navigation = [
     { name: 'Dashboard', href: '/app/dashboard', icon: '🏠' },
     { name: 'Community Report', href: '/app/community', icon: '📝' },
-    { name: 'Digital Library', href: '/app/books', icon: '📚' },
-    { name: 'Courses', href: '/app/courses', icon: '🎓' },
     { name: 'Live Meetings', href: '/app/meetings', icon: '📹' },
     { name: 'Events', href: '/app/events', icon: '📅' },
     { name: 'Announcements', href: '/app/announcements', icon: '📢' },
@@ -23,8 +22,17 @@ const MobileNav = () => {
     { name: 'Settings', href: '/app/settings', icon: '⚙️' }
   ];
 
+  const leadershipInstituteItems = [
+    { name: 'Digital Library', href: '/app/books', icon: '📚' },
+    { name: 'Courses', href: '/app/courses', icon: '🎓' }
+  ];
+
   const isActive = (path) => {
     return location.pathname === path;
+  };
+
+  const isLeadershipInstituteActive = () => {
+    return leadershipInstituteItems.some(item => isActive(item.href));
   };
 
   const handleLinkClick = () => {
@@ -91,8 +99,8 @@ const MobileNav = () => {
               {/* Enhanced Header */}
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center min-w-0 flex-1">
-                  <div className="h-10 w-10 rounded-full bg-gradient-to-br from-primary-100 to-primary-200 flex items-center justify-center flex-shrink-0">
-                    <span className="text-xl">👑</span>
+                  <div className="flex-shrink-0">
+                    <LogoImage type="traditional-rulers" size="medium" />
                   </div>
                   <div className="ml-3 min-w-0 flex-1">
                     <h1 className={`text-lg font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
@@ -133,6 +141,50 @@ const MobileNav = () => {
                     )}
                   </Link>
                 ))}
+
+                {/* Leadership Institute Section */}
+                <div className="mt-4">
+                  <button
+                    onClick={() => setIsLeadershipInstituteOpen(!isLeadershipInstituteOpen)}
+                    className={`group flex items-center justify-between w-full px-3 py-3.5 text-sm font-medium rounded-xl transition-all duration-200 touch-manipulation ${
+                      isLeadershipInstituteActive()
+                        ? `${isDarkMode ? 'bg-primary-900 text-primary-200 shadow-lg' : 'bg-primary-100 text-primary-700 shadow-md'}`
+                        : `${isDarkMode ? 'text-gray-300 hover:bg-gray-700 hover:text-white active:bg-gray-600' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900 active:bg-gray-100'}`
+                    }`}
+                  >
+                    <div className="flex items-center">
+                      <LogoImage type="leadership-institute" size="small" className="mr-3 flex-shrink-0" />
+                      <span className="truncate">Leadership Institute</span>
+                    </div>
+                    <span className={`transform transition-transform duration-200 ${isLeadershipInstituteOpen ? 'rotate-90' : ''}`}>
+                      ▶
+                    </span>
+                  </button>
+
+                  {/* Leadership Institute Submenu */}
+                  <div className={`mt-1 space-y-1 transition-all duration-200 overflow-hidden ${
+                    isLeadershipInstituteOpen ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
+                  }`}>
+                    {leadershipInstituteItems.map((item) => (
+                      <Link
+                        key={item.name}
+                        to={item.href}
+                        onClick={handleLinkClick}
+                        className={`group flex items-center pl-12 pr-3 py-3 text-sm font-medium rounded-xl transition-all duration-200 touch-manipulation ${
+                          isActive(item.href)
+                            ? `${isDarkMode ? 'bg-primary-800 text-primary-100 shadow-md' : 'bg-primary-50 text-primary-600 shadow-sm'}`
+                            : `${isDarkMode ? 'text-gray-400 hover:bg-gray-700 hover:text-white active:bg-gray-600' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-700 active:bg-gray-100'}`
+                        }`}
+                      >
+                        <span className="mr-3 text-base flex-shrink-0">{item.icon}</span>
+                        <span className="truncate">{item.name}</span>
+                        {isActive(item.href) && (
+                          <div className={`ml-auto w-2 h-2 rounded-full ${isDarkMode ? 'bg-primary-400' : 'bg-primary-600'}`}></div>
+                        )}
+                      </Link>
+                    ))}
+                  </div>
+                </div>
               </nav>
 
               {/* Enhanced User Info */}
