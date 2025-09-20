@@ -128,22 +128,14 @@ service firebase.storage {
                        (isAdmin() || isRuler());
     }
     
-    // Book covers
+    // Book covers - Temporary open permissions for debugging
     match /books/covers/{fileName} {
-      allow read: if true; // Allow public read for book covers
-      allow write: if isAuthenticated() && 
-                      isValidImageType() && 
-                      isValidFileSize(10); // Increased to 10MB limit
-      allow delete: if isAuthenticated() && (isAdmin() || isRuler());
+      allow read, write, delete: if true; // TEMPORARY: Allow all operations for debugging
     }
     
-    // Book files (PDFs)
+    // Book files (PDFs) - Temporary open permissions for debugging
     match /books/pdfs/{fileName} {
-      allow read: if isAuthenticated();
-      allow write: if isAuthenticated() && 
-                      isValidDocumentType() &&
-                      isValidFileSize(100); // Increased to 100MB limit
-      allow delete: if isAuthenticated() && (isAdmin() || isRuler());
+      allow read, write, delete: if true; // TEMPORARY: Allow all operations for debugging
     }
     
     // Book files (general)

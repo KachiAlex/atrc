@@ -3,9 +3,11 @@ import { collection, addDoc, getDocs, deleteDoc, doc, updateDoc, query, orderBy,
 import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 import { db, storage } from '../firebase/config';
 import { useLanguage } from '../contexts/LanguageContext';
+import { useAuth } from '../contexts/AuthContext';
 import BookUploadModal from '../components/BookUploadModal';
 
 const BookManagement = () => {
+  const { currentUser } = useAuth();
   const [books, setBooks] = useState([]);
   const [loading, setLoading] = useState(false);
   const [showUploadModal, setShowUploadModal] = useState(false);
@@ -66,6 +68,11 @@ const BookManagement = () => {
   const handleBookUpload = async (formData) => {
     try {
       setLoading(true);
+      
+      // Debug: Check authentication status
+      console.log('Upload attempt - User authenticated:', !!currentUser);
+      console.log('Upload attempt - User UID:', currentUser?.uid);
+      console.log('Upload attempt - User email:', currentUser?.email);
       
       let coverImageUrl = formData.coverImageUrl;
       let pdfUrl = formData.pdfUrl;
