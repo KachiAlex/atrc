@@ -75,6 +75,11 @@ const CourseUploadModal = ({ isOpen, onClose, onUpload }) => {
     return await getDownloadURL(snapshot.ref);
   };
 
+  const sanitizeFileName = (fileName) => {
+    // Remove special characters and spaces, replace with underscores
+    return fileName.replace(/[^a-zA-Z0-9.-]/g, '_').replace(/_{2,}/g, '_');
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -84,7 +89,8 @@ const CourseUploadModal = ({ isOpen, onClose, onUpload }) => {
 
       // Upload thumbnail if file is provided
       if (formData.thumbnailFile) {
-        const thumbnailPath = `courses/thumbnails/${Date.now()}_${formData.thumbnailFile.name}`;
+        const sanitizedThumbnailName = sanitizeFileName(formData.thumbnailFile.name);
+        const thumbnailPath = `courses/thumbnails/${Date.now()}_${sanitizedThumbnailName}`;
         thumbnailUrl = await uploadFile(formData.thumbnailFile, thumbnailPath);
       }
 

@@ -58,6 +58,11 @@ const BookManagement = () => {
     return await getDownloadURL(snapshot.ref);
   };
 
+  const sanitizeFileName = (fileName) => {
+    // Remove special characters and spaces, replace with underscores
+    return fileName.replace(/[^a-zA-Z0-9.-]/g, '_').replace(/_{2,}/g, '_');
+  };
+
   const handleBookUpload = async (formData) => {
     try {
       setLoading(true);
@@ -67,10 +72,12 @@ const BookManagement = () => {
 
       // Upload new files if provided
       if (formData.coverImageFile) {
-        coverImageUrl = await uploadFile(formData.coverImageFile, `books/covers/${Date.now()}_${formData.coverImageFile.name}`);
+        const sanitizedCoverName = sanitizeFileName(formData.coverImageFile.name);
+        coverImageUrl = await uploadFile(formData.coverImageFile, `books/covers/${Date.now()}_${sanitizedCoverName}`);
       }
       if (formData.pdfFile) {
-        pdfUrl = await uploadFile(formData.pdfFile, `books/pdfs/${Date.now()}_${formData.pdfFile.name}`);
+        const sanitizedPdfName = sanitizeFileName(formData.pdfFile.name);
+        pdfUrl = await uploadFile(formData.pdfFile, `books/pdfs/${Date.now()}_${sanitizedPdfName}`);
       }
 
       const bookData = {

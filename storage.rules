@@ -130,11 +130,11 @@ service firebase.storage {
     
     // Book covers
     match /books/covers/{fileName} {
-      allow read: if isAuthenticated();
+      allow read: if true; // Allow public read for book covers
       allow write: if isAuthenticated() && 
                       isValidImageType() && 
-                      isValidFileSize(5); // 5MB limit
-      allow delete: if isAuthenticated();
+                      isValidFileSize(10); // Increased to 10MB limit
+      allow delete: if isAuthenticated() && (isAdmin() || isRuler());
     }
     
     // Book files (PDFs)
@@ -142,8 +142,8 @@ service firebase.storage {
       allow read: if isAuthenticated();
       allow write: if isAuthenticated() && 
                       isValidDocumentType() &&
-                      isValidFileSize(50); // 50MB limit
-      allow delete: if isAuthenticated();
+                      isValidFileSize(100); // Increased to 100MB limit
+      allow delete: if isAuthenticated() && (isAdmin() || isRuler());
     }
     
     // Book files (general)
