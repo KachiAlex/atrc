@@ -478,6 +478,128 @@ const HomePage = () => {
         </div>
       </div>
 
+      {/* Leadership Institute Section */}
+      <div 
+        id="leadership-institute" 
+        data-animate
+        className={`py-20 ${isDarkMode ? 'bg-gray-800' : 'bg-white'} ${
+          visibleSections.has('leadership-institute') ? 'animate-fadeInUp' : 'opacity-0'
+        }`}
+      >
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className={`text-center transform transition-all duration-1000 ${
+            visibleSections.has('leadership-institute') ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'
+          }`}>
+            <div className="flex flex-col items-center mb-8">
+              <LogoImage type="leadership-institute" size="xlarge" className="mb-6" />
+              <h2 className={`text-3xl font-extrabold ${isDarkMode ? 'text-white' : 'text-gray-900'} sm:text-4xl`}>
+                Leadership Institute
+              </h2>
+              <p className={`mt-4 text-lg max-w-3xl mx-auto ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                Empowering Traditional African Leaders through Christ-centered education, wisdom, and practical leadership training.
+              </p>
+            </div>
+          </div>
+
+          {/* Features Grid */}
+          <div className="mt-16 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {/* Digital Library */}
+            <div className={`transform transition-all duration-1000 ${
+              visibleSections.has('leadership-institute') ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'
+            }`}>
+              <div className={`${isDarkMode ? 'bg-gray-900' : 'bg-gray-50'} rounded-2xl p-8 text-center hover:shadow-xl transition-shadow duration-300`}>
+                <div className="text-5xl mb-4">📚</div>
+                <h3 className={`text-xl font-bold mb-4 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                  Digital Library
+                </h3>
+                <p className={`text-sm mb-6 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                  Access a comprehensive collection of books on leadership, governance, and spiritual growth for traditional rulers.
+                </p>
+                <Link
+                  to="/app/books"
+                  className="inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  <span className="mr-2">📖</span>
+                  Explore Library
+                </Link>
+              </div>
+            </div>
+
+            {/* Courses */}
+            <div className={`transform transition-all duration-1000 delay-200 ${
+              visibleSections.has('leadership-institute') ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'
+            }`}>
+              <div className={`${isDarkMode ? 'bg-gray-900' : 'bg-gray-50'} rounded-2xl p-8 text-center hover:shadow-xl transition-shadow duration-300`}>
+                <div className="text-5xl mb-4">🎓</div>
+                <h3 className={`text-xl font-bold mb-4 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                  Leadership Courses
+                </h3>
+                <p className={`text-sm mb-6 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                  Structured learning paths designed specifically for traditional African leaders and their development.
+                </p>
+                <Link
+                  to="/app/courses"
+                  className="inline-flex items-center px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                >
+                  <span className="mr-2">🎯</span>
+                  Start Learning
+                </Link>
+              </div>
+            </div>
+
+            {/* Wisdom & Training */}
+            <div className={`transform transition-all duration-1000 delay-400 ${
+              visibleSections.has('leadership-institute') ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'
+            }`}>
+              <div className={`${isDarkMode ? 'bg-gray-900' : 'bg-gray-50'} rounded-2xl p-8 text-center hover:shadow-xl transition-shadow duration-300`}>
+                <div className="text-5xl mb-4">🧠</div>
+                <h3 className={`text-xl font-bold mb-4 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                  Wisdom & Training
+                </h3>
+                <p className={`text-sm mb-6 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                  Biblical wisdom and practical training programs to enhance leadership effectiveness and spiritual growth.
+                </p>
+                <Link
+                  to="/auth"
+                  className="inline-flex items-center px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+                >
+                  <span className="mr-2">⭐</span>
+                  Learn More
+                </Link>
+              </div>
+            </div>
+          </div>
+
+          {/* Call to Action for Leadership Institute */}
+          <div className="mt-16 text-center">
+            <div className={`${isDarkMode ? 'bg-gray-900' : 'bg-gray-50'} rounded-2xl p-8`}>
+              <h3 className={`text-2xl font-bold mb-4 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                Join the Leadership Institute
+              </h3>
+              <p className={`text-lg mb-6 max-w-2xl mx-auto ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                Transform your leadership through Christ-centered education and connect with fellow traditional rulers across Africa.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <Link
+                  to="/auth"
+                  className="inline-flex items-center px-8 py-4 border border-transparent text-lg font-medium rounded-lg text-white bg-primary-600 hover:bg-primary-700 transition-colors duration-200"
+                >
+                  <span className="mr-2">🎓</span>
+                  Enroll Now
+                </Link>
+                <Link
+                  to="/login"
+                  className="inline-flex items-center px-8 py-4 border border-gray-300 text-lg font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 transition-colors duration-200"
+                >
+                  <span className="mr-2">📚</span>
+                  Browse Resources
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Cultural Heritage Section */}
       <div 
         id="heritage" 
