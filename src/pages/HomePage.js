@@ -386,7 +386,7 @@ const HomePage = () => {
               <div className={`${isDarkMode ? 'bg-gray-900' : 'bg-gray-50'} rounded-2xl overflow-hidden shadow-2xl hover:shadow-3xl transition-shadow duration-300`}>
                 <div className="relative">
                   <img 
-                    src="https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=800&h=600&fit=crop&crop=center" 
+                    src="/images/traditional-leaders/spiritual-leadership.jpeg" 
                     alt="Traditional rulers and elders in church ceremony with prayer and reverence"
                     className="w-full h-80 object-cover"
                   />
@@ -396,7 +396,7 @@ const HomePage = () => {
                       Spiritual Leadership
                     </h3>
                     <p className={`text-sm ${isDarkMode ? 'text-gray-200' : 'text-gray-100'}`}>
-                      Traditional rulers and elders in prayerful ceremony, showcasing the deep spiritual devotion and cultural reverence
+                      Traditional rulers in ornate ceremonial regalia during sacred church gathering, displaying deep spiritual devotion and cultural heritage
                     </p>
                   </div>
                 </div>
@@ -408,7 +408,7 @@ const HomePage = () => {
                     </span>
                   </div>
                   <p className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-                    A profound moment of spiritual unity, where traditional African leaders demonstrate their deep faith and cultural heritage within sacred spaces.
+                    A powerful moment of spiritual unity, where traditional African leaders in magnificent ceremonial regalia demonstrate their deep faith and cultural heritage within sacred church spaces.
                   </p>
                 </div>
               </div>
@@ -421,7 +421,7 @@ const HomePage = () => {
               <div className={`${isDarkMode ? 'bg-gray-900' : 'bg-gray-50'} rounded-2xl overflow-hidden shadow-2xl hover:shadow-3xl transition-shadow duration-300`}>
                 <div className="relative">
                   <img 
-                    src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&h=600&fit=crop&crop=center" 
+                    src="/images/traditional-leaders/ceremonial-gathering.jpeg" 
                     alt="Traditional rulers in sacred ceremony with candle ritual and ornate regalia"
                     className="w-full h-80 object-cover"
                   />
@@ -431,7 +431,7 @@ const HomePage = () => {
                       Sacred Ceremony
                     </h3>
                     <p className={`text-sm ${isDarkMode ? 'text-gray-200' : 'text-gray-100'}`}>
-                      Traditional rulers in sacred ritual with ornate regalia and ceremonial candle, embodying ancient wisdom and spiritual authority
+                      Traditional rulers and community members in ceremonial gathering, showcasing unity, worship, and the preservation of cultural traditions
                     </p>
                   </div>
                 </div>
@@ -443,7 +443,7 @@ const HomePage = () => {
                     </span>
                   </div>
                   <p className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-                    An ancient ritual of wisdom and authority, where traditional rulers perform sacred ceremonies with elaborate regalia and spiritual reverence.
+                    A sacred gathering of traditional rulers and community members in worship, demonstrating the harmony between African cultural traditions and Christian faith.
                   </p>
                 </div>
               </div>
