@@ -13,8 +13,8 @@ const BookUploadModal = ({ isOpen, onClose, onUpload }) => {
     publishStatus: 'draft',
     coverImageFile: null,
     coverImageUrl: '',
-    pdfFile: null,
-    pdfUrl: ''
+    bookFile: null, // Changed from pdfFile to support multiple formats
+    bookUrl: ''     // Changed from pdfUrl
   });
   const [uploadType, setUploadType] = useState('file'); // 'file' or 'url'
   const [loading, setLoading] = useState(false);
@@ -63,8 +63,8 @@ const BookUploadModal = ({ isOpen, onClose, onUpload }) => {
         publishStatus: 'draft',
         coverImageFile: null,
         coverImageUrl: '',
-        pdfFile: null,
-        pdfUrl: ''
+        bookFile: null,
+        bookUrl: ''
       });
       onClose();
     } catch (error) {
@@ -261,49 +261,52 @@ const BookUploadModal = ({ isOpen, onClose, onUpload }) => {
             )}
           </div>
 
-          {/* PDF File */}
+          {/* Book File (PDF/DOCX) */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              📄 PDF File *
+              📄 Book File * (PDF or DOCX)
             </label>
             {uploadType === 'file' ? (
               <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
                 <input
                   type="file"
-                  name="pdfFile"
-                  accept=".pdf"
+                  name="bookFile"
+                  accept=".pdf,.docx,.doc"
                   onChange={handleInputChange}
                   required
                   className="hidden"
-                  id="pdfFile"
+                  id="bookFile"
                 />
                 <label
-                  htmlFor="pdfFile"
+                  htmlFor="bookFile"
                   className="cursor-pointer flex flex-col items-center"
                 >
                   📄
                   <span className="text-sm text-gray-600">
-                    Click to upload PDF file
+                    Click to upload book file
                   </span>
                   <span className="text-xs text-gray-500 mt-1">
-                    PDF files up to 50MB
+                    PDF, DOCX, DOC files up to 100MB
+                  </span>
+                  <span className="text-xs text-blue-600 mt-1">
+                    💡 DOCX recommended for translation features
                   </span>
                 </label>
-                {formData.pdfFile && (
+                {formData.bookFile && (
                   <p className="text-sm text-green-600 mt-2">
-                    Selected: {formData.pdfFile.name}
+                    Selected: {formData.bookFile.name}
                   </p>
                 )}
               </div>
             ) : (
               <input
                 type="url"
-                name="pdfUrl"
-                value={formData.pdfUrl}
+                name="bookUrl"
+                value={formData.bookUrl}
                 onChange={handleInputChange}
                 required
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600 text-gray-900 bg-white"
-                placeholder="Enter PDF file URL"
+                placeholder="Enter book file URL (PDF or DOCX)"
               />
             )}
           </div>

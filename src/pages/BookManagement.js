@@ -75,16 +75,16 @@ const BookManagement = () => {
       console.log('Upload attempt - User email:', currentUser?.email);
       
       let coverImageUrl = formData.coverImageUrl;
-      let pdfUrl = formData.pdfUrl;
+      let bookUrl = formData.bookUrl;
 
       // Upload new files if provided
       if (formData.coverImageFile) {
         const sanitizedCoverName = sanitizeFileName(formData.coverImageFile.name);
         coverImageUrl = await uploadFile(formData.coverImageFile, `books/covers/${Date.now()}_${sanitizedCoverName}`);
       }
-      if (formData.pdfFile) {
-        const sanitizedPdfName = sanitizeFileName(formData.pdfFile.name);
-        pdfUrl = await uploadFile(formData.pdfFile, `books/pdfs/${Date.now()}_${sanitizedPdfName}`);
+      if (formData.bookFile) {
+        const sanitizedBookName = sanitizeFileName(formData.bookFile.name);
+        bookUrl = await uploadFile(formData.bookFile, `books/files/${Date.now()}_${sanitizedBookName}`);
       }
 
       const bookData = {
@@ -94,7 +94,8 @@ const BookManagement = () => {
         category: formData.category,
         language: formData.language,
         coverImageUrl,
-        pdfUrl,
+        bookUrl,
+        fileType: formData.bookFile ? formData.bookFile.name.split('.').pop().toLowerCase() : 'pdf',
         isPublished: formData.publishStatus === 'published',
         createdAt: new Date(),
         updatedAt: new Date()

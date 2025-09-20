@@ -391,17 +391,52 @@ const BookReader = () => {
         <div className="px-2 sm:px-4 py-2">
           <div className={`${isDarkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-lg overflow-hidden`}>
             <div className="h-[calc(100vh-180px)] sm:h-[calc(100vh-200px)]">
-              {selectedBook.pdfUrl ? (
-                <iframe
-                  src={`${selectedBook.pdfUrl}#toolbar=1&navpanes=1&scrollbar=1&zoom=page-width`}
-                  className="w-full h-full border-0"
-                  title={selectedBook.title}
-                />
+              {(selectedBook.bookUrl || selectedBook.pdfUrl) ? (
+                <div className="w-full h-full">
+                  {selectedBook.fileType === 'docx' || selectedBook.fileType === 'doc' ? (
+                    <div className="flex items-center justify-center h-full">
+                      <div className="text-center p-8">
+                        <div className="text-6xl mb-4">📄</div>
+                        <h3 className={`text-xl font-semibold mb-4 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                          DOCX Document
+                        </h3>
+                        <p className={`text-sm mb-6 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                          This book is in DOCX format with enhanced translation support
+                        </p>
+                        <div className="space-y-3">
+                          <a
+                            href={selectedBook.bookUrl || selectedBook.pdfUrl}
+                            download
+                            className="inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                          >
+                            <span className="mr-2">📥</span>
+                            Download DOCX
+                          </a>
+                          <a
+                            href={selectedBook.bookUrl || selectedBook.pdfUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors ml-3"
+                          >
+                            <span className="mr-2">🔗</span>
+                            Open in Browser
+                          </a>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <iframe
+                      src={`${selectedBook.bookUrl || selectedBook.pdfUrl}#toolbar=1&navpanes=1&scrollbar=1&zoom=page-width`}
+                      className="w-full h-full border-0"
+                      title={selectedBook.title}
+                    />
+                  )}
+                </div>
               ) : (
                 <div className="flex items-center justify-center h-full text-gray-500">
                   <div className="text-center">
                     <BookOpenIcon className="w-16 h-16 mx-auto mb-4 text-gray-400" />
-                    <p className={`text-lg ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>PDF not available</p>
+                    <p className={`text-lg ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>Book file not available</p>
                     <p className={`text-sm mt-2 ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>
                       The book content is not yet available for reading
                     </p>
@@ -827,10 +862,10 @@ const BookReader = () => {
                     Close
                   </button>
                   <button
-                    onClick={() => window.open(selectedBookForTranslation.pdfUrl, '_blank')}
+                    onClick={() => window.open(selectedBookForTranslation.bookUrl || selectedBookForTranslation.pdfUrl, '_blank')}
                     className="flex-1 bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition-colors"
                   >
-                    Read Original Book
+                    Open Original Book
                   </button>
                 </div>
               </div>
