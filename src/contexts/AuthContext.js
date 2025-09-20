@@ -30,7 +30,9 @@ export const AuthProvider = ({ children }) => {
         displayName: userData.displayName || '',
         createdAt: new Date(),
         isActive: true,
-        isVerified: false, // New users are not verified by default
+        isVerified: (userData.role === 'admin'), // Admin users are auto-verified, others need approval
+        verifiedAt: (userData.role === 'admin') ? new Date() : null,
+        verifiedBy: (userData.role === 'admin') ? 'system' : null,
         ...userData
       };
       

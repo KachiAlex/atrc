@@ -157,6 +157,13 @@ const AdminAccessPanel = () => {
         updatedBy: currentUser?.email
       };
       
+      // Auto-verify admin users
+      if (newRole === 'admin') {
+        updateData.isVerified = true;
+        updateData.verifiedAt = new Date();
+        updateData.verifiedBy = 'system';
+      }
+      
       await updateDoc(userRef, updateData);
       alert('User role updated successfully!');
       fetchDashboardData(); // Refresh data
@@ -739,14 +746,27 @@ const AdminAccessPanel = () => {
                         <div>
                           <p className="font-medium text-gray-900">{user.displayName || 'No Name'}</p>
                           <p className="text-sm text-gray-500">{user.email}</p>
-                          <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                            user.role === 'admin' ? 'bg-red-100 text-red-800' :
-                            user.role === 'ruler' ? 'bg-blue-100 text-blue-800' :
-                            user.role === 'delegate' ? 'bg-purple-100 text-purple-800' :
-                            'bg-gray-100 text-gray-800'
-                          }`}>
-                            {user.role}
-                          </span>
+                          <div className="flex items-center space-x-2 mt-1">
+                            <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                              user.role === 'admin' ? 'bg-red-100 text-red-800' :
+                              user.role === 'ruler' ? 'bg-blue-100 text-blue-800' :
+                              user.role === 'delegate' ? 'bg-purple-100 text-purple-800' :
+                              'bg-gray-100 text-gray-800'
+                            }`}>
+                              {user.role}
+                            </span>
+                            {user.role === 'admin' ? (
+                              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                ✅ Auto-Verified
+                              </span>
+                            ) : (
+                              <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                                user.isVerified ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
+                              }`}>
+                                {user.isVerified ? '✅ Verified' : '⏳ Pending'}
+                              </span>
+                            )}
+                          </div>
                         </div>
                       </div>
                       <div className="flex items-center space-x-2">
@@ -796,7 +816,7 @@ const AdminAccessPanel = () => {
                       <div>
                         <p className="text-sm font-medium text-yellow-800">Pending Verification</p>
                         <p className="text-2xl font-bold text-yellow-900">
-                          {users.filter(user => !user.isVerified).length}
+                          {users.filter(user => !user.isVerified && user.role !== 'admin').length}
                         </p>
                       </div>
                     </div>
@@ -826,7 +846,7 @@ const AdminAccessPanel = () => {
                 </div>
 
                 <div className="space-y-6">
-                  {users.map((user) => (
+                  {users.filter(user => user.role !== 'admin').map((user) => (
                     <div
                       key={user.id}
                       className="border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow bg-white"
