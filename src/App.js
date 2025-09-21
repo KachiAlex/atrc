@@ -28,6 +28,8 @@ import AdminAccessPanel from './pages/AdminAccessPanel';
 import BookReader from './pages/BookReader';
 import CourseReader from './pages/CourseReader';
 import LiveMeetingsViewer from './pages/LiveMeetingsViewer';
+import EventsPage from './pages/EventsPage';
+import AnnouncementsPage from './pages/AnnouncementsPage';
 import PWAInstallPrompt from './components/PWAInstallPrompt';
 
 import './index.css';
@@ -69,6 +71,8 @@ function App() {
             <Routes>
                   {/* Public Routes */}
                   <Route path="/" element={<HomePage />} />
+                  <Route path="/events" element={<EventsPage />} />
+                  <Route path="/announcements" element={<AnnouncementsPage />} />
                   <Route path="/login" element={<Login />} />
                   <Route path="/register" element={<Register />} />
                   <Route path="/auth" element={<ModernAuth />} />

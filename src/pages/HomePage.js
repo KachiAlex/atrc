@@ -600,6 +600,229 @@ const HomePage = () => {
         </div>
       </div>
 
+      {/* Events Section */}
+      <div 
+        id="events" 
+        data-animate
+        className={`py-20 ${isDarkMode ? 'bg-gray-900' : 'bg-gray-50'} ${
+          visibleSections.has('events') ? 'animate-fadeInUp' : 'opacity-0'
+        }`}
+      >
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className={`text-center transform transition-all duration-1000 ${
+            visibleSections.has('events') ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'
+          }`}>
+            <h2 className={`text-3xl font-extrabold ${isDarkMode ? 'text-white' : 'text-gray-900'} sm:text-4xl`}>
+              Upcoming Events
+            </h2>
+            <p className={`mt-4 text-lg max-w-3xl mx-auto ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+              Join traditional rulers and community members in celebrating our rich cultural heritage and spiritual gatherings.
+            </p>
+          </div>
+
+          {/* Events Grid - Show 3 recent events */}
+          <div className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-8">
+            {/* Sample events - will be replaced with real data */}
+            <div className={`transform transition-all duration-1000 ${
+              visibleSections.has('events') ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'
+            }`}>
+              <div className={`${isDarkMode ? 'bg-gray-800' : 'bg-white'} rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300`}>
+                <div className="p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                      Cultural
+                    </span>
+                    <span className="text-sm text-gray-500">Mar 15, 2024</span>
+                  </div>
+                  <h3 className={`text-lg font-semibold mb-2 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                    Annual Cultural Festival
+                  </h3>
+                  <p className={`text-sm mb-4 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                    Celebrating traditional African culture with music, dance, and ceremonial activities.
+                  </p>
+                  <div className="flex items-center text-sm text-gray-500 mb-4">
+                    <span className="mr-4">📍 Lagos State</span>
+                    <span>👤 Oba Adeyemi III</span>
+                  </div>
+                  <button className="w-full bg-primary-600 text-white py-2 rounded-md hover:bg-primary-700 transition-colors">
+                    Learn More
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div className={`transform transition-all duration-1000 delay-200 ${
+              visibleSections.has('events') ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'
+            }`}>
+              <div className={`${isDarkMode ? 'bg-gray-800' : 'bg-white'} rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300`}>
+                <div className="p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-pink-100 text-pink-800">
+                      Ceremony
+                    </span>
+                    <span className="text-sm text-gray-500">Feb 20, 2024</span>
+                  </div>
+                  <h3 className={`text-lg font-semibold mb-2 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                    Traditional Marriage Ceremony
+                  </h3>
+                  <p className={`text-sm mb-4 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                    Sacred union ceremony following traditional customs and spiritual blessings.
+                  </p>
+                  <div className="flex items-center text-sm text-gray-500 mb-4">
+                    <span className="mr-4">📍 Anambra State</span>
+                    <span>👤 Eze Nwosu</span>
+                  </div>
+                  <button className="w-full bg-primary-600 text-white py-2 rounded-md hover:bg-primary-700 transition-colors">
+                    Learn More
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div className={`transform transition-all duration-1000 delay-400 ${
+              visibleSections.has('events') ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'
+            }`}>
+              <div className={`${isDarkMode ? 'bg-gray-800' : 'bg-white'} rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300`}>
+                <div className="p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                      Meeting
+                    </span>
+                    <span className="text-sm text-gray-500">Jan 25, 2024</span>
+                  </div>
+                  <h3 className={`text-lg font-semibold mb-2 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                    Council Meeting
+                  </h3>
+                  <p className={`text-sm mb-4 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                    Monthly gathering of traditional rulers to discuss community matters and governance.
+                  </p>
+                  <div className="flex items-center text-sm text-gray-500 mb-4">
+                    <span className="mr-4">📍 Abuja</span>
+                    <span>👤 ATRC Council</span>
+                  </div>
+                  <button className="w-full bg-primary-600 text-white py-2 rounded-md hover:bg-primary-700 transition-colors">
+                    Learn More
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* View More Events */}
+          <div className="mt-12 text-center">
+            <Link
+              to="/events"
+              className="inline-flex items-center px-8 py-4 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors text-lg font-medium"
+            >
+              <span className="mr-2">📅</span>
+              View All Events
+            </Link>
+          </div>
+        </div>
+      </div>
+
+      {/* Announcements Section */}
+      <div 
+        id="announcements" 
+        data-animate
+        className={`py-20 ${isDarkMode ? 'bg-gray-800' : 'bg-white'} ${
+          visibleSections.has('announcements') ? 'animate-fadeInUp' : 'opacity-0'
+        }`}
+      >
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className={`text-center transform transition-all duration-1000 ${
+            visibleSections.has('announcements') ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'
+          }`}>
+            <h2 className={`text-3xl font-extrabold ${isDarkMode ? 'text-white' : 'text-gray-900'} sm:text-4xl`}>
+              Latest Announcements
+            </h2>
+            <p className={`mt-4 text-lg max-w-3xl mx-auto ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+              Stay informed with the latest news, updates, and important communications from traditional rulers.
+            </p>
+          </div>
+
+          {/* Announcements Grid - Show 3 recent announcements */}
+          <div className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className={`transform transition-all duration-1000 ${
+              visibleSections.has('announcements') ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'
+            }`}>
+              <div className={`${isDarkMode ? 'bg-gray-900' : 'bg-gray-50'} rounded-2xl p-6 hover:shadow-lg transition-shadow duration-300`}>
+                <div className="flex items-center justify-between mb-4">
+                  <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                    High Priority
+                  </span>
+                  <span className="text-sm text-gray-500">Jan 20, 2024</span>
+                </div>
+                <h3 className={`text-lg font-semibold mb-3 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                  Council Meeting Announcement
+                </h3>
+                <p className={`text-sm mb-4 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                  The monthly council meeting will be held on January 30th, 2024 at 10:00 AM.
+                </p>
+                <p className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                  By Oba Adeyemi III
+                </p>
+              </div>
+            </div>
+
+            <div className={`transform transition-all duration-1000 delay-200 ${
+              visibleSections.has('announcements') ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'
+            }`}>
+              <div className={`${isDarkMode ? 'bg-gray-900' : 'bg-gray-50'} rounded-2xl p-6 hover:shadow-lg transition-shadow duration-300`}>
+                <div className="flex items-center justify-between mb-4">
+                  <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                    Medium Priority
+                  </span>
+                  <span className="text-sm text-gray-500">Jan 18, 2024</span>
+                </div>
+                <h3 className={`text-lg font-semibold mb-3 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                  Cultural Festival Update
+                </h3>
+                <p className={`text-sm mb-4 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                  The annual cultural festival has been rescheduled to March 15th, 2024.
+                </p>
+                <p className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                  By Eze Nwosu
+                </p>
+              </div>
+            </div>
+
+            <div className={`transform transition-all duration-1000 delay-400 ${
+              visibleSections.has('announcements') ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'
+            }`}>
+              <div className={`${isDarkMode ? 'bg-gray-900' : 'bg-gray-50'} rounded-2xl p-6 hover:shadow-lg transition-shadow duration-300`}>
+                <div className="flex items-center justify-between mb-4">
+                  <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                    Low Priority
+                  </span>
+                  <span className="text-sm text-gray-500">Jan 15, 2024</span>
+                </div>
+                <h3 className={`text-lg font-semibold mb-3 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                  New Community Guidelines
+                </h3>
+                <p className={`text-sm mb-4 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                  Please review the updated community guidelines for traditional practices.
+                </p>
+                <p className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                  By Emir Muhammad
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* View More Announcements */}
+          <div className="mt-12 text-center">
+            <Link
+              to="/announcements"
+              className="inline-flex items-center px-8 py-4 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors text-lg font-medium"
+            >
+              <span className="mr-2">📢</span>
+              View All Announcements
+            </Link>
+          </div>
+        </div>
+      </div>
+
       {/* Cultural Heritage Section */}
       <div 
         id="heritage" 
