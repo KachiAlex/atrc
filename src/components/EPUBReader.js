@@ -19,12 +19,14 @@ const EPUBReader = ({ bookUrl, bookTitle, onClose }) => {
   const getEpubUrl = (url) => {
     // For Firebase Storage URLs, we might need to use a CORS proxy
     if (url.includes('firebasestorage.googleapis.com')) {
-      // For now, show CORS error message
-      setCorsError(true);
-      return url; // Keep original URL for now
+      // Use CORS proxy as temporary solution
+      return `https://cors-anywhere.herokuapp.com/${url}`;
     }
     return url;
   };
+
+  // Use the CORS-enabled URL
+  const epubUrl = getEpubUrl(bookUrl);
 
   const languages = [
     { code: 'en', name: 'English' },
@@ -250,7 +252,7 @@ const EPUBReader = ({ bookUrl, bookTitle, onClose }) => {
             </div>
           ) : (
             <ReactReader
-            url={bookUrl}
+            url={epubUrl}
             location={location}
             locationChanged={(epubcfi) => setLocation(epubcfi)}
             getRendition={(rendition) => {
