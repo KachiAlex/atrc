@@ -144,8 +144,8 @@ const HomePage = () => {
                 <LogoImage type="traditional-rulers" size="small" />
               </div>
               <div className="ml-3">
-                <h1 className={`text-xl font-bold atrc-gradient-text`}>
-                  ATRFC
+                <h1 className={`text-lg font-bold atrc-gradient-text`}>
+                  ATRC
                 </h1>
                 <p className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
                   Africa Traditional Rulers for Christ
@@ -706,7 +706,7 @@ const HomePage = () => {
                 <LogoImage type="traditional-rulers" size="small" />
                 <div className="ml-3">
                   <h3 className={`text-lg font-semibold atrc-gradient-text`}>
-                    ATRFC
+                    ATRC
                   </h3>
                   <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
                     Africa Traditional Rulers for Christ

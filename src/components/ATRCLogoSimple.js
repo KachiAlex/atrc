@@ -24,7 +24,7 @@ const ATRCLogoSimple = ({ size = 'medium', className = '' }) => {
         {/* Text overlay for larger sizes */}
         {(size === 'large' || size === 'xlarge') && (
           <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 text-xs font-bold text-blue-900 whitespace-nowrap">
-            ATRFC
+            ATRC
           </div>
         )}
       </div>

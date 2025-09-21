@@ -218,7 +218,7 @@ const ModernAuth = () => {
       <div className="w-full max-w-lg shadow-lg rounded-2xl bg-white">
         <div className="p-8">
           <h1 className="text-2xl font-bold text-center mb-6 text-gray-800">
-            ATRFC Leadership Institute
+            ATRC Leadership Institute
           </h1>
 
           {/* Tab Navigation */}
