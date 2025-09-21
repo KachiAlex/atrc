@@ -16,6 +16,7 @@ import {
   BookmarkIcon
 } from '@heroicons/react/24/outline';
 import toast from 'react-hot-toast';
+import EPUBReader from '../components/EPUBReader';
 
 const BookReader = () => {
   const { currentUser } = useAuth();
@@ -96,8 +97,22 @@ const BookReader = () => {
             id: 'sample1',
             title: 'Leadership Principles for Traditional Rulers',
             author: 'Dr. Adebayo Ogundimu',
-            description: 'A comprehensive guide to effective traditional leadership in modern times.',
+            description: 'A comprehensive guide to effective traditional leadership in modern times. Features real-time translation to help rulers from different linguistic backgrounds.',
             category: 'leadership',
+            language: 'en',
+            coverImageUrl: '/images/book-placeholder.jpg',
+            bookUrl: 'https://react-reader.metabits.no/files/alice.epub',
+            fileType: 'epub',
+            isPublished: true,
+            createdAt: new Date(),
+            updatedAt: new Date()
+          },
+          {
+            id: 'sample2',
+            title: 'Traditional Wisdom and Modern Governance (PDF)',
+            author: 'Prof. Chinua Achebe',
+            description: 'Bridging the gap between traditional wisdom and contemporary leadership challenges.',
+            category: 'wisdom',
             language: 'en',
             coverImageUrl: '/images/book-placeholder.jpg',
             bookUrl: 'https://mozilla.github.io/pdf.js/web/compressed.tracemonkey-pldi-09.pdf',
@@ -107,15 +122,15 @@ const BookReader = () => {
             updatedAt: new Date()
           },
           {
-            id: 'sample2',
-            title: 'Traditional Wisdom and Modern Governance',
-            author: 'Prof. Chinua Achebe',
-            description: 'Bridging the gap between traditional wisdom and contemporary leadership challenges.',
-            category: 'wisdom',
+            id: 'sample3',
+            title: 'Spiritual Leadership in African Traditions (EPUB)',
+            author: 'Bishop Samuel Adegoke',
+            description: 'Exploring the intersection of Christian faith and traditional African leadership. Full translation support available.',
+            category: 'spiritual',
             language: 'en',
             coverImageUrl: '/images/book-placeholder.jpg',
-            bookUrl: 'https://mozilla.github.io/pdf.js/web/compressed.tracemonkey-pldi-09.pdf',
-            fileType: 'pdf',
+            bookUrl: 'https://react-reader.metabits.no/files/alice.epub',
+            fileType: 'epub',
             isPublished: true,
             createdAt: new Date(),
             updatedAt: new Date()
@@ -351,7 +366,20 @@ const BookReader = () => {
   });
 
   if (isReading && selectedBook) {
-    console.log('Rendering book reader for:', selectedBook.title);
+    console.log('Rendering book reader for:', selectedBook.title, 'Type:', selectedBook.fileType);
+    
+    // Use EPUB reader for EPUB files
+    if (selectedBook.fileType === 'epub') {
+      return (
+        <EPUBReader
+          bookUrl={selectedBook.bookUrl || selectedBook.pdfUrl}
+          bookTitle={selectedBook.title}
+          onClose={closeReader}
+        />
+      );
+    }
+    
+    // Use PDF reader for PDF and other files
     return (
       <div className={`min-h-screen ${isDarkMode ? 'bg-gray-900' : 'bg-gray-50'} text-gray-900`}>
         {/* Enhanced Mobile Reader Header */}

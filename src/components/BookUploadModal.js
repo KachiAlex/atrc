@@ -271,7 +271,7 @@ const BookUploadModal = ({ isOpen, onClose, onUpload }) => {
                 <input
                   type="file"
                   name="bookFile"
-                  accept=".pdf,.docx,.doc"
+                    accept=".pdf,.docx,.doc,.epub"
                   onChange={handleInputChange}
                   required
                   className="hidden"
@@ -289,7 +289,7 @@ const BookUploadModal = ({ isOpen, onClose, onUpload }) => {
                     PDF, DOCX, DOC files up to 100MB
                   </span>
                   <span className="text-xs text-blue-600 mt-1">
-                    💡 DOCX recommended for translation features
+                    💡 EPUB highly recommended for best translation experience
                   </span>
                 </label>
                 {formData.bookFile && (
