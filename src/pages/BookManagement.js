@@ -122,21 +122,50 @@ const BookManagement = () => {
     try {
       setLoading(true);
       
-      // Delete files from storage
+      // Helper function to extract storage path from URL
+      const getStoragePathFromUrl = (url) => {
+        if (!url) return null;
+        try {
+          const urlObj = new URL(url);
+          const pathMatch = urlObj.pathname.match(/\/o\/(.+?)\?/);
+          return pathMatch ? decodeURIComponent(pathMatch[1]) : null;
+        } catch {
+          return null;
+        }
+      };
+      
+      // Delete files from storage with error handling
       if (book.coverImageUrl) {
-        const coverRef = ref(storage, book.coverImageUrl);
-        await deleteObject(coverRef);
-      }
-      if (book.pdfUrl) {
-        const pdfRef = ref(storage, book.pdfUrl);
-        await deleteObject(pdfRef);
+        try {
+          const coverPath = getStoragePathFromUrl(book.coverImageUrl);
+          if (coverPath) {
+            const coverRef = ref(storage, coverPath);
+            await deleteObject(coverRef);
+          }
+        } catch (storageError) {
+          console.warn('Cover image not found in storage, continuing with deletion:', storageError);
+        }
       }
       
-      // Delete document
+      if (book.pdfUrl || book.bookUrl) {
+        try {
+          const bookPath = getStoragePathFromUrl(book.pdfUrl || book.bookUrl);
+          if (bookPath) {
+            const bookRef = ref(storage, bookPath);
+            await deleteObject(bookRef);
+          }
+        } catch (storageError) {
+          console.warn('Book file not found in storage, continuing with deletion:', storageError);
+        }
+      }
+      
+      // Delete document from Firestore
       await deleteDoc(doc(db, 'books', book.id));
       fetchBooks();
+      alert('Book deleted successfully!');
     } catch (error) {
       console.error('Error deleting book:', error);
+      alert('Failed to delete book. Please try again.');
     } finally {
       setLoading(false);
     }
