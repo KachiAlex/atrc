@@ -68,18 +68,20 @@ service cloud.firestore {
     
     // Events collection
     match /events/{eventId} {
-      allow read: if isAuthenticated() && (isAdmin() || isCommunityMember(resource.data.community));
-      allow create: if isAuthenticated() && isActiveUser();
-      allow update: if isAuthenticated() && (isAdmin() || isOwner(resource.data.organizer) || isRuler());
-      allow delete: if isAuthenticated() && (isAdmin() || isOwner(resource.data.organizer));
+      // Allow public read for published events, authenticated users for all
+      allow read: if resource.data.isPublished == true || (isAuthenticated() && (isAdmin() || isCommunityMember(resource.data.community)));
+      allow create: if isAuthenticated() && (isAdmin() || isRuler());
+      allow update: if isAuthenticated() && (isAdmin() || isOwner(resource.data.createdBy) || isRuler());
+      allow delete: if isAuthenticated() && (isAdmin() || isOwner(resource.data.createdBy));
     }
     
     // Announcements collection
     match /announcements/{announcementId} {
-      allow read: if isAuthenticated() && (isAdmin() || isCommunityMember(resource.data.community));
+      // Allow public read for published announcements, authenticated users for all
+      allow read: if resource.data.isPublished == true || (isAuthenticated() && (isAdmin() || isCommunityMember(resource.data.community)));
       allow create: if isAuthenticated() && (isAdmin() || isRuler());
-      allow update: if isAuthenticated() && (isAdmin() || isOwner(resource.data.author) || isRuler());
-      allow delete: if isAuthenticated() && (isAdmin() || isOwner(resource.data.author));
+      allow update: if isAuthenticated() && (isAdmin() || isOwner(resource.data.createdBy) || isRuler());
+      allow delete: if isAuthenticated() && (isAdmin() || isOwner(resource.data.createdBy));
     }
     
     // Reports collection

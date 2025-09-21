@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { collection, getDocs, query, orderBy, limit, where } from 'firebase/firestore';
+import { db } from '../firebase/config';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import LanguageSelector from '../components/LanguageSelector';
@@ -10,11 +12,126 @@ const HomePage = () => {
   const { t } = useLanguage();
   const [isVisible, setIsVisible] = useState(false);
   const [visibleSections, setVisibleSections] = useState(new Set());
+  const [events, setEvents] = useState([]);
+  const [announcements, setAnnouncements] = useState([]);
+  const [loadingEvents, setLoadingEvents] = useState(true);
+  const [loadingAnnouncements, setLoadingAnnouncements] = useState(true);
   const [currentSlide, setCurrentSlide] = useState(0);
+
+  // Fetch events from Firebase
+  const fetchEvents = async () => {
+    try {
+      const eventsQuery = query(
+        collection(db, 'events'),
+        where('isPublished', '==', true),
+        orderBy('date', 'desc'),
+        limit(3)
+      );
+      const eventsSnapshot = await getDocs(eventsQuery);
+      const eventsData = eventsSnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      setEvents(eventsData);
+    } catch (error) {
+      console.error('Error fetching events:', error);
+      // Fallback to static data
+      setEvents([
+        {
+          id: 1,
+          title: 'Annual Cultural Festival',
+          date: '2024-03-15',
+          location: 'Lagos State',
+          organizer: 'Oba Adeyemi III',
+          type: 'cultural',
+          status: 'upcoming',
+          description: 'Celebrating traditional African culture with music, dance, and ceremonial activities.'
+        },
+        {
+          id: 2,
+          title: 'Traditional Marriage Ceremony',
+          date: '2024-02-20',
+          location: 'Anambra State',
+          organizer: 'Eze Nwosu',
+          type: 'ceremony',
+          status: 'upcoming',
+          description: 'Sacred union ceremony following traditional customs and spiritual blessings.'
+        },
+        {
+          id: 3,
+          title: 'Council Meeting',
+          date: '2024-01-25',
+          location: 'Abuja',
+          organizer: 'ATRC Council',
+          type: 'meeting',
+          status: 'completed',
+          description: 'Monthly gathering of traditional rulers to discuss community matters and governance.'
+        }
+      ]);
+    } finally {
+      setLoadingEvents(false);
+    }
+  };
+
+  // Fetch announcements from Firebase
+  const fetchAnnouncements = async () => {
+    try {
+      const announcementsQuery = query(
+        collection(db, 'announcements'),
+        where('isPublished', '==', true),
+        orderBy('createdAt', 'desc'),
+        limit(3)
+      );
+      const announcementsSnapshot = await getDocs(announcementsQuery);
+      const announcementsData = announcementsSnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      setAnnouncements(announcementsData);
+    } catch (error) {
+      console.error('Error fetching announcements:', error);
+      // Fallback to static data
+      setAnnouncements([
+        {
+          id: 1,
+          title: 'Council Meeting Announcement',
+          content: 'The monthly council meeting will be held on January 30th, 2024 at 10:00 AM.',
+          author: 'Oba Adeyemi III',
+          date: '2024-01-20',
+          priority: 'high',
+          createdBy: 'admin'
+        },
+        {
+          id: 2,
+          title: 'Cultural Festival Update',
+          content: 'The annual cultural festival has been rescheduled to March 15th, 2024.',
+          author: 'Eze Nwosu',
+          date: '2024-01-18',
+          priority: 'medium',
+          createdBy: 'ruler'
+        },
+        {
+          id: 3,
+          title: 'New Community Guidelines',
+          content: 'Please review the updated community guidelines for traditional practices.',
+          author: 'Emir Muhammad',
+          date: '2024-01-15',
+          priority: 'low',
+          createdBy: 'ruler'
+        }
+      ]);
+    } finally {
+      setLoadingAnnouncements(false);
+    }
+  };
 
   useEffect(() => {
     // Trigger initial animation
     setIsVisible(true);
+    
+    // Fetch data
+    fetchEvents();
+    fetchAnnouncements();
     
     // Intersection Observer for scroll animations
     const observer = new IntersectionObserver(
@@ -622,90 +739,76 @@ const HomePage = () => {
 
           {/* Events Grid - Show 3 recent events */}
           <div className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-8">
-            {/* Sample events - will be replaced with real data */}
-            <div className={`transform transition-all duration-1000 ${
-              visibleSections.has('events') ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'
-            }`}>
-              <div className={`${isDarkMode ? 'bg-gray-800' : 'bg-white'} rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300`}>
-                <div className="p-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
-                      Cultural
-                    </span>
-                    <span className="text-sm text-gray-500">Mar 15, 2024</span>
+            {loadingEvents ? (
+              // Loading skeleton
+              [...Array(3)].map((_, index) => (
+                <div key={index} className={`transform transition-all duration-1000 delay-${index * 200}`}>
+                  <div className={`${isDarkMode ? 'bg-gray-800' : 'bg-white'} rounded-2xl shadow-lg overflow-hidden animate-pulse`}>
+                    <div className="p-6">
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="h-6 bg-gray-300 rounded-full w-16"></div>
+                        <div className="h-4 bg-gray-300 rounded w-20"></div>
+                      </div>
+                      <div className="h-6 bg-gray-300 rounded mb-2"></div>
+                      <div className="h-4 bg-gray-300 rounded mb-4"></div>
+                      <div className="h-4 bg-gray-300 rounded mb-4"></div>
+                      <div className="h-8 bg-gray-300 rounded"></div>
+                    </div>
                   </div>
-                  <h3 className={`text-lg font-semibold mb-2 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-                    Annual Cultural Festival
-                  </h3>
-                  <p className={`text-sm mb-4 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-                    Celebrating traditional African culture with music, dance, and ceremonial activities.
-                  </p>
-                  <div className="flex items-center text-sm text-gray-500 mb-4">
-                    <span className="mr-4">📍 Lagos State</span>
-                    <span>👤 Oba Adeyemi III</span>
-                  </div>
-                  <button className="w-full bg-primary-600 text-white py-2 rounded-md hover:bg-primary-700 transition-colors">
-                    Learn More
-                  </button>
                 </div>
-              </div>
-            </div>
+              ))
+            ) : events.length > 0 ? (
+              events.map((event, index) => {
+                const getTypeColor = (type) => {
+                  switch (type) {
+                    case 'cultural': return 'bg-purple-100 text-purple-800';
+                    case 'ceremony': return 'bg-pink-100 text-pink-800';
+                    case 'meeting': return 'bg-blue-100 text-blue-800';
+                    default: return 'bg-gray-100 text-gray-800';
+                  }
+                };
 
-            <div className={`transform transition-all duration-1000 delay-200 ${
-              visibleSections.has('events') ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'
-            }`}>
-              <div className={`${isDarkMode ? 'bg-gray-800' : 'bg-white'} rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300`}>
-                <div className="p-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-pink-100 text-pink-800">
-                      Ceremony
-                    </span>
-                    <span className="text-sm text-gray-500">Feb 20, 2024</span>
+                return (
+                  <div key={event.id} className={`transform transition-all duration-1000 delay-${index * 200} ${
+                    visibleSections.has('events') ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'
+                  }`}>
+                    <div className={`${isDarkMode ? 'bg-gray-800' : 'bg-white'} rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300`}>
+                      <div className="p-6">
+                        <div className="flex items-center justify-between mb-4">
+                          <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${getTypeColor(event.type)}`}>
+                            {event.type}
+                          </span>
+                          <span className="text-sm text-gray-500">
+                            {new Date(event.date).toLocaleDateString()}
+                          </span>
+                        </div>
+                        <h3 className={`text-lg font-semibold mb-2 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                          {event.title}
+                        </h3>
+                        <p className={`text-sm mb-4 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                          {event.description || 'Event details will be provided closer to the date.'}
+                        </p>
+                        <div className="flex items-center text-sm text-gray-500 mb-4">
+                          <span className="mr-4">📍 {event.location}</span>
+                          <span>👤 {event.organizer || event.createdBy}</span>
+                        </div>
+                        <button className="w-full bg-primary-600 text-white py-2 rounded-md hover:bg-primary-700 transition-colors">
+                          Learn More
+                        </button>
+                      </div>
+                    </div>
                   </div>
-                  <h3 className={`text-lg font-semibold mb-2 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-                    Traditional Marriage Ceremony
-                  </h3>
-                  <p className={`text-sm mb-4 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-                    Sacred union ceremony following traditional customs and spiritual blessings.
-                  </p>
-                  <div className="flex items-center text-sm text-gray-500 mb-4">
-                    <span className="mr-4">📍 Anambra State</span>
-                    <span>👤 Eze Nwosu</span>
-                  </div>
-                  <button className="w-full bg-primary-600 text-white py-2 rounded-md hover:bg-primary-700 transition-colors">
-                    Learn More
-                  </button>
-                </div>
+                );
+              })
+            ) : (
+              // No events state
+              <div className="col-span-3 text-center py-12">
+                <div className="text-4xl mb-4">📅</div>
+                <p className={`text-lg ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                  No upcoming events at the moment. Check back soon!
+                </p>
               </div>
-            </div>
-
-            <div className={`transform transition-all duration-1000 delay-400 ${
-              visibleSections.has('events') ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'
-            }`}>
-              <div className={`${isDarkMode ? 'bg-gray-800' : 'bg-white'} rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300`}>
-                <div className="p-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                      Meeting
-                    </span>
-                    <span className="text-sm text-gray-500">Jan 25, 2024</span>
-                  </div>
-                  <h3 className={`text-lg font-semibold mb-2 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-                    Council Meeting
-                  </h3>
-                  <p className={`text-sm mb-4 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-                    Monthly gathering of traditional rulers to discuss community matters and governance.
-                  </p>
-                  <div className="flex items-center text-sm text-gray-500 mb-4">
-                    <span className="mr-4">📍 Abuja</span>
-                    <span>👤 ATRC Council</span>
-                  </div>
-                  <button className="w-full bg-primary-600 text-white py-2 rounded-md hover:bg-primary-700 transition-colors">
-                    Learn More
-                  </button>
-                </div>
-              </div>
-            </div>
+            )}
           </div>
 
           {/* View More Events */}
@@ -743,71 +846,70 @@ const HomePage = () => {
 
           {/* Announcements Grid - Show 3 recent announcements */}
           <div className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className={`transform transition-all duration-1000 ${
-              visibleSections.has('announcements') ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'
-            }`}>
-              <div className={`${isDarkMode ? 'bg-gray-900' : 'bg-gray-50'} rounded-2xl p-6 hover:shadow-lg transition-shadow duration-300`}>
-                <div className="flex items-center justify-between mb-4">
-                  <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                    High Priority
-                  </span>
-                  <span className="text-sm text-gray-500">Jan 20, 2024</span>
+            {loadingAnnouncements ? (
+              // Loading skeleton
+              [...Array(3)].map((_, index) => (
+                <div key={index} className={`transform transition-all duration-1000 delay-${index * 200}`}>
+                  <div className={`${isDarkMode ? 'bg-gray-900' : 'bg-gray-50'} rounded-2xl p-6 animate-pulse`}>
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="h-6 bg-gray-300 rounded-full w-20"></div>
+                      <div className="h-4 bg-gray-300 rounded w-16"></div>
+                    </div>
+                    <div className="h-6 bg-gray-300 rounded mb-3"></div>
+                    <div className="h-4 bg-gray-300 rounded mb-4"></div>
+                    <div className="h-3 bg-gray-300 rounded w-24"></div>
+                  </div>
                 </div>
-                <h3 className={`text-lg font-semibold mb-3 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-                  Council Meeting Announcement
-                </h3>
-                <p className={`text-sm mb-4 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-                  The monthly council meeting will be held on January 30th, 2024 at 10:00 AM.
-                </p>
-                <p className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                  By Oba Adeyemi III
-                </p>
-              </div>
-            </div>
+              ))
+            ) : announcements.length > 0 ? (
+              announcements.map((announcement, index) => {
+                const getPriorityColor = (priority) => {
+                  switch (priority) {
+                    case 'high': return 'bg-red-100 text-red-800';
+                    case 'medium': return 'bg-yellow-100 text-yellow-800';
+                    case 'low': return 'bg-green-100 text-green-800';
+                    default: return 'bg-gray-100 text-gray-800';
+                  }
+                };
 
-            <div className={`transform transition-all duration-1000 delay-200 ${
-              visibleSections.has('announcements') ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'
-            }`}>
-              <div className={`${isDarkMode ? 'bg-gray-900' : 'bg-gray-50'} rounded-2xl p-6 hover:shadow-lg transition-shadow duration-300`}>
-                <div className="flex items-center justify-between mb-4">
-                  <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                    Medium Priority
-                  </span>
-                  <span className="text-sm text-gray-500">Jan 18, 2024</span>
-                </div>
-                <h3 className={`text-lg font-semibold mb-3 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-                  Cultural Festival Update
-                </h3>
-                <p className={`text-sm mb-4 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-                  The annual cultural festival has been rescheduled to March 15th, 2024.
-                </p>
-                <p className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                  By Eze Nwosu
-                </p>
-              </div>
-            </div>
-
-            <div className={`transform transition-all duration-1000 delay-400 ${
-              visibleSections.has('announcements') ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'
-            }`}>
-              <div className={`${isDarkMode ? 'bg-gray-900' : 'bg-gray-50'} rounded-2xl p-6 hover:shadow-lg transition-shadow duration-300`}>
-                <div className="flex items-center justify-between mb-4">
-                  <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                    Low Priority
-                  </span>
-                  <span className="text-sm text-gray-500">Jan 15, 2024</span>
-                </div>
-                <h3 className={`text-lg font-semibold mb-3 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-                  New Community Guidelines
-                </h3>
-                <p className={`text-sm mb-4 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-                  Please review the updated community guidelines for traditional practices.
-                </p>
-                <p className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                  By Emir Muhammad
+                return (
+                  <div key={announcement.id} className={`transform transition-all duration-1000 delay-${index * 200} ${
+                    visibleSections.has('announcements') ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'
+                  }`}>
+                    <div className={`${isDarkMode ? 'bg-gray-900' : 'bg-gray-50'} rounded-2xl p-6 hover:shadow-lg transition-shadow duration-300`}>
+                      <div className="flex items-center justify-between mb-4">
+                        <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${getPriorityColor(announcement.priority)}`}>
+                          {announcement.priority} Priority
+                        </span>
+                        <span className="text-sm text-gray-500">
+                          {announcement.createdAt 
+                            ? new Date(announcement.createdAt.seconds * 1000).toLocaleDateString()
+                            : announcement.date
+                          }
+                        </span>
+                      </div>
+                      <h3 className={`text-lg font-semibold mb-3 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                        {announcement.title}
+                      </h3>
+                      <p className={`text-sm mb-4 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                        {announcement.content}
+                      </p>
+                      <p className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                        By {announcement.author || announcement.createdBy}
+                      </p>
+                    </div>
+                  </div>
+                );
+              })
+            ) : (
+              // No announcements state
+              <div className="col-span-3 text-center py-12">
+                <div className="text-4xl mb-4">📢</div>
+                <p className={`text-lg ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                  No announcements at the moment. Check back soon!
                 </p>
               </div>
-            </div>
+            )}
           </div>
 
           {/* View More Announcements */}
