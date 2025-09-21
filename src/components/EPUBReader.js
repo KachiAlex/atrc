@@ -13,6 +13,18 @@ const EPUBReader = ({ bookUrl, bookTitle, onClose }) => {
   const [translatedContent, setTranslatedContent] = useState(null);
   const [showTranslationPanel, setShowTranslationPanel] = useState(false);
   const [targetLanguage, setTargetLanguage] = useState('en');
+  const [corsError, setCorsError] = useState(false);
+
+  // Helper function to handle CORS issues
+  const getEpubUrl = (url) => {
+    // For Firebase Storage URLs, we might need to use a CORS proxy
+    if (url.includes('firebasestorage.googleapis.com')) {
+      // For now, show CORS error message
+      setCorsError(true);
+      return url; // Keep original URL for now
+    }
+    return url;
+  };
 
   const languages = [
     { code: 'en', name: 'English' },
@@ -208,7 +220,36 @@ const EPUBReader = ({ bookUrl, bookTitle, onClose }) => {
       <div className="flex h-[calc(100vh-80px)]">
         {/* Main Reader */}
         <div className={`flex-1 ${showTranslationPanel ? 'mr-80' : ''} transition-all duration-300`}>
-          <ReactReader
+          {corsError ? (
+            <div className="flex items-center justify-center h-full">
+              <div className="text-center p-8 max-w-md">
+                <div className="text-6xl mb-4">⚠️</div>
+                <h3 className={`text-xl font-semibold mb-4 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                  CORS Access Issue
+                </h3>
+                <p className={`text-sm mb-6 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                  Firebase Storage CORS policy is preventing EPUB file access. This is a temporary limitation.
+                </p>
+                <div className="space-y-3">
+                  <p className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                    <strong>Temporary Solutions:</strong>
+                  </p>
+                  <div className={`text-left text-xs space-y-2 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                    <p>• Upload books in PDF format for immediate reading</p>
+                    <p>• EPUB translation features will be available after CORS configuration</p>
+                    <p>• Contact admin to configure Firebase Storage CORS settings</p>
+                  </div>
+                  <button
+                    onClick={onClose}
+                    className="mt-4 bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                  >
+                    Back to Library
+                  </button>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <ReactReader
             url={bookUrl}
             location={location}
             locationChanged={(epubcfi) => setLocation(epubcfi)}
@@ -226,12 +267,31 @@ const EPUBReader = ({ bookUrl, bookTitle, onClose }) => {
                   iframe.document.addEventListener('contextmenu', (e) => e.preventDefault());
                 }
               });
+              
+              // Handle CORS errors gracefully
+              rendition.on('error', (error) => {
+                console.error('EPUB loading error:', error);
+                if (error.message && error.message.includes('CORS')) {
+                  toast.error('EPUB file access blocked by CORS policy. Please use PDF format for now.');
+                }
+              });
             }}
             epubOptions={{
               flow: 'paginated',
-              manager: 'default'
+              manager: 'default',
+              requestMethod: 'GET',
+              requestCredentials: 'omit'
             }}
+            loadingView={
+              <div className="flex items-center justify-center h-full">
+                <div className="text-center">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                  <p className={`${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>Loading EPUB book...</p>
+                </div>
+              </div>
+            }
           />
+          )}
         </div>
 
         {/* Translation Panel */}
