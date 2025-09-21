@@ -387,50 +387,63 @@ const BookReader = () => {
           </div>
         </div>
 
-        {/* Enhanced PDF Reader */}
+        {/* Enhanced PDF Reader - In-App Only */}
         <div className="px-2 sm:px-4 py-2">
           <div className={`${isDarkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-lg overflow-hidden`}>
-            <div className="h-[calc(100vh-180px)] sm:h-[calc(100vh-200px)]">
+            <div className="h-[calc(100vh-180px)] sm:h-[calc(100vh-200px)] relative">
               {(selectedBook.bookUrl || selectedBook.pdfUrl) ? (
-                <div className="w-full h-full">
-                  {selectedBook.fileType === 'docx' || selectedBook.fileType === 'doc' ? (
-                    <div className="flex items-center justify-center h-full">
-                      <div className="text-center p-8">
-                        <div className="text-6xl mb-4">📄</div>
-                        <h3 className={`text-xl font-semibold mb-4 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-                          DOCX Document
-                        </h3>
-                        <p className={`text-sm mb-6 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                          This book is in DOCX format with enhanced translation support
-                        </p>
-                        <div className="space-y-3">
-                          <a
-                            href={selectedBook.bookUrl || selectedBook.pdfUrl}
-                            download
-                            className="inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                          >
-                            <span className="mr-2">📥</span>
-                            Download DOCX
-                          </a>
-                          <a
-                            href={selectedBook.bookUrl || selectedBook.pdfUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors ml-3"
-                          >
-                            <span className="mr-2">🔗</span>
-                            Open in Browser
-                          </a>
-                        </div>
-                      </div>
+                <div className="w-full h-full relative">
+                  {/* Overlay to prevent right-click and selection */}
+                  <div 
+                    className="absolute inset-0 z-10 pointer-events-none"
+                    style={{ 
+                      userSelect: 'none',
+                      WebkitUserSelect: 'none',
+                      MozUserSelect: 'none',
+                      msUserSelect: 'none'
+                    }}
+                    onContextMenu={(e) => e.preventDefault()}
+                    onSelectStart={(e) => e.preventDefault()}
+                    onDragStart={(e) => e.preventDefault()}
+                  />
+                  
+                  <iframe
+                    src={`${selectedBook.bookUrl || selectedBook.pdfUrl}#toolbar=0&navpanes=0&scrollbar=1&zoom=page-width&view=FitH&disableRange=true&disableAutoFetch=true`}
+                    className="w-full h-full border-0 relative z-0"
+                    title={selectedBook.title}
+                    sandbox="allow-same-origin allow-scripts"
+                    style={{ 
+                      pointerEvents: 'auto',
+                      border: 'none',
+                      outline: 'none',
+                      userSelect: 'none',
+                      WebkitUserSelect: 'none'
+                    }}
+                    onContextMenu={(e) => e.preventDefault()}
+                    onLoad={() => {
+                      // Additional protection when iframe loads
+                      try {
+                        const iframe = document.querySelector('iframe[title="' + selectedBook.title + '"]');
+                        if (iframe && iframe.contentDocument) {
+                          iframe.contentDocument.addEventListener('contextmenu', (e) => e.preventDefault());
+                          iframe.contentDocument.addEventListener('selectstart', (e) => e.preventDefault());
+                          iframe.contentDocument.addEventListener('dragstart', (e) => e.preventDefault());
+                        }
+                      } catch (error) {
+                        // Cross-origin restrictions prevent access, which is expected
+                        console.log('Cross-origin iframe protection active');
+                      }
+                    }}
+                  />
+                  
+                  {/* Watermark overlay */}
+                  <div className="absolute bottom-4 right-4 z-20 pointer-events-none">
+                    <div className={`px-3 py-1 rounded-lg text-xs font-medium ${
+                      isDarkMode ? 'bg-gray-900 bg-opacity-70 text-gray-300' : 'bg-white bg-opacity-70 text-gray-600'
+                    }`}>
+                      ATRC Digital Library - View Only
                     </div>
-                  ) : (
-                    <iframe
-                      src={`${selectedBook.bookUrl || selectedBook.pdfUrl}#toolbar=1&navpanes=1&scrollbar=1&zoom=page-width`}
-                      className="w-full h-full border-0"
-                      title={selectedBook.title}
-                    />
-                  )}
+                  </div>
                 </div>
               ) : (
                 <div className="flex items-center justify-center h-full text-gray-500">

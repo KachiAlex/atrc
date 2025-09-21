@@ -142,9 +142,14 @@ service firebase.storage {
       allow read, write, delete: if true; // TEMPORARY: Allow all operations for debugging
     }
     
-    // Book files (PDFs and DOCX) - Temporary open permissions for debugging
+    // Book files (PDFs and DOCX) - Read-only within app, no direct downloads
     match /books/files/{fileName} {
-      allow read, write, delete: if true; // TEMPORARY: Allow all operations for debugging
+      allow read: if true; // Public read but controlled by app
+      allow write: if request.auth != null && resource.size <= 100 * 1024 * 1024; // 100MB limit, authenticated users only
+      allow delete: if request.auth != null && (
+        firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
+        firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.role in ['ruler', 'chief', 'elder']
+      );
     }
     
     
