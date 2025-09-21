@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { collection, addDoc, doc, updateDoc } from 'firebase/firestore';
+import { db } from '../firebase/config';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -9,6 +11,7 @@ import BookmarkManager from '../components/education/BookmarkManager';
 import LearningPaths from '../components/education/LearningPaths';
 import QuizSystem from '../components/education/QuizSystem';
 import DiscussionForum from '../components/education/DiscussionForum';
+import toast from 'react-hot-toast';
 
 const TraditionalRulersDashboard = () => {
   const { currentUser } = useAuth();
@@ -25,6 +28,152 @@ const TraditionalRulersDashboard = () => {
     totalMembers: 45,
     documentsPublished: 7
   });
+
+  // Form states
+  const [profileData, setProfileData] = useState({
+    throneName: 'Ife Kingdom',
+    rulerName: currentUser?.displayName || 'HRM Oba Adewale',
+    country: 'Nigeria'
+  });
+  
+  const [eventData, setEventData] = useState({
+    title: '',
+    description: '',
+    date: '',
+    location: ''
+  });
+
+  const [projectData, setProjectData] = useState({
+    title: '',
+    description: '',
+    budget: '',
+    timeline: ''
+  });
+
+  const [memberData, setMemberData] = useState({
+    name: '',
+    email: '',
+    role: 'member'
+  });
+
+  const [loading, setLoading] = useState(false);
+  const [showProjectForm, setShowProjectForm] = useState(false);
+  const [showMemberForm, setShowMemberForm] = useState(false);
+
+  // Handler functions
+  const handleSaveProfile = async () => {
+    if (!profileData.throneName || !profileData.rulerName) {
+      toast.error('Please fill in all required fields');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const userRef = doc(db, 'users', currentUser.uid);
+      await updateDoc(userRef, {
+        throneName: profileData.throneName,
+        rulerName: profileData.rulerName,
+        country: profileData.country,
+        updatedAt: new Date()
+      });
+      toast.success('Profile updated successfully!');
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      toast.error('Failed to update profile');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCreateProject = async () => {
+    if (!projectData.title || !projectData.description) {
+      toast.error('Please fill in project title and description');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await addDoc(collection(db, 'projects'), {
+        title: projectData.title,
+        description: projectData.description,
+        budget: projectData.budget,
+        timeline: projectData.timeline,
+        createdBy: currentUser.uid,
+        createdAt: new Date(),
+        status: 'planning'
+      });
+      toast.success('Project created successfully!');
+      setProjectData({ title: '', description: '', budget: '', timeline: '' });
+      setShowProjectForm(false);
+    } catch (error) {
+      console.error('Error creating project:', error);
+      toast.error('Failed to create project');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleAddMember = async () => {
+    if (!memberData.name || !memberData.email) {
+      toast.error('Please fill in member name and email');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await addDoc(collection(db, 'communityMembers'), {
+        name: memberData.name,
+        email: memberData.email,
+        role: memberData.role,
+        addedBy: currentUser.uid,
+        createdAt: new Date(),
+        status: 'active'
+      });
+      toast.success('Member added successfully!');
+      setMemberData({ name: '', email: '', role: 'member' });
+      setShowMemberForm(false);
+    } catch (error) {
+      console.error('Error adding member:', error);
+      toast.error('Failed to add member');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSaveEvent = async () => {
+    if (!eventData.title || !eventData.date) {
+      toast.error('Please fill in event title and date');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await addDoc(collection(db, 'events'), {
+        title: eventData.title,
+        description: eventData.description,
+        date: eventData.date,
+        location: eventData.location,
+        organizer: currentUser.displayName || currentUser.email,
+        createdBy: currentUser.uid,
+        createdAt: new Date(),
+        isPublished: true,
+        type: 'community',
+        status: 'upcoming'
+      });
+      toast.success('Event created successfully!');
+      setEventData({ title: '', description: '', date: '', location: '' });
+    } catch (error) {
+      console.error('Error creating event:', error);
+      toast.error('Failed to create event');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleScheduleMeeting = () => {
+    navigate('/app/meetings');
+    toast.success('Redirecting to Live Meetings...');
+  };
 
   const statusColor = status === "Verified" ? "bg-green-500" : status === "Pending" ? "bg-yellow-500" : "bg-red-500";
 
@@ -119,7 +268,8 @@ const TraditionalRulersDashboard = () => {
                   </label>
                   <input
                     type="text"
-                    defaultValue="Ife Kingdom"
+                    value={profileData.throneName}
+                    onChange={(e) => setProfileData({...profileData, throneName: e.target.value})}
                     className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 ${
                       isDarkMode 
                         ? 'bg-gray-700 border-gray-600 text-white' 
@@ -133,7 +283,8 @@ const TraditionalRulersDashboard = () => {
                   </label>
                   <input
                     type="text"
-                    defaultValue={currentUser?.displayName || "HRM Oba Adewale"}
+                    value={profileData.rulerName}
+                    onChange={(e) => setProfileData({...profileData, rulerName: e.target.value})}
                     className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 ${
                       isDarkMode 
                         ? 'bg-gray-700 border-gray-600 text-white' 
@@ -145,18 +296,38 @@ const TraditionalRulersDashboard = () => {
                   <label className={`block text-sm font-medium mb-2 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
                     Country
                   </label>
-                  <input
-                    type="text"
-                    defaultValue="Nigeria"
+                  <select
+                    value={profileData.country}
+                    onChange={(e) => setProfileData({...profileData, country: e.target.value})}
                     className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 ${
                       isDarkMode 
                         ? 'bg-gray-700 border-gray-600 text-white' 
                         : 'bg-white border-gray-300 text-gray-900'
                     }`}
-                  />
+                  >
+                    <option value="Nigeria">Nigeria</option>
+                    <option value="Ghana">Ghana</option>
+                    <option value="Kenya">Kenya</option>
+                    <option value="South Africa">South Africa</option>
+                    <option value="Other">Other</option>
+                  </select>
                 </div>
-                <button className="bg-primary-600 text-white px-6 py-2 rounded-md hover:bg-primary-700 transition-colors duration-200">
-                  Save Changes
+                <button 
+                  onClick={handleSaveProfile}
+                  disabled={loading}
+                  className="bg-primary-600 text-white px-6 py-2 rounded-md hover:bg-primary-700 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+                >
+                  {loading ? (
+                    <>
+                      <svg className="animate-spin -ml-1 mr-3 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      Saving...
+                    </>
+                  ) : (
+                    'Save Changes'
+                  )}
                 </button>
               </div>
             </div>
@@ -252,10 +423,116 @@ const TraditionalRulersDashboard = () => {
                 <h3 className={`text-xl font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
                   Community Development Projects
                 </h3>
-                <button className="bg-primary-600 text-white px-4 py-2 rounded-md hover:bg-primary-700 transition-colors duration-200">
-                  Create New Project
+                <button 
+                  onClick={() => setShowProjectForm(!showProjectForm)}
+                  className="bg-primary-600 text-white px-4 py-2 rounded-md hover:bg-primary-700 transition-colors duration-200 flex items-center"
+                >
+                  <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                  </svg>
+                  {showProjectForm ? 'Cancel' : 'Create New Project'}
                 </button>
               </div>
+
+              {/* Project Creation Form */}
+              {showProjectForm && (
+                <div className={`mb-6 p-6 rounded-lg border ${isDarkMode ? 'bg-gray-700 border-gray-600' : 'bg-gray-50 border-gray-200'}`}>
+                  <h4 className={`text-lg font-semibold mb-4 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                    Create New Project
+                  </h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className={`block text-sm font-medium mb-2 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                        Project Title
+                      </label>
+                      <input
+                        type="text"
+                        value={projectData.title}
+                        onChange={(e) => setProjectData({...projectData, title: e.target.value})}
+                        placeholder="Enter project title"
+                        className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 ${
+                          isDarkMode 
+                            ? 'bg-gray-700 border-gray-600 text-white' 
+                            : 'bg-white border-gray-300 text-gray-900'
+                        }`}
+                      />
+                    </div>
+                    <div>
+                      <label className={`block text-sm font-medium mb-2 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                        Budget (₦)
+                      </label>
+                      <input
+                        type="text"
+                        value={projectData.budget}
+                        onChange={(e) => setProjectData({...projectData, budget: e.target.value})}
+                        placeholder="Enter project budget"
+                        className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 ${
+                          isDarkMode 
+                            ? 'bg-gray-700 border-gray-600 text-white' 
+                            : 'bg-white border-gray-300 text-gray-900'
+                        }`}
+                      />
+                    </div>
+                    <div className="md:col-span-2">
+                      <label className={`block text-sm font-medium mb-2 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                        Description
+                      </label>
+                      <textarea
+                        value={projectData.description}
+                        onChange={(e) => setProjectData({...projectData, description: e.target.value})}
+                        placeholder="Enter project description"
+                        rows={3}
+                        className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 ${
+                          isDarkMode 
+                            ? 'bg-gray-700 border-gray-600 text-white' 
+                            : 'bg-white border-gray-300 text-gray-900'
+                        }`}
+                      />
+                    </div>
+                    <div>
+                      <label className={`block text-sm font-medium mb-2 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                        Timeline
+                      </label>
+                      <input
+                        type="text"
+                        value={projectData.timeline}
+                        onChange={(e) => setProjectData({...projectData, timeline: e.target.value})}
+                        placeholder="e.g., 6 months"
+                        className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 ${
+                          isDarkMode 
+                            ? 'bg-gray-700 border-gray-600 text-white' 
+                            : 'bg-white border-gray-300 text-gray-900'
+                        }`}
+                      />
+                    </div>
+                  </div>
+                  <div className="mt-4 flex gap-3">
+                    <button
+                      onClick={handleCreateProject}
+                      disabled={loading}
+                      className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+                    >
+                      {loading ? (
+                        <>
+                          <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                          </svg>
+                          Creating...
+                        </>
+                      ) : (
+                        'Create Project'
+                      )}
+                    </button>
+                    <button
+                      onClick={() => setShowProjectForm(false)}
+                      className="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600 transition-colors duration-200"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              )}
               
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {/* Active Projects */}
@@ -350,10 +627,114 @@ const TraditionalRulersDashboard = () => {
                 <h3 className={`text-xl font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
                   Community Management
                 </h3>
-                <button className="bg-primary-600 text-white px-4 py-2 rounded-md hover:bg-primary-700 transition-colors duration-200">
-                  Add Member
-                </button>
+                <div className="flex gap-3">
+                  <button 
+                    onClick={handleScheduleMeeting}
+                    className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors duration-200 flex items-center"
+                  >
+                    <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                    </svg>
+                    Schedule Meeting
+                  </button>
+                  <button 
+                    onClick={() => setShowMemberForm(!showMemberForm)}
+                    className="bg-primary-600 text-white px-4 py-2 rounded-md hover:bg-primary-700 transition-colors duration-200 flex items-center"
+                  >
+                    <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                    </svg>
+                    {showMemberForm ? 'Cancel' : 'Add Member'}
+                  </button>
+                </div>
               </div>
+
+              {/* Member Addition Form */}
+              {showMemberForm && (
+                <div className={`mb-6 p-6 rounded-lg border ${isDarkMode ? 'bg-gray-700 border-gray-600' : 'bg-gray-50 border-gray-200'}`}>
+                  <h4 className={`text-lg font-semibold mb-4 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                    Add Community Member
+                  </h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className={`block text-sm font-medium mb-2 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                        Full Name
+                      </label>
+                      <input
+                        type="text"
+                        value={memberData.name}
+                        onChange={(e) => setMemberData({...memberData, name: e.target.value})}
+                        placeholder="Enter member's full name"
+                        className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 ${
+                          isDarkMode 
+                            ? 'bg-gray-700 border-gray-600 text-white' 
+                            : 'bg-white border-gray-300 text-gray-900'
+                        }`}
+                      />
+                    </div>
+                    <div>
+                      <label className={`block text-sm font-medium mb-2 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                        Email Address
+                      </label>
+                      <input
+                        type="email"
+                        value={memberData.email}
+                        onChange={(e) => setMemberData({...memberData, email: e.target.value})}
+                        placeholder="Enter member's email"
+                        className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 ${
+                          isDarkMode 
+                            ? 'bg-gray-700 border-gray-600 text-white' 
+                            : 'bg-white border-gray-300 text-gray-900'
+                        }`}
+                      />
+                    </div>
+                    <div>
+                      <label className={`block text-sm font-medium mb-2 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                        Role
+                      </label>
+                      <select
+                        value={memberData.role}
+                        onChange={(e) => setMemberData({...memberData, role: e.target.value})}
+                        className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 ${
+                          isDarkMode 
+                            ? 'bg-gray-700 border-gray-600 text-white' 
+                            : 'bg-white border-gray-300 text-gray-900'
+                        }`}
+                      >
+                        <option value="member">Community Member</option>
+                        <option value="elder">Elder</option>
+                        <option value="chief">Chief</option>
+                        <option value="secretary">Secretary</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div className="mt-4 flex gap-3">
+                    <button
+                      onClick={handleAddMember}
+                      disabled={loading}
+                      className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+                    >
+                      {loading ? (
+                        <>
+                          <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                          </svg>
+                          Adding...
+                        </>
+                      ) : (
+                        'Add Member'
+                      )}
+                    </button>
+                    <button
+                      onClick={() => setShowMemberForm(false)}
+                      className="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600 transition-colors duration-200"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              )}
 
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* Community Stats */}
@@ -693,7 +1074,25 @@ const TraditionalRulersDashboard = () => {
                   </label>
                   <input
                     type="text"
+                    value={eventData.title}
+                    onChange={(e) => setEventData({...eventData, title: e.target.value})}
                     placeholder="Enter event title"
+                    className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 ${
+                      isDarkMode 
+                        ? 'bg-gray-700 border-gray-600 text-white' 
+                        : 'bg-white border-gray-300 text-gray-900'
+                    }`}
+                  />
+                </div>
+                <div>
+                  <label className={`block text-sm font-medium mb-2 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                    Description
+                  </label>
+                  <textarea
+                    value={eventData.description}
+                    onChange={(e) => setEventData({...eventData, description: e.target.value})}
+                    placeholder="Enter event description"
+                    rows={3}
                     className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 ${
                       isDarkMode 
                         ? 'bg-gray-700 border-gray-600 text-white' 
@@ -707,6 +1106,8 @@ const TraditionalRulersDashboard = () => {
                   </label>
                   <input
                     type="date"
+                    value={eventData.date}
+                    onChange={(e) => setEventData({...eventData, date: e.target.value})}
                     className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 ${
                       isDarkMode 
                         ? 'bg-gray-700 border-gray-600 text-white' 
@@ -720,6 +1121,8 @@ const TraditionalRulersDashboard = () => {
                   </label>
                   <input
                     type="text"
+                    value={eventData.location}
+                    onChange={(e) => setEventData({...eventData, location: e.target.value})}
                     placeholder="Enter event location"
                     className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 ${
                       isDarkMode 
@@ -728,8 +1131,22 @@ const TraditionalRulersDashboard = () => {
                     }`}
                   />
                 </div>
-                <button className="bg-primary-600 text-white px-6 py-2 rounded-md hover:bg-primary-700 transition-colors duration-200">
-                  Save Event
+                <button 
+                  onClick={handleSaveEvent}
+                  disabled={loading}
+                  className="bg-primary-600 text-white px-6 py-2 rounded-md hover:bg-primary-700 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+                >
+                  {loading ? (
+                    <>
+                      <svg className="animate-spin -ml-1 mr-3 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      Saving...
+                    </>
+                  ) : (
+                    'Save Event'
+                  )}
                 </button>
               </div>
             </div>
