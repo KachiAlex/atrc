@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import toast from 'react-hot-toast';
 // import { X, Upload, FileText, Image, Link } from 'lucide-react';
 
 const BookUploadModal = ({ isOpen, onClose, onUpload }) => {
@@ -53,7 +54,10 @@ const BookUploadModal = ({ isOpen, onClose, onUpload }) => {
     setLoading(true);
 
     try {
+      console.log('BookUploadModal: Starting upload with data:', formData);
       await onUpload(formData);
+      console.log('BookUploadModal: Upload successful, resetting form');
+      
       setFormData({
         title: '',
         author: '',
@@ -66,9 +70,13 @@ const BookUploadModal = ({ isOpen, onClose, onUpload }) => {
         bookFile: null,
         bookUrl: ''
       });
+      
+      toast.success('Book uploaded successfully!');
       onClose();
     } catch (error) {
       console.error('Error uploading book:', error);
+      toast.error('Failed to upload book: ' + (error.message || 'Unknown error'));
+      // Don't close modal on error so user can retry
     } finally {
       setLoading(false);
     }
@@ -286,7 +294,7 @@ const BookUploadModal = ({ isOpen, onClose, onUpload }) => {
                     Click to upload book file
                   </span>
                   <span className="text-xs text-gray-500 mt-1">
-                    PDF, DOCX, DOC files up to 100MB
+                    PDF, DOCX, DOC, EPUB files up to 100MB
                   </span>
                   <span className="text-xs text-blue-600 mt-1">
                     💡 EPUB highly recommended for best translation experience
@@ -306,7 +314,7 @@ const BookUploadModal = ({ isOpen, onClose, onUpload }) => {
                 onChange={handleInputChange}
                 required
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600 text-gray-900 bg-white"
-                placeholder="Enter book file URL (PDF or DOCX)"
+                placeholder="Enter book file URL (PDF, DOCX, or EPUB)"
               />
             )}
           </div>
