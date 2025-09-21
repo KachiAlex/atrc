@@ -17,16 +17,48 @@ const EPUBReader = ({ bookUrl, bookTitle, onClose }) => {
 
   // Helper function to handle CORS issues
   const getEpubUrl = (url) => {
-    // For Firebase Storage URLs, we might need to use a CORS proxy
+    // Validate URL first
+    try {
+      new URL(url);
+    } catch (error) {
+      console.error('Invalid URL provided:', url);
+      setCorsError(true);
+      return null;
+    }
+
+    // For Firebase Storage URLs, check if CORS is configured
     if (url.includes('firebasestorage.googleapis.com')) {
-      // Use CORS proxy as temporary solution
-      return `https://cors-anywhere.herokuapp.com/${url}`;
+      // Since CORS is now configured, try direct access first
+      return url;
     }
     return url;
   };
 
-  // Use the CORS-enabled URL
+  // Use the validated URL
   const epubUrl = getEpubUrl(bookUrl);
+  
+  // If URL is invalid, show error
+  if (!epubUrl) {
+    return (
+      <div className={`fixed inset-0 z-50 ${isDarkMode ? 'bg-gray-900' : 'bg-white'} flex items-center justify-center`}>
+        <div className="text-center p-8 max-w-md">
+          <div className="text-6xl mb-4">❌</div>
+          <h3 className={`text-xl font-semibold mb-4 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+            Invalid Book URL
+          </h3>
+          <p className={`text-sm mb-6 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+            The book file URL is not valid. Please contact an administrator.
+          </p>
+          <button
+            onClick={onClose}
+            className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            Back to Library
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   const languages = [
     { code: 'en', name: 'English' },
@@ -270,11 +302,12 @@ const EPUBReader = ({ bookUrl, bookTitle, onClose }) => {
                 }
               });
               
-              // Handle CORS errors gracefully
+              // Handle CORS and other errors gracefully
               rendition.on('error', (error) => {
                 console.error('EPUB loading error:', error);
-                if (error.message && error.message.includes('CORS')) {
-                  toast.error('EPUB file access blocked by CORS policy. Please use PDF format for now.');
+                if (error.message && (error.message.includes('CORS') || error.message.includes('Invalid URL'))) {
+                  toast.error('EPUB file access issue. CORS configuration may be needed.');
+                  setCorsError(true);
                 }
               });
             }}
