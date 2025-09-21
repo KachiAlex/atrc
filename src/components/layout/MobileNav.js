@@ -45,7 +45,7 @@ const MobileNav = () => {
       <div className={`${isDarkMode ? 'bg-gray-800' : 'bg-white'} shadow-lg lg:hidden sticky top-0 z-40`}>
         <div className="px-3 sm:px-4 py-3">
           <div className="flex items-center justify-between">
-            <div className="flex items-center min-w-0 flex-1">
+            <Link to="/" className="flex items-center min-w-0 flex-1 hover:opacity-80 transition-opacity">
               <div className="flex-shrink-0">
                 <LogoImage type="traditional-rulers" size="small" />
               </div>
@@ -57,7 +57,7 @@ const MobileNav = () => {
                   Traditional Rulers
                 </p>
               </div>
-            </div>
+            </Link>
             
             <div className="flex items-center space-x-1">
               <button
@@ -98,7 +98,11 @@ const MobileNav = () => {
             <div className="p-4 sm:p-6">
               {/* Enhanced Header */}
               <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center min-w-0 flex-1">
+                <Link 
+                  to="/" 
+                  className="flex items-center min-w-0 flex-1 hover:opacity-80 transition-opacity"
+                  onClick={handleLinkClick}
+                >
                   <div className="flex-shrink-0">
                     <LogoImage type="traditional-rulers" size="medium" />
                   </div>
@@ -110,7 +114,7 @@ const MobileNav = () => {
                       Traditional Rulers
                     </p>
                   </div>
-                </div>
+                </Link>
                 <button
                   onClick={() => setIsOpen(false)}
                   className={`p-2.5 rounded-lg transition-colors touch-manipulation ${isDarkMode ? 'hover:bg-gray-700 active:bg-gray-600' : 'hover:bg-gray-100 active:bg-gray-200'}`}

@@ -46,7 +46,7 @@ const Sidebar = () => {
   return (
     <div className={`${isDarkMode ? 'bg-gray-800' : 'bg-white'} w-64 min-h-screen shadow-lg`}>
       <div className="p-6">
-        <div className="flex items-center">
+        <Link to="/" className="flex items-center hover:opacity-80 transition-opacity">
           <div className="flex-shrink-0">
             <LogoImage type="traditional-rulers" size="small" />
           </div>
@@ -58,7 +58,7 @@ const Sidebar = () => {
               Traditional Rulers
             </p>
           </div>
-        </div>
+        </Link>
       </div>
 
       <nav className="mt-6 px-3">
