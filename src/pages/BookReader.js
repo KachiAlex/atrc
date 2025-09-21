@@ -71,6 +71,8 @@ const BookReader = () => {
   const fetchBooks = async () => {
     try {
       setLoading(true);
+      console.log('Fetching books from Firestore...');
+      
       const booksRef = collection(db, 'books');
       const q = query(
         booksRef, 
@@ -82,9 +84,68 @@ const BookReader = () => {
         id: doc.id,
         ...doc.data()
       }));
+      
+      console.log('Fetched books:', booksData.length, booksData);
       setBooks(booksData);
+      
+      // If no books found, add some sample books for testing
+      if (booksData.length === 0) {
+        console.log('No books found, adding sample books...');
+        const sampleBooks = [
+          {
+            id: 'sample1',
+            title: 'Leadership Principles for Traditional Rulers',
+            author: 'Dr. Adebayo Ogundimu',
+            description: 'A comprehensive guide to effective traditional leadership in modern times.',
+            category: 'leadership',
+            language: 'en',
+            coverImageUrl: '/images/book-placeholder.jpg',
+            bookUrl: 'https://mozilla.github.io/pdf.js/web/compressed.tracemonkey-pldi-09.pdf',
+            fileType: 'pdf',
+            isPublished: true,
+            createdAt: new Date(),
+            updatedAt: new Date()
+          },
+          {
+            id: 'sample2',
+            title: 'Traditional Wisdom and Modern Governance',
+            author: 'Prof. Chinua Achebe',
+            description: 'Bridging the gap between traditional wisdom and contemporary leadership challenges.',
+            category: 'wisdom',
+            language: 'en',
+            coverImageUrl: '/images/book-placeholder.jpg',
+            bookUrl: 'https://mozilla.github.io/pdf.js/web/compressed.tracemonkey-pldi-09.pdf',
+            fileType: 'pdf',
+            isPublished: true,
+            createdAt: new Date(),
+            updatedAt: new Date()
+          }
+        ];
+        setBooks(sampleBooks);
+        toast.success('Sample books loaded for demonstration');
+      }
     } catch (error) {
       console.error('Error fetching books:', error);
+      toast.error('Failed to load books. Please try again.');
+      
+      // Fallback to sample books on error
+      const fallbackBooks = [
+        {
+          id: 'fallback1',
+          title: 'Leadership Principles for Traditional Rulers',
+          author: 'Dr. Adebayo Ogundimu',
+          description: 'A comprehensive guide to effective traditional leadership in modern times.',
+          category: 'leadership',
+          language: 'en',
+          coverImageUrl: '/images/book-placeholder.jpg',
+          bookUrl: 'https://mozilla.github.io/pdf.js/web/compressed.tracemonkey-pldi-09.pdf',
+          fileType: 'pdf',
+          isPublished: true,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        }
+      ];
+      setBooks(fallbackBooks);
     } finally {
       setLoading(false);
     }
@@ -280,7 +341,17 @@ const BookReader = () => {
     setTranslatedContent(null);
   };
 
+  // Debug log for component state
+  console.log('BookReader render state:', {
+    loading,
+    isReading,
+    selectedBook: selectedBook?.title,
+    booksCount: books.length,
+    filteredBooksCount: filteredBooks.length
+  });
+
   if (isReading && selectedBook) {
+    console.log('Rendering book reader for:', selectedBook.title);
     return (
       <div className={`min-h-screen ${isDarkMode ? 'bg-gray-900' : 'bg-gray-50'} text-gray-900`}>
         {/* Enhanced Mobile Reader Header */}
