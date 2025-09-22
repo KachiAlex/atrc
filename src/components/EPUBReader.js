@@ -450,18 +450,18 @@ const EPUBReader = ({ bookUrl, bookTitle, onClose }) => {
     }
 
     setIsTranslating(true);
+    let translatingToastId;
     try {
-      toast.info('Translating entire book... This may take a moment.');
+      translatingToastId = toast.loading('Translating entire book... This may take a moment.');
       
       // Get all text content from the book
       const spine = renditionRef.book.spine;
-      const translatedSections = [];
 
       for (let i = 0; i < spine.spineItems.length; i++) {
         const section = spine.spineItems[i];
         try {
           const doc = await section.load(renditionRef.book.load.bind(renditionRef.book));
-          const textContent = doc.body ? doc.body.textContent : '';
+          const textContent = doc && doc.body ? doc.body.textContent : '';
           
           if (textContent.trim()) {
             const translatedText = await translateText(textContent, targetLanguage);
@@ -476,10 +476,9 @@ const EPUBReader = ({ bookUrl, bookTitle, onClose }) => {
               );
               
               const textNodes = [];
-              let node;
-              while (node = walker.nextNode()) {
-                if (node.textContent.trim()) {
-                  textNodes.push(node);
+              for (let n = walker.nextNode(); n; n = walker.nextNode()) {
+                if (n.textContent && n.textContent.trim()) {
+                  textNodes.push(n);
                 }
               }
               
@@ -497,10 +496,12 @@ const EPUBReader = ({ bookUrl, bookTitle, onClose }) => {
       }
 
       setIsBookTranslated(true);
+      if (translatingToastId) toast.dismiss(translatingToastId);
       toast.success(`Book translated to ${languages.find(l => l.code === targetLanguage)?.name}!`);
       
     } catch (error) {
       console.error('Full book translation error:', error);
+      if (translatingToastId) toast.dismiss(translatingToastId);
       toast.error('Translation failed. Please try again.');
     } finally {
       setIsTranslating(false);
@@ -721,12 +722,27 @@ const EPUBReader = ({ bookUrl, bookTitle, onClose }) => {
               // Apply theme
               rendition.themes.default(readerTheme);
               
-              // Disable context menu and selection (since we're doing full book translation)
-              rendition.on('rendered', () => {
-                const iframe = rendition.getContents();
-                if (iframe) {
-                  iframe.document.addEventListener('contextmenu', (e) => e.preventDefault());
-                  iframe.document.addEventListener('selectstart', (e) => e.preventDefault());
+              // Best-effort: disable context menu/selection if accessible
+              rendition.on('rendered', (_section, view) => {
+                try {
+                  const contents = typeof rendition.getContents === 'function' ? rendition.getContents() : [];
+                  const list = Array.isArray(contents) ? contents : (contents ? [contents] : []);
+                  list.forEach((c) => {
+                    try {
+                      if (c && c.document) {
+                        c.document.addEventListener('contextmenu', (e) => e.preventDefault());
+                        c.document.addEventListener('selectstart', (e) => e.preventDefault());
+                      }
+                    } catch (_) {}
+                  });
+                  if (view && view.document) {
+                    try {
+                      view.document.addEventListener('contextmenu', (e) => e.preventDefault());
+                      view.document.addEventListener('selectstart', (e) => e.preventDefault());
+                    } catch (_) {}
+                  }
+                } catch (e) {
+                  // Silently ignore sandboxed about:srcdoc iframes
                 }
               });
               

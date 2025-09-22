@@ -438,7 +438,7 @@ const TraditionalRulersDashboard = () => {
               {showProjectForm && (
                 <div className={`mb-6 p-6 rounded-lg border ${isDarkMode ? 'bg-gray-700 border-gray-600' : 'bg-gray-50 border-gray-200'}`}>
                   <h4 className={`text-lg font-semibold mb-4 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-                    Create New Project
+                  Create New Project
                   </h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
@@ -529,8 +529,8 @@ const TraditionalRulersDashboard = () => {
                       className="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600 transition-colors duration-200"
                     >
                       Cancel
-                    </button>
-                  </div>
+                </button>
+              </div>
                 </div>
               )}
               
@@ -645,7 +645,7 @@ const TraditionalRulersDashboard = () => {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                     </svg>
                     {showMemberForm ? 'Cancel' : 'Add Member'}
-                  </button>
+                </button>
                 </div>
               </div>
 

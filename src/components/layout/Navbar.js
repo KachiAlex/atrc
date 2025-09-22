@@ -1,7 +1,6 @@
 import React from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
-import LogoImage from '../LogoImage';
 import { HighContrastToggle, FontSizeControls } from '../ui/Accessibility';
 import PWAStatus from '../PWAStatus';
 

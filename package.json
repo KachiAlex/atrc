@@ -23,6 +23,7 @@
     "react-hot-toast": "^2.4.1",
     "react-modal": "^3.16.1",
     "react-query": "^3.39.3",
+    "react-reader": "^2.0.13",
     "react-router-dom": "^6.15.0",
     "react-scripts": "5.0.1",
     "react-select": "^5.7.4",

@@ -506,10 +506,10 @@ const BookReader = () => {
                     onDragStart={(e) => e.preventDefault()}
                   />
                   
-                  <iframe
+                <iframe
                     src={`${selectedBook.bookUrl || selectedBook.pdfUrl}#toolbar=0&navpanes=0&scrollbar=1&zoom=page-width&view=FitH&disableprint=true`}
                     className="w-full h-full border-0 relative z-0"
-                    title={selectedBook.title}
+                  title={selectedBook.title}
                     sandbox="allow-same-origin allow-scripts allow-downloads allow-forms"
                     style={{ 
                       pointerEvents: 'auto',
