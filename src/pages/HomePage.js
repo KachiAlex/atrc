@@ -612,7 +612,7 @@ const HomePage = () => {
             <div className="flex flex-col items-center mb-8">
               <LogoImage type="leadership-institute" size="xlarge" className="mb-6" />
               <h2 className={`text-3xl font-extrabold ${isDarkMode ? 'text-white' : 'text-gray-900'} sm:text-4xl`}>
-                Leadership Institute
+                Africa Traditional Rulers for Christ (ATRC) Leadership Institute
               </h2>
               <p className={`mt-4 text-lg max-w-3xl mx-auto ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
                 Empowering Traditional African Leaders through Christ-centered education, wisdom, and practical leadership training.
