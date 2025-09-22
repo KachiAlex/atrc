@@ -23,7 +23,6 @@ const HomePage = () => {
     try {
       const eventsQuery = query(
         collection(db, 'events'),
-        where('isPublished', '==', true),
         orderBy('date', 'desc'),
         limit(3)
       );
@@ -32,7 +31,9 @@ const HomePage = () => {
         id: doc.id,
         ...doc.data()
       }));
-      setEvents(eventsData);
+      // Filter for published events in JavaScript
+      const publishedEvents = eventsData.filter(event => event.isPublished === true);
+      setEvents(publishedEvents);
     } catch (error) {
       console.error('Error fetching events:', error);
       // Fallback to static data
@@ -78,7 +79,6 @@ const HomePage = () => {
     try {
       const announcementsQuery = query(
         collection(db, 'announcements'),
-        where('isPublished', '==', true),
         orderBy('createdAt', 'desc'),
         limit(3)
       );
@@ -87,7 +87,9 @@ const HomePage = () => {
         id: doc.id,
         ...doc.data()
       }));
-      setAnnouncements(announcementsData);
+      // Filter for published announcements in JavaScript
+      const publishedAnnouncements = announcementsData.filter(announcement => announcement.isPublished === true);
+      setAnnouncements(publishedAnnouncements);
     } catch (error) {
       console.error('Error fetching announcements:', error);
       // Fallback to static data
