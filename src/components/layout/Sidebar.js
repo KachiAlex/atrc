@@ -16,8 +16,9 @@ const Sidebar = () => {
     // { name: 'Project Reports', href: '/app/projects', icon: '📁' },
     { name: 'Live Meetings', href: '/app/meetings', icon: '📹' },
     // { name: 'Disputes', href: '/app/disputes', icon: '⚖️' },
-    { name: 'Events', href: '/app/events', icon: '📅' },
-    { name: 'Announcements', href: '/app/announcements', icon: '📢' },
+    { name: 'Local Events', href: '/app/events', icon: '📅' },
+    // Announcements moved to Admin only
+    ...(userRole === 'admin' ? [{ name: 'Announcements', href: '/app/announcements', icon: '📢' }] : []),
     { name: 'Reports', href: '/app/reports', icon: '📊' },
     { name: 'Profile', href: '/app/profile', icon: '👤' },
     { name: 'Settings', href: '/app/settings', icon: '⚙️' }

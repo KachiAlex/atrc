@@ -728,7 +728,7 @@ const HomePage = () => {
             visibleSections.has('events') ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'
           }`}>
             <h2 className={`text-3xl font-extrabold ${isDarkMode ? 'text-white' : 'text-gray-900'} sm:text-4xl`}>
-              Upcoming Events
+              Local Events
             </h2>
             <p className={`mt-4 text-lg max-w-3xl mx-auto ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
               Join traditional rulers and community members in celebrating our rich cultural heritage and spiritual gatherings.

@@ -8,6 +8,12 @@ import BookManagement from './BookManagement';
 const AdminDashboard = () => {
   const { currentUser } = useAuth();
   const [activeTab, setActiveTab] = useState('verification');
+  const [newAnnouncement, setNewAnnouncement] = useState({
+    title: '', content: '', priority: 'medium'
+  });
+  const [newEvent, setNewEvent] = useState({
+    title: '', description: '', date: '', location: '', type: 'cultural', status: 'upcoming'
+  });
   const [loading, setLoading] = useState(true);
   const [users, setUsers] = useState([]);
   const [projectReports, setProjectReports] = useState([]);
@@ -294,6 +300,20 @@ const AdminDashboard = () => {
             onClick={setActiveTab}
           >
             Analytics
+          </TabButton>
+          <TabButton 
+            value="announcements" 
+            isActive={activeTab === 'announcements'} 
+            onClick={setActiveTab}
+          >
+            Announcements
+          </TabButton>
+          <TabButton 
+            value="events" 
+            isActive={activeTab === 'events'} 
+            onClick={setActiveTab}
+          >
+            Local Events
           </TabButton>
         </div>
 
@@ -608,6 +628,157 @@ const AdminDashboard = () => {
                   📊 <strong>Note:</strong> Advanced analytics and charts will be available in future updates.
                 </p>
               </div>
+            </div>
+          )}
+
+          {/* Announcements Management (Admin) */}
+          {activeTab === 'announcements' && (
+            <div className="p-6">
+              <h3 className="text-xl font-semibold text-gray-900 mb-4">Manage Announcements</h3>
+              <form
+                onSubmit={async (e) => {
+                  e.preventDefault();
+                  try {
+                    await (await import('firebase/firestore')).addDoc(
+                      (await import('firebase/firestore')).collection(db, 'announcements'),
+                      {
+                        title: newAnnouncement.title,
+                        content: newAnnouncement.content,
+                        priority: newAnnouncement.priority,
+                        createdAt: new Date(),
+                        createdBy: currentUser?.uid || 'admin',
+                        isPublished: true
+                      }
+                    );
+                    setNewAnnouncement({ title: '', content: '', priority: 'medium' });
+                    alert('Announcement created!');
+                  } catch (err) {
+                    console.error(err);
+                    alert('Failed to create announcement');
+                  }
+                }}
+                className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-gray-50 p-4 rounded-lg mb-6"
+              >
+                <input
+                  type="text"
+                  placeholder="Title"
+                  value={newAnnouncement.title}
+                  onChange={(e) => setNewAnnouncement({ ...newAnnouncement, title: e.target.value })}
+                  className="border rounded px-3 py-2"
+                  required
+                />
+                <select
+                  value={newAnnouncement.priority}
+                  onChange={(e) => setNewAnnouncement({ ...newAnnouncement, priority: e.target.value })}
+                  className="border rounded px-3 py-2"
+                >
+                  <option value="high">High</option>
+                  <option value="medium">Medium</option>
+                  <option value="low">Low</option>
+                </select>
+                <textarea
+                  placeholder="Content"
+                  value={newAnnouncement.content}
+                  onChange={(e) => setNewAnnouncement({ ...newAnnouncement, content: e.target.value })}
+                  className="border rounded px-3 py-2 md:col-span-2"
+                  rows={4}
+                  required
+                />
+                <div className="md:col-span-2">
+                  <button type="submit" className="bg-primary-600 text-white px-4 py-2 rounded-md hover:bg-primary-700">
+                    Publish Announcement
+                  </button>
+                </div>
+              </form>
+              <p className="text-sm text-gray-500">Recent announcements appear on the public Home page.</p>
+            </div>
+          )}
+
+          {/* Local Events Management (Admin) */}
+          {activeTab === 'events' && (
+            <div className="p-6">
+              <h3 className="text-xl font-semibold text-gray-900 mb-4">Create Local Event</h3>
+              <form
+                onSubmit={async (e) => {
+                  e.preventDefault();
+                  try {
+                    await (await import('firebase/firestore')).addDoc(
+                      (await import('firebase/firestore')).collection(db, 'events'),
+                      {
+                        title: newEvent.title,
+                        description: newEvent.description,
+                        date: newEvent.date ? new Date(newEvent.date) : new Date(),
+                        location: newEvent.location,
+                        type: newEvent.type,
+                        status: newEvent.status,
+                        organizer: currentUser?.displayName || 'Admin',
+                        createdAt: new Date(),
+                        isPublished: true
+                      }
+                    );
+                    setNewEvent({ title: '', description: '', date: '', location: '', type: 'cultural', status: 'upcoming' });
+                    alert('Event created! It will show under Local Events on Home.');
+                  } catch (err) {
+                    console.error(err);
+                    alert('Failed to create event');
+                  }
+                }}
+                className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-gray-50 p-4 rounded-lg"
+              >
+                <input
+                  type="text"
+                  placeholder="Title"
+                  value={newEvent.title}
+                  onChange={(e) => setNewEvent({ ...newEvent, title: e.target.value })}
+                  className="border rounded px-3 py-2"
+                  required
+                />
+                <input
+                  type="date"
+                  value={newEvent.date}
+                  onChange={(e) => setNewEvent({ ...newEvent, date: e.target.value })}
+                  className="border rounded px-3 py-2"
+                  required
+                />
+                <input
+                  type="text"
+                  placeholder="Location"
+                  value={newEvent.location}
+                  onChange={(e) => setNewEvent({ ...newEvent, location: e.target.value })}
+                  className="border rounded px-3 py-2"
+                  required
+                />
+                <select
+                  value={newEvent.type}
+                  onChange={(e) => setNewEvent({ ...newEvent, type: e.target.value })}
+                  className="border rounded px-3 py-2"
+                >
+                  <option value="cultural">Cultural</option>
+                  <option value="ceremony">Ceremony</option>
+                  <option value="meeting">Meeting</option>
+                </select>
+                <select
+                  value={newEvent.status}
+                  onChange={(e) => setNewEvent({ ...newEvent, status: e.target.value })}
+                  className="border rounded px-3 py-2"
+                >
+                  <option value="upcoming">Upcoming</option>
+                  <option value="completed">Completed</option>
+                  <option value="cancelled">Cancelled</option>
+                </select>
+                <textarea
+                  placeholder="Description"
+                  value={newEvent.description}
+                  onChange={(e) => setNewEvent({ ...newEvent, description: e.target.value })}
+                  className="border rounded px-3 py-2 md:col-span-2"
+                  rows={4}
+                />
+                <div className="md:col-span-2">
+                  <button type="submit" className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700">
+                    Create Event
+                  </button>
+                </div>
+              </form>
             </div>
           )}
         </div>

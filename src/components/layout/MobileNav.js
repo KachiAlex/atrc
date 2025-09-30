@@ -15,8 +15,9 @@ const MobileNav = () => {
     { name: 'Dashboard', href: '/app/dashboard', icon: '🏠' },
     { name: 'Community Report', href: '/app/community', icon: '📝' },
     { name: 'Live Meetings', href: '/app/meetings', icon: '📹' },
-    { name: 'Events', href: '/app/events', icon: '📅' },
-    { name: 'Announcements', href: '/app/announcements', icon: '📢' },
+    { name: 'Local Events', href: '/app/events', icon: '📅' },
+    // Announcements appear only for admins on mobile nav; users see public announcements on homepage
+    // { name: 'Announcements', href: '/app/announcements', icon: '📢' },
     { name: 'Reports', href: '/app/reports', icon: '📊' },
     { name: 'Profile', href: '/app/profile', icon: '👤' },
     { name: 'Settings', href: '/app/settings', icon: '⚙️' }

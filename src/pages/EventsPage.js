@@ -141,10 +141,10 @@ const EventsPage = () => {
           <div className="flex items-center justify-between">
             <div>
               <h1 className={`text-3xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-                Traditional Rulers Events
+                Local Events
               </h1>
               <p className={`mt-2 text-lg ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-                Discover and participate in cultural events and ceremonies
+                Discover and participate in local cultural events and ceremonies
               </p>
             </div>
             <Link
