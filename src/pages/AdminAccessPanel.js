@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { db } from '../firebase/config';
-import { collection, getDocs, query, orderBy, doc, updateDoc, deleteDoc } from 'firebase/firestore';
+import { collection, getDocs, query, orderBy, doc, updateDoc, deleteDoc, addDoc } from 'firebase/firestore';
 import BookManagement from './BookManagement';
 import CourseManagement from './CourseManagement';
 
@@ -10,6 +10,7 @@ const AdminAccessPanel = () => {
   const { currentUser, userRole, logout } = useAuth();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('verification');
+  const [newAnnouncement, setNewAnnouncement] = useState({ title: '', content: '', priority: 'medium' });
   const [loading, setLoading] = useState(true);
   const [users, setUsers] = useState([]);
   const [showUserDetails, setShowUserDetails] = useState(false);
@@ -146,6 +147,16 @@ const AdminAccessPanel = () => {
             >
               Courses
             </button>
+            <button
+              onClick={() => setActiveTab('announcements')}
+              className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                activeTab === 'announcements'
+                  ? 'border-blue-500 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              Announcements
+            </button>
           </nav>
       </div>
 
@@ -280,6 +291,65 @@ const AdminAccessPanel = () => {
         {/* Courses Tab */}
         {activeTab === 'courses' && (
           <CourseManagement />
+        )}
+
+        {activeTab === 'announcements' && (
+          <div className="bg-white rounded-lg shadow p-6">
+            <h3 className="text-xl font-semibold text-gray-900 mb-4">Create Announcement</h3>
+            <form
+              onSubmit={async (e) => {
+                e.preventDefault();
+                try {
+                  await addDoc(collection(db, 'announcements'), {
+                    title: newAnnouncement.title,
+                    content: newAnnouncement.content,
+                    priority: newAnnouncement.priority,
+                    createdAt: new Date(),
+                    createdBy: currentUser?.uid || 'admin',
+                    author: currentUser?.displayName || 'Admin',
+                    isPublished: true
+                  });
+                  setNewAnnouncement({ title: '', content: '', priority: 'medium' });
+                  alert('Announcement published. It will appear on the homepage.');
+                } catch (err) {
+                  console.error('Create announcement error:', err);
+                  alert('Failed to create announcement');
+                }
+              }}
+              className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-gray-50 p-4 rounded-lg"
+            >
+              <input
+                type="text"
+                placeholder="Title"
+                value={newAnnouncement.title}
+                onChange={(e) => setNewAnnouncement({ ...newAnnouncement, title: e.target.value })}
+                className="border rounded px-3 py-2"
+                required
+              />
+              <select
+                value={newAnnouncement.priority}
+                onChange={(e) => setNewAnnouncement({ ...newAnnouncement, priority: e.target.value })}
+                className="border rounded px-3 py-2"
+              >
+                <option value="high">High</option>
+                <option value="medium">Medium</option>
+                <option value="low">Low</option>
+              </select>
+              <textarea
+                placeholder="Content"
+                value={newAnnouncement.content}
+                onChange={(e) => setNewAnnouncement({ ...newAnnouncement, content: e.target.value })}
+                className="border rounded px-3 py-2 md:col-span-2"
+                rows={5}
+                required
+              />
+              <div className="md:col-span-2">
+                <button type="submit" className="bg-primary-600 text-white px-4 py-2 rounded-md hover:bg-primary-700">
+                  Publish Announcement
+                </button>
+              </div>
+            </form>
+          </div>
         )}
 
         {/* User Details Modal */}
