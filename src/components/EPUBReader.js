@@ -756,7 +756,7 @@ const EPUBReader = ({ bookUrl, bookTitle, onClose }) => {
               });
             }}
             epubOptions={{
-              flow: 'paginated',
+              flow: 'scrolled-doc',
               manager: 'default',
               requestMethod: 'GET',
               requestCredentials: 'omit'

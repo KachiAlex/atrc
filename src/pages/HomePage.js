@@ -23,7 +23,6 @@ const HomePage = () => {
     try {
       const eventsQuery = query(
         collection(db, 'events'),
-        where('isPublished', '==', true),
         orderBy('date', 'desc'),
         limit(3)
       );
@@ -78,7 +77,6 @@ const HomePage = () => {
     try {
       const announcementsQuery = query(
         collection(db, 'announcements'),
-        where('isPublished', '==', true),
         orderBy('createdAt', 'desc'),
         limit(3)
       );
@@ -792,9 +790,12 @@ const HomePage = () => {
                           <span className="mr-4">📍 {event.location}</span>
                           <span>👤 {event.organizer || event.createdBy}</span>
                         </div>
-                        <button className="w-full bg-primary-600 text-white py-2 rounded-md hover:bg-primary-700 transition-colors">
+                        <Link
+                          to="/events"
+                          className="w-full bg-primary-600 text-white py-2 rounded-md hover:bg-primary-700 transition-colors text-center block"
+                        >
                           Learn More
-                        </button>
+                        </Link>
                       </div>
                     </div>
                   </div>
@@ -894,9 +895,17 @@ const HomePage = () => {
                       <p className={`text-sm mb-4 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
                         {announcement.content}
                       </p>
-                      <p className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                        By {announcement.author || announcement.createdBy}
-                      </p>
+                      <div className="flex items-center justify-between">
+                        <p className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                          By {announcement.author || announcement.createdBy}
+                        </p>
+                        <Link
+                          to="/announcements"
+                          className="text-primary-600 hover:text-primary-700 text-xs font-medium"
+                        >
+                          Read More →
+                        </Link>
+                      </div>
                     </div>
                   </div>
                 );
