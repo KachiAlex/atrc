@@ -3,7 +3,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 
 const Dashboard = () => {
-  const { currentUser } = useAuth();
+  const { currentUser, userRole } = useAuth();
   const { isDarkMode } = useTheme();
   const [stats, setStats] = useState({
     totalCommunities: 0,
@@ -130,12 +130,14 @@ const Dashboard = () => {
               icon="📅"
               onClick={() => {/* Navigate to events */}}
             />
-            <QuickAction
-              title="Send Announcements"
-              description="Communicate with community members"
-              icon="📢"
-              onClick={() => {/* Navigate to announcements */}}
-            />
+            {userRole === 'admin' && (
+              <QuickAction
+                title="Send Announcements"
+                description="Communicate with community members"
+                icon="📢"
+                onClick={() => {/* Navigate to announcements */}}
+              />
+            )}
             <QuickAction
               title="View Reports"
               description="Access analytics and reports"
