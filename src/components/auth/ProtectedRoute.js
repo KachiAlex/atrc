@@ -2,8 +2,8 @@ import React from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 
-const ProtectedRoute = ({ children }) => {
-  const { currentUser, loading } = useAuth();
+const ProtectedRoute = ({ children, requiredRole }) => {
+  const { currentUser, loading, userRole } = useAuth();
 
   // Show loading spinner while checking authentication
   if (loading) {
@@ -16,6 +16,11 @@ const ProtectedRoute = ({ children }) => {
 
   if (!currentUser) {
     return <Navigate to="/login" replace />;
+  }
+
+  // Role guard (optional)
+  if (requiredRole && userRole !== requiredRole) {
+    return <Navigate to="/app/dashboard" replace />;
   }
 
   return children;

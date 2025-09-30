@@ -111,9 +111,9 @@ function App() {
                 </ProtectedRoute>
               } />
               
-              {/* Announcements now managed by Admins; keep route for admins only */}
+              {/* Announcements now managed by Admins only */}
               <Route path="/app/announcements" element={
-                <ProtectedRoute>
+                <ProtectedRoute requiredRole="admin">
                   <AppLayout>
                     <Announcements />
                   </AppLayout>
