@@ -83,13 +83,17 @@ const EPUBReader = ({ bookUrl, bookTitle, onClose }) => {
     { code: 'om', name: 'Oromo' }
   ];
 
+  // External translation service (optional)
+  const TRANSLATE_API_URL = process.env.REACT_APP_TRANSLATE_API_URL || '';
+  const TRANSLATE_API_KEY = process.env.REACT_APP_TRANSLATE_API_KEY || '';
+
   // Enhanced translation function with multiple approaches
   const translateText = async (text, targetLang) => {
     try {
-      // First try: Use real API translation
-      const apiResult = await translateWithRealAPI(text, targetLang);
-      if (apiResult !== text) {
-        return apiResult;
+      // First try: Use real API translation if configured
+      if (TRANSLATE_API_URL) {
+        const svcResult = await translateWithService(text, targetLang);
+        if (svcResult && typeof svcResult === 'string') return svcResult;
       }
       
       // Fallback: Use enhanced static translations
@@ -97,6 +101,36 @@ const EPUBReader = ({ bookUrl, bookTitle, onClose }) => {
     } catch (error) {
       console.warn('Translation error:', error);
       return translateWithStatic(text, targetLang);
+    }
+  };
+
+  // Generic translation service using a LibreTranslate-compatible endpoint
+  const translateWithService = async (text, targetLang) => {
+    try {
+      const payload = {
+        q: text,
+        source: 'en',
+        target: targetLang,
+        format: 'text'
+      };
+      const res = await fetch(TRANSLATE_API_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(TRANSLATE_API_KEY ? { 'Authorization': `Bearer ${TRANSLATE_API_KEY}` } : {})
+        },
+        body: JSON.stringify(payload)
+      });
+      if (!res.ok) return text;
+      const data = await res.json();
+      // LibreTranslate returns { translatedText }
+      if (data && data.translatedText) return data.translatedText;
+      // Some services return arrays of translations
+      if (Array.isArray(data) && data[0] && data[0].translatedText) return data[0].translatedText;
+      return text;
+    } catch (e) {
+      console.warn('translateWithService failed:', e);
+      return text;
     }
   };
 
@@ -237,7 +271,41 @@ const EPUBReader = ({ bookUrl, bookTitle, onClose }) => {
     return comprehensiveTranslations[targetLang] || null;
   };
 
-  // Translate entire book function - improved version
+  // Helper: walk and translate text nodes inside a given Document (iframe contents)
+  const translateDocumentNodes = async (doc) => {
+    const walker = doc.createTreeWalker(doc.body || doc, NodeFilter.SHOW_TEXT, null, false);
+    const nodes = [];
+    for (let n = walker.nextNode(); n; n = walker.nextNode()) {
+      if (n.textContent && n.textContent.trim()) nodes.push(n);
+    }
+    // Translate sequentially to avoid hammering APIs and keep order
+    for (const textNode of nodes) {
+      const src = textNode.textContent;
+      const translated = await translateText(src, targetLanguage);
+      if (translated && translated !== src) textNode.textContent = translated;
+    }
+  };
+
+  // Apply translation to all currently rendered contents (iframes)
+  const applyTranslationToRendition = async () => {
+    if (!renditionRef) return;
+    const contents = typeof renditionRef.getContents === 'function' ? renditionRef.getContents() : [];
+    const list = Array.isArray(contents) ? contents : (contents ? [contents] : []);
+    let done = 0;
+    for (const c of list) {
+      try {
+        if (c && c.document) {
+          await translateDocumentNodes(c.document);
+        }
+      } catch (_) {}
+      done += 1;
+      const progress = Math.max(1, Math.round((done / Math.max(1, list.length)) * 100));
+      toast.loading(`Translating... ${progress}%`, { id: 'epub-translation-progress' });
+    }
+    toast.dismiss('epub-translation-progress');
+  };
+
+  // Translate entire book function - apply to rendered iframes and hook future renders
   const translateEntireBook = async () => {
     if (!renditionRef || !targetLanguage || targetLanguage === originalLanguage) {
       toast.error('Please select a different target language');
@@ -248,52 +316,7 @@ const EPUBReader = ({ bookUrl, bookTitle, onClose }) => {
     let translatingToastId;
     try {
       translatingToastId = toast.loading('Translating entire book... This may take a moment.');
-      
-      // Get all text content from the book
-      const spine = renditionRef.book.spine;
-      let translatedSections = 0;
-      const totalSections = spine.spineItems.length;
-
-      for (let i = 0; i < spine.spineItems.length; i++) {
-        const section = spine.spineItems[i];
-        try {
-          const doc = await section.load(renditionRef.book.load.bind(renditionRef.book));
-          
-          if (doc && doc.body) {
-            // Get all text nodes in the section
-            const walker = document.createTreeWalker(
-              doc.body,
-              NodeFilter.SHOW_TEXT,
-              null,
-              false
-            );
-            
-            const textNodes = [];
-            for (let n = walker.nextNode(); n; n = walker.nextNode()) {
-              if (n.textContent && n.textContent.trim()) {
-                textNodes.push(n);
-              }
-            }
-            
-            // Translate each text node sequentially to avoid race conditions
-            for (const textNode of textNodes) {
-              const originalText = textNode.textContent;
-              if (originalText.trim()) {
-                const translated = await translateText(originalText, targetLanguage);
-                textNode.textContent = translated;
-              }
-            }
-            
-            translatedSections++;
-            
-            // Update progress
-            const progress = Math.round((translatedSections / totalSections) * 100);
-            toast.loading(`Translating... ${progress}% complete`, { id: translatingToastId });
-          }
-        } catch (error) {
-          console.warn('Could not translate section:', error);
-        }
-      }
+      await applyTranslationToRendition();
 
       setIsBookTranslated(true);
       if (translatingToastId) toast.dismiss(translatingToastId);
