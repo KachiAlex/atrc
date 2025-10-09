@@ -3,6 +3,7 @@ import { ReactReader } from 'react-reader';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import toast from 'react-hot-toast';
+import { translateWithGoogle, batchTranslate, detectLanguage } from '../services/translationService';
 
 const EPUBReader = ({ bookUrl, bookTitle, onClose }) => {
   const { isDarkMode } = useTheme();
@@ -18,10 +19,6 @@ const EPUBReader = ({ bookUrl, bookTitle, onClose }) => {
   const [originalLanguage, setOriginalLanguage] = useState('en');
   const [renditionRef, setRenditionRef] = useState(null);
 
-  // Initialize Google Translate on component mount
-  useEffect(() => {
-    initializeGoogleTranslate();
-  }, []);
 
   // Helper function to handle CORS issues
   const getEpubUrl = (url) => {
@@ -83,193 +80,18 @@ const EPUBReader = ({ bookUrl, bookTitle, onClose }) => {
     { code: 'om', name: 'Oromo' }
   ];
 
-  // External translation service (optional)
-  const TRANSLATE_API_URL = process.env.REACT_APP_TRANSLATE_API_URL || '';
-  const TRANSLATE_API_KEY = process.env.REACT_APP_TRANSLATE_API_KEY || '';
-
-  // Enhanced translation function with multiple approaches
+  // Enhanced translation function using Google Translate API
   const translateText = async (text, targetLang) => {
     try {
-      // First try: Use real API translation if configured
-      if (TRANSLATE_API_URL) {
-        const svcResult = await translateWithService(text, targetLang);
-        if (svcResult && typeof svcResult === 'string') return svcResult;
-      }
-      
-      // Fallback: Use enhanced static translations
-      return translateWithStatic(text, targetLang);
+      // Use Google Cloud Translation API (includes fallback logic)
+      const translated = await translateWithGoogle(text, targetLang, originalLanguage);
+      return translated;
     } catch (error) {
       console.warn('Translation error:', error);
-      return translateWithStatic(text, targetLang);
-    }
-  };
-
-  // Generic translation service using a LibreTranslate-compatible endpoint
-  const translateWithService = async (text, targetLang) => {
-    try {
-      const payload = {
-        q: text,
-        source: 'en',
-        target: targetLang,
-        format: 'text'
-      };
-      const res = await fetch(TRANSLATE_API_URL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(TRANSLATE_API_KEY ? { 'Authorization': `Bearer ${TRANSLATE_API_KEY}` } : {})
-        },
-        body: JSON.stringify(payload)
-      });
-      if (!res.ok) return text;
-      const data = await res.json();
-      // LibreTranslate returns { translatedText }
-      if (data && data.translatedText) return data.translatedText;
-      // Some services return arrays of translations
-      if (Array.isArray(data) && data[0] && data[0].translatedText) return data[0].translatedText;
-      return text;
-    } catch (e) {
-      console.warn('translateWithService failed:', e);
       return text;
     }
   };
 
-  // Google Translate integration
-  const translateWithGoogle = async (text, targetLang) => {
-    return new Promise((resolve) => {
-      if (window.google && window.google.translate) {
-        window.google.translate.translate(text, 'en', targetLang, (result) => {
-          resolve(result.translatedText || text);
-        });
-      } else {
-        resolve(text);
-      }
-    });
-  };
-
-  // Browser-based translation
-  const translateWithBrowser = async (text, targetLang) => {
-    // This is a placeholder for browser translation APIs
-    // In a real implementation, you might use Web Speech API or other browser features
-    return text;
-  };
-
-  // Enhanced static translation with better word matching
-  const translateWithStatic = (text, targetLang) => {
-    const translations = getStaticTranslations(targetLang);
-    if (!translations) return text;
-
-    let translatedText = text;
-    
-    // Sort by length (longest first) to avoid partial replacements
-    const sortedKeys = Object.keys(translations).sort((a, b) => b.length - a.length);
-    
-    sortedKeys.forEach(word => {
-      const regex = new RegExp(`\\b${word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'gi');
-      translatedText = translatedText.replace(regex, translations[word]);
-    });
-
-    return translatedText;
-  };
-
-  // Get static translations for a language
-  const getStaticTranslations = (targetLang) => {
-    const comprehensiveTranslations = {
-      'yo': {
-        'Leadership': 'Asiwaju', 'Traditional': 'Aṣa', 'Ruler': 'Ọba', 'King': 'Ọba',
-        'Chief': 'Olori', 'Elder': 'Agba', 'Wisdom': 'Ọgbọn', 'Community': 'Agbegbe',
-        'Kingdom': 'Ijọba', 'Authority': 'Aṣẹ', 'Power': 'Agbara', 'Respect': 'Ọwọ',
-        'Honor': 'Ọla', 'Tradition': 'Aṣa', 'Culture': 'Aṣa', 'Heritage': 'Ogún',
-        'Ancestor': 'Baba-nla', 'Blessing': 'Ibukun', 'Prayer': 'Adura', 'God': 'Ọlọrun',
-        'Christ': 'Kristi', 'Christian': 'Onigbagbọ', 'Faith': 'Igbagbọ', 'Church': 'Ijọ',
-        'Pastor': 'Pastọ', 'Bible': 'Bibeli', 'Scripture': 'Mimọ', 'Gospel': 'Ihinrere',
-        'Salvation': 'Igbala', 'Grace': 'Ore-ọfẹ', 'Love': 'Ifẹ', 'Peace': 'Alaafia',
-        'Joy': 'Ayọ', 'Hope': 'Ireti', 'Truth': 'Otitọ', 'Justice': 'Ododo',
-        'Righteousness': 'Ododo', 'Humility': 'Irẹlẹ', 'Service': 'Iṣẹ', 'Ministry': 'Iṣẹ-ọsin',
-        'Calling': 'Ipe', 'Purpose': 'Idi', 'Vision': 'Iran', 'Mission': 'Iṣẹ-apinfunni',
-        'Goal': 'Ibi-afẹde', 'Success': 'Aṣeyọri', 'Growth': 'Idagba', 'Development': 'Idagbasoke',
-        'Progress': 'Ilọsiwaju', 'Change': 'Iyipada', 'Transformation': 'Iyipada',
-        'Chapter': 'Ori', 'Introduction': 'Ifihan', 'Conclusion': 'Ipari', 'Summary': 'Akojọpọ',
-        'Example': 'Apẹẹrẹ', 'Lesson': 'Ẹkọ', 'Teaching': 'Ẹkọ', 'Learning': 'Ẹkọ-kọ',
-        'Understanding': 'Oye', 'Knowledge': 'Imọ', 'Education': 'Ẹkọ', 'School': 'Ile-ẹkọ',
-        'Student': 'Akẹkọọ', 'Teacher': 'Olukọni', 'Book': 'Iwe', 'Page': 'Oju-iwe',
-        'Word': 'Ọrọ', 'Language': 'Ede', 'Translation': 'Itumọ', 'Meaning': 'Itumọ',
-        'Message': 'Ifiranṣẹ', 'Communication': 'Ibaraẹnisọrọ', 'Discussion': 'Ijiroro',
-        'Meeting': 'Ipade', 'Conference': 'Apejọ', 'Assembly': 'Apejọ', 'Gathering': 'Ipejọ',
-        'Ceremony': 'Ayẹyẹ', 'Celebration': 'Ayẹyẹ', 'Festival': 'Odun', 'Event': 'Iṣẹlẹ',
-        'Occasion': 'Aaye', 'Time': 'Akoko', 'Day': 'Ọjọ', 'Week': 'Ọsẹ', 'Month': 'Oṣu',
-        'Year': 'Ọdun', 'Today': 'Oni', 'Tomorrow': 'Ọla', 'Yesterday': 'Ana',
-        'Now': 'Bayi', 'Future': 'Ọjọ-iwaju', 'Past': 'Atijọ', 'Present': 'Lọwọlọwọ'
-      },
-      'ig': {
-        'Leadership': 'Nduzi', 'Traditional': 'Omenala', 'Ruler': 'Eze', 'King': 'Eze',
-        'Chief': 'Ichie', 'Elder': 'Ndi-ichie', 'Wisdom': 'Amamihe', 'Community': 'Obodo',
-        'Kingdom': 'Alaeze', 'Throne': 'Ocheeze', 'Authority': 'Ikike', 'Power': 'Ike',
-        'Respect': 'Nkwanye ugwu', 'Honor': 'Nsọpụrụ', 'Tradition': 'Omenala', 'Culture': 'Omenala',
-        'Heritage': 'Ihe nketa', 'Ancestor': 'Ndi-ichie', 'Blessing': 'Ngọzi', 'Prayer': 'Ekpere',
-        'God': 'Chineke', 'Christ': 'Kraịst', 'Christian': 'Onye Kraịst', 'Faith': 'Okwukwe',
-        'Church': 'Ụka', 'Pastor': 'Onye-nkuzi', 'Bible': 'Akwụkwọ Nsọ', 'Scripture': 'Akwụkwọ Nsọ',
-        'Gospel': 'Oziọma', 'Salvation': 'Nzọpụta', 'Grace': 'Amara', 'Love': 'Ịhụnanya',
-        'Peace': 'Udo', 'Joy': 'Ọṅụ', 'Hope': 'Olileanya', 'Truth': 'Eziokwu',
-        'Justice': 'Ikpe ziri ezi', 'Righteousness': 'Ezi omume', 'Humility': 'Ịdị umeala',
-        'Service': 'Ọrụ', 'Ministry': 'Ọrụ Chineke', 'Calling': 'Ọkpụkpọ', 'Purpose': 'Ebumnobi',
-        'Vision': 'Ọhụụ', 'Mission': 'Ozi', 'Goal': 'Ebumnobi', 'Success': 'Ihe ịga nke ọma',
-        'Growth': 'Uto', 'Development': 'Mmepe', 'Progress': 'Ọganihu', 'Change': 'Mgbanwe',
-        'Transformation': 'Mgbanwe', 'Chapter': 'Isi', 'Introduction': 'Mmalite', 'Conclusion': 'Njedebe',
-        'Summary': 'Nchịkọta', 'Example': 'Ọmụmaatụ', 'Lesson': 'Nkuzi', 'Teaching': 'Nkuzi',
-        'Learning': 'Ịmụta ihe', 'Understanding': 'Ịghọta', 'Knowledge': 'Ihe ọmụma',
-        'Education': 'Agụmakwụkwọ', 'Book': 'Akwụkwọ', 'Page': 'Peeji', 'Word': 'Okwu',
-        'Language': 'Asụsụ', 'Translation': 'Ntụghari', 'Meaning': 'Nkọwa', 'Message': 'Ozi',
-        'Meeting': 'Nzukọ', 'Event': 'Ememe', 'Time': 'Oge', 'Day': 'Ụbọchị',
-        'Today': 'Taa', 'Tomorrow': 'Echi', 'Yesterday': 'Ụnyaahụ'
-      },
-      'ha': {
-        'Leadership': 'Jagoranci', 'Traditional': 'Al\'ada', 'Ruler': 'Sarki', 'King': 'Sarki',
-        'Chief': 'Hakimi', 'Elder': 'Dattijo', 'Wisdom': 'Hikima', 'Community': 'Al\'umma',
-        'Kingdom': 'Daula', 'Throne': 'Sarauta', 'Authority': 'Iko', 'Power': 'Iko',
-        'Respect': 'Girmamawa', 'Honor': 'Daraja', 'Tradition': 'Al\'ada', 'Culture': 'Al\'ada',
-        'Heritage': 'Gado', 'Ancestor': 'Kakanni', 'Blessing': 'Albarka', 'Prayer': 'Addu\'a',
-        'God': 'Allah', 'Christ': 'Almasihu', 'Christian': 'Kirista', 'Faith': 'Bangaskiya',
-        'Church': 'Coci', 'Pastor': 'Fasto', 'Bible': 'Littafi Mai Tsarki', 'Scripture': 'Nassi',
-        'Gospel': 'Bishara', 'Salvation': 'Ceto', 'Grace': 'Alheri', 'Love': 'Ƙauna',
-        'Peace': 'Salama', 'Joy': 'Farin ciki', 'Hope': 'Bege', 'Truth': 'Gaskiya',
-        'Justice': 'Adalci', 'Righteousness': 'Adalci', 'Humility': 'Tawali\'u', 'Service': 'Hidima',
-        'Ministry': 'Hidimar Ubangiji', 'Calling': 'Kira', 'Purpose': 'Manufa', 'Vision': 'Hangen nesa',
-        'Mission': 'Manufa', 'Goal': 'Buri', 'Success': 'Nasara', 'Growth': 'Girma',
-        'Development': 'Ci gaba', 'Progress': 'Ci gaba', 'Change': 'Canji', 'Transformation': 'Canji',
-        'Chapter': 'Babi', 'Introduction': 'Gabatarwa', 'Conclusion': 'Kammala', 'Summary': 'Taƙaitawa',
-        'Example': 'Misali', 'Lesson': 'Darasi', 'Teaching': 'Koyarwa', 'Learning': 'Koyo',
-        'Understanding': 'Fahimta', 'Knowledge': 'Ilimi', 'Education': 'Ilimi', 'Book': 'Littafi',
-        'Page': 'Shafi', 'Word': 'Kalma', 'Language': 'Harshe', 'Translation': 'Fassara',
-        'Meaning': 'Ma\'ana', 'Message': 'Saƙo', 'Meeting': 'Taro', 'Event': 'Taron',
-        'Time': 'Lokaci', 'Day': 'Rana', 'Today': 'Yau', 'Tomorrow': 'Gobe', 'Yesterday': 'Jiya'
-      },
-      'sw': {
-        'Leadership': 'Uongozi', 'Traditional': 'Jadi', 'Ruler': 'Mtawala', 'King': 'Mfalme',
-        'Chief': 'Mkuu', 'Elder': 'Mzee', 'Wisdom': 'Hekima', 'Community': 'Jamii',
-        'Kingdom': 'Ufalme', 'Throne': 'Kiti cha enzi', 'Authority': 'Mamlaka', 'Power': 'Nguvu',
-        'Respect': 'Heshima', 'Honor': 'Heshima', 'Tradition': 'Jadi', 'Culture': 'Utamaduni',
-        'Heritage': 'Urithi', 'Ancestor': 'Babu', 'Blessing': 'Baraka', 'Prayer': 'Sala',
-        'God': 'Mungu', 'Christ': 'Kristo', 'Christian': 'Mkristo', 'Faith': 'Imani',
-        'Church': 'Kanisa', 'Pastor': 'Mchungaji', 'Bible': 'Biblia', 'Scripture': 'Maandiko',
-        'Gospel': 'Injili', 'Salvation': 'Wokovu', 'Grace': 'Neema', 'Love': 'Upendo',
-        'Peace': 'Amani', 'Joy': 'Furaha', 'Hope': 'Tumaini', 'Truth': 'Ukweli',
-        'Justice': 'Haki', 'Righteousness': 'Uongozi', 'Humility': 'Unyenyekevu', 'Service': 'Huduma',
-        'Ministry': 'Huduma', 'Calling': 'Wito', 'Purpose': 'Kusudi', 'Vision': 'Maono',
-        'Mission': 'Utume', 'Goal': 'Lengo', 'Success': 'Mafanikio', 'Growth': 'Ukuaji',
-        'Development': 'Maendeleo', 'Progress': 'Maendeleo', 'Change': 'Mabadiliko',
-        'Transformation': 'Mabadiliko', 'Chapter': 'Sura', 'Introduction': 'Utangulizi',
-        'Conclusion': 'Hitimisho', 'Summary': 'Muhtasari', 'Example': 'Mfano', 'Lesson': 'Somo',
-        'Teaching': 'Mafundisho', 'Learning': 'Kujifunza', 'Understanding': 'Uelewa',
-        'Knowledge': 'Maarifa', 'Education': 'Elimu', 'Book': 'Kitabu', 'Page': 'Ukurasa',
-        'Word': 'Neno', 'Language': 'Lugha', 'Translation': 'Tafsiri', 'Meaning': 'Maana',
-        'Message': 'Ujumbe', 'Meeting': 'Mkutano', 'Event': 'Tukio', 'Time': 'Wakati',
-        'Day': 'Siku', 'Today': 'Leo', 'Tomorrow': 'Kesho', 'Yesterday': 'Jana'
-      }
-    };
-
-    return comprehensiveTranslations[targetLang] || null;
-  };
 
   // Helper: walk and translate text nodes inside a given Document (iframe contents)
   const translateDocumentNodes = async (doc) => {
@@ -379,40 +201,6 @@ const EPUBReader = ({ bookUrl, bookTitle, onClose }) => {
     }
   };
 
-  // Add Google Translate API integration
-  const initializeGoogleTranslate = () => {
-    if (!window.google) {
-      const script = document.createElement('script');
-      script.src = 'https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit';
-      script.async = true;
-      document.head.appendChild(script);
-      
-      window.googleTranslateElementInit = () => {
-        // Google Translate is now available
-        console.log('Google Translate initialized');
-      };
-    }
-  };
-
-  // Enhanced translation with real API
-  const translateWithRealAPI = async (text, targetLang) => {
-    try {
-      // Try using Google Translate API if available
-      if (window.google && window.google.translate) {
-        return new Promise((resolve) => {
-          window.google.translate.translate(text, 'en', targetLang, (result) => {
-            resolve(result.translatedText || text);
-          });
-        });
-      }
-      
-      // Fallback to static translations
-      return translateWithStatic(text, targetLang);
-    } catch (error) {
-      console.warn('API translation failed, using static:', error);
-      return translateWithStatic(text, targetLang);
-    }
-  };
 
   const readerTheme = isDarkMode ? {
     body: {
