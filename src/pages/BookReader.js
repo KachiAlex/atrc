@@ -17,6 +17,7 @@ import {
 } from '@heroicons/react/24/outline';
 import toast from 'react-hot-toast';
 import EPUBReader from '../components/EPUBReader';
+import DOCXReader from '../components/DOCXReader';
 
 const BookReader = () => {
   const { currentUser } = useAuth();
@@ -374,6 +375,17 @@ const BookReader = () => {
         <EPUBReader
           bookUrl={selectedBook.bookUrl || selectedBook.pdfUrl}
           bookTitle={selectedBook.title}
+          onClose={closeReader}
+        />
+      );
+    }
+    
+    // Use DOCX reader for DOCX files
+    if (selectedBook.fileType === 'docx') {
+      return (
+        <DOCXReader
+          docxUrl={selectedBook.bookUrl}
+          title={selectedBook.title}
           onClose={closeReader}
         />
       );
