@@ -95,36 +95,85 @@ const EPUBReader = ({ bookUrl, bookTitle, onClose }) => {
 
   // Helper: walk and translate text nodes inside a given Document (iframe contents)
   const translateDocumentNodes = async (doc) => {
-    const walker = doc.createTreeWalker(doc.body || doc, NodeFilter.SHOW_TEXT, null, false);
-    const nodes = [];
-    for (let n = walker.nextNode(); n; n = walker.nextNode()) {
-      if (n.textContent && n.textContent.trim()) nodes.push(n);
+    if (!doc || !doc.body) {
+      console.warn('Invalid document provided for translation');
+      return;
     }
-    // Translate sequentially to avoid hammering APIs and keep order
-    for (const textNode of nodes) {
-      const src = textNode.textContent;
-      const translated = await translateText(src, targetLanguage);
-      if (translated && translated !== src) textNode.textContent = translated;
+
+    const walker = doc.createTreeWalker(doc.body, NodeFilter.SHOW_TEXT, null, false);
+    const nodes = [];
+    let node;
+    
+    while ((node = walker.nextNode())) {
+      const text = node.textContent?.trim();
+      if (text && text.length > 0) {
+        nodes.push(node);
+      }
+    }
+
+    console.log(`Found ${nodes.length} text nodes to translate`);
+
+    // Translate in batches to improve performance
+    const batchSize = 10;
+    for (let i = 0; i < nodes.length; i += batchSize) {
+      const batch = nodes.slice(i, i + batchSize);
+      await Promise.all(
+        batch.map(async (textNode) => {
+          const src = textNode.textContent;
+          if (src && src.trim()) {
+            try {
+              const translated = await translateText(src, targetLanguage);
+              if (translated && translated !== src) {
+                textNode.textContent = translated;
+              }
+            } catch (error) {
+              console.warn('Translation error for node:', error);
+            }
+          }
+        })
+      );
+      
+      // Update progress
+      const progress = Math.round(((i + batch.length) / nodes.length) * 100);
+      toast.loading(`Translating... ${progress}%`, { id: 'epub-translation-progress' });
     }
   };
 
   // Apply translation to all currently rendered contents (iframes)
   const applyTranslationToRendition = async () => {
-    if (!renditionRef) return;
-    const contents = typeof renditionRef.getContents === 'function' ? renditionRef.getContents() : [];
-    const list = Array.isArray(contents) ? contents : (contents ? [contents] : []);
-    let done = 0;
-    for (const c of list) {
-      try {
-        if (c && c.document) {
-          await translateDocumentNodes(c.document);
-        }
-      } catch (_) {}
-      done += 1;
-      const progress = Math.max(1, Math.round((done / Math.max(1, list.length)) * 100));
-      toast.loading(`Translating... ${progress}%`, { id: 'epub-translation-progress' });
+    if (!renditionRef) {
+      console.error('No rendition reference available');
+      return;
     }
-    toast.dismiss('epub-translation-progress');
+
+    try {
+      // Access the views from the rendition manager
+      const views = renditionRef.views();
+      
+      if (!views || !views._views || views._views.length === 0) {
+        console.warn('No views available in rendition');
+        return;
+      }
+
+      console.log(`Translating ${views._views.length} views`);
+
+      for (let i = 0; i < views._views.length; i++) {
+        const view = views._views[i];
+        
+        if (view && view.document) {
+          console.log(`Translating view ${i + 1}/${views._views.length}`);
+          await translateDocumentNodes(view.document);
+        }
+      }
+
+      toast.dismiss('epub-translation-progress');
+      console.log('Translation completed successfully');
+      
+    } catch (error) {
+      console.error('Error accessing rendition views:', error);
+      toast.dismiss('epub-translation-progress');
+      throw error;
+    }
   };
 
   // Translate entire book function - apply to rendered iframes and hook future renders
@@ -137,10 +186,27 @@ const EPUBReader = ({ bookUrl, bookTitle, onClose }) => {
     setIsTranslating(true);
     let translatingToastId;
     try {
-      translatingToastId = toast.loading('Translating entire book... This may take a moment.');
+      translatingToastId = toast.loading('Translating book... This may take a moment.');
+      
+      // Translate current view
       await applyTranslationToRendition();
 
       setIsBookTranslated(true);
+      
+      // Set up listener for future page renders
+      if (renditionRef) {
+        renditionRef.off('rendered'); // Remove any existing listeners
+        renditionRef.on('rendered', async (section, view) => {
+          if (view && view.document) {
+            console.log('Translating new page:', section.href);
+            try {
+              await translateDocumentNodes(view.document);
+            } catch (err) {
+              console.warn('Error translating new page:', err);
+            }
+          }
+        });
+      }
       if (translatingToastId) toast.dismiss(translatingToastId);
       toast.success(`Book translated to ${languages.find(l => l.code === targetLanguage)?.name}!`);
       
@@ -157,8 +223,16 @@ const EPUBReader = ({ bookUrl, bookTitle, onClose }) => {
   const resetToOriginal = async () => {
     if (renditionRef) {
       try {
-        await renditionRef.display(location);
+        // Remove translation listener
+        renditionRef.off('rendered');
+        
+        // Force reload the current location to get original content
+        const currentLocation = location;
         setIsBookTranslated(false);
+        
+        // Reload the page to show original content
+        await renditionRef.display(currentLocation);
+        
         toast.success('Book reset to original language');
       } catch (error) {
         console.error('Reset error:', error);
