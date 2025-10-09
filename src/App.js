@@ -28,6 +28,7 @@ import AdminAccessPanel from './pages/AdminAccessPanel';
 import BookReader from './pages/BookReader';
 import CourseReader from './pages/CourseReader';
 import LiveMeetingsViewer from './pages/LiveMeetingsViewer';
+import DOCXPage from './pages/DOCXPage';
 import EventsPage from './pages/EventsPage';
 import AnnouncementsPage from './pages/AnnouncementsPage';
 import PWAInstallPrompt from './components/PWAInstallPrompt';
@@ -156,6 +157,14 @@ function App() {
                 <ProtectedRoute>
                   <AppLayout>
                     <BookReader />
+                  </AppLayout>
+                </ProtectedRoute>
+              } />
+
+              <Route path="/app/docx" element={
+                <ProtectedRoute>
+                  <AppLayout>
+                    <DOCXPage />
                   </AppLayout>
                 </ProtectedRoute>
               } />

@@ -318,7 +318,7 @@ const getDefaultLanguages = () => {
   ];
 };
 
-export default {
+const translationService = {
   translateWithGoogle,
   batchTranslate,
   detectLanguage,
@@ -326,4 +326,6 @@ export default {
   getSupportedLanguages,
   getDefaultLanguages
 };
+
+export default translationService;
 
