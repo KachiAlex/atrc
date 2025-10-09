@@ -294,7 +294,7 @@ const AdminAccessPanel = () => {
         )}
 
         {activeTab === 'announcements' && (
-          <div className="bg-white rounded-lg shadow p-6">
+          <div className="bg-white text-gray-900 rounded-lg shadow p-6">
             <h3 className="text-xl font-semibold text-gray-900 mb-4">Create Announcement</h3>
             <form
               onSubmit={async (e) => {
@@ -323,13 +323,13 @@ const AdminAccessPanel = () => {
                 placeholder="Title"
                 value={newAnnouncement.title}
                 onChange={(e) => setNewAnnouncement({ ...newAnnouncement, title: e.target.value })}
-                className="border rounded px-3 py-2"
+                className="border rounded px-3 py-2 bg-white text-gray-900 placeholder-gray-500"
                 required
               />
               <select
                 value={newAnnouncement.priority}
                 onChange={(e) => setNewAnnouncement({ ...newAnnouncement, priority: e.target.value })}
-                className="border rounded px-3 py-2"
+                className="border rounded px-3 py-2 bg-white text-gray-900"
               >
                 <option value="high">High</option>
                 <option value="medium">Medium</option>
@@ -339,7 +339,7 @@ const AdminAccessPanel = () => {
                 placeholder="Content"
                 value={newAnnouncement.content}
                 onChange={(e) => setNewAnnouncement({ ...newAnnouncement, content: e.target.value })}
-                className="border rounded px-3 py-2 md:col-span-2"
+                className="border rounded px-3 py-2 md:col-span-2 bg-white text-gray-900 placeholder-gray-500"
                 rows={5}
                 required
               />
