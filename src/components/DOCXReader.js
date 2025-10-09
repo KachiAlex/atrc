@@ -4,7 +4,7 @@ import toast from 'react-hot-toast';
 import { useTheme } from '../contexts/ThemeContext';
 import { translateWithGoogle } from '../services/translationService';
 
-const DOCXReader = ({ docxUrl, title = 'DOCX Reader', onClose }) => {
+const DOCXReader = ({ docxUrl, docxFile, title = 'DOCX Reader', onClose }) => {
   const { isDarkMode } = useTheme();
   const containerRef = useRef(null);
   const [loading, setLoading] = useState(true);
@@ -26,26 +26,57 @@ const DOCXReader = ({ docxUrl, title = 'DOCX Reader', onClose }) => {
   ];
 
   useEffect(() => {
+    const toDirectDriveUrl = (url) => {
+      try {
+        const u = new URL(url);
+        if (u.hostname.includes('drive.google.com')) {
+          // Support both file/d/<id>/view and open?id=<id>
+          const fileIdMatch = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
+          const id = fileIdMatch?.[1] || u.searchParams.get('id');
+          if (id) {
+            return `https://drive.google.com/uc?export=download&id=${id}`;
+          }
+        }
+      } catch (_) {}
+      return url;
+    };
+
+    const arrayBufferFromFile = (file) => new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = reject;
+      reader.readAsArrayBuffer(file);
+    });
+
     const loadDocx = async () => {
       setLoading(true);
       setError(null);
       try {
-        const res = await fetch(docxUrl, { credentials: 'omit' });
-        if (!res.ok) throw new Error(`Failed to fetch DOCX: ${res.status}`);
-        const arrayBuffer = await res.arrayBuffer();
+        let arrayBuffer;
+        if (docxFile instanceof File) {
+          arrayBuffer = await arrayBufferFromFile(docxFile);
+        } else if (docxUrl) {
+          const normalizedUrl = toDirectDriveUrl(docxUrl);
+          const res = await fetch(normalizedUrl, { mode: 'cors', credentials: 'omit', redirect: 'follow', referrerPolicy: 'no-referrer' });
+          if (!res.ok) throw new Error(`Failed to fetch DOCX: ${res.status}`);
+          arrayBuffer = await res.arrayBuffer();
+        } else {
+          throw new Error('No DOCX source provided');
+        }
+
         const { value: html } = await mammoth.convertToHtml({ arrayBuffer });
         if (containerRef.current) {
           containerRef.current.innerHTML = html;
         }
       } catch (e) {
         console.error(e);
-        setError('Unable to load DOCX file');
+        setError('Unable to load DOCX file. Try uploading the file directly.');
       } finally {
         setLoading(false);
       }
     };
-    if (docxUrl) loadDocx();
-  }, [docxUrl]);
+    if (docxFile || docxUrl) loadDocx();
+  }, [docxUrl, docxFile]);
 
   const translateContainer = async () => {
     if (!containerRef.current) return;
