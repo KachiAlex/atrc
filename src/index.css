@@ -71,6 +71,61 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* Ensure inputs are readable in both themes */
+input, textarea, select {
+  color: #111827;
+}
+
+.dark input, .dark textarea, .dark select {
+  color: #ffffff;
+}
+
+/* Placeholder colors */
+input::placeholder, textarea::placeholder {
+  color: #6b7280;
+  opacity: 1;
+}
+
+.dark input::placeholder, .dark textarea::placeholder {
+  color: #9ca3af;
+}
+
+/* Autofill fixes (Chrome/Edge/Safari) */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+textarea:-webkit-autofill,
+textarea:-webkit-autofill:hover,
+textarea:-webkit-autofill:focus,
+select:-webkit-autofill,
+select:-webkit-autofill:hover,
+select:-webkit-autofill:focus {
+  -webkit-text-fill-color: #111827;
+  transition: background-color 5000s ease-in-out 0s;
+}
+
+.dark input:-webkit-autofill,
+.dark input:-webkit-autofill:hover,
+.dark input:-webkit-autofill:focus,
+.dark textarea:-webkit-autofill,
+.dark textarea:-webkit-autofill:hover,
+.dark textarea:-webkit-autofill:focus,
+.dark select:-webkit-autofill,
+.dark select:-webkit-autofill:hover,
+.dark select:-webkit-autofill:focus {
+  -webkit-text-fill-color: #ffffff;
+  transition: background-color 5000s ease-in-out 0s;
+}
+
+/* Ensure announcement cards always have visible text */
+.announcement-card {
+  color: #111827;
+}
+
+.dark .announcement-card {
+  color: #e5e7eb;
+}
+
 /* Dark mode styles */
 .dark body {
   color: #f9fafb;

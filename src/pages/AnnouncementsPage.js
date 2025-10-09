@@ -149,7 +149,7 @@ const AnnouncementsPage = () => {
         <div className="space-y-6">
           {announcements.map((announcement, index) => (
             <div key={announcement.id} className={`transform transition-all duration-500 delay-${index * 100}`}>
-              <div className={`${isDarkMode ? 'bg-gray-800' : 'bg-white'} rounded-2xl shadow-lg p-6 hover:shadow-xl transition-shadow duration-300`}>
+              <div className={`${isDarkMode ? 'bg-gray-800' : 'bg-white'} rounded-2xl shadow-lg p-6 hover:shadow-xl transition-shadow duration-300 announcement-card`}>
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex-1">
                     <div className="flex items-center space-x-3 mb-3">
