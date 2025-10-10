@@ -63,10 +63,37 @@ const DOCXReader = ({ docxUrl, docxFile, title = 'DOCX Reader', onClose }) => {
         } else {
           throw new Error('No DOCX source provided');
         }
+        // Map common Word styles to semantic HTML to preserve structure
+        const options = {
+          styleMap: [
+            "p[style-name='Title'] => h1.title:fresh",
+            "p[style-name='Subtitle'] => h2.subtitle:fresh",
+            "p[style-name='Heading 1'] => h1:fresh",
+            "p[style-name='Heading 2'] => h2:fresh",
+            "p[style-name='Heading 3'] => h3:fresh",
+            "p[style-name='Heading 4'] => h4:fresh",
+            "p[style-name='Quote'] => blockquote:fresh",
+            "r[style-name='Strong'] => strong",
+            "r[style-name='Emphasis'] => em",
+            "table => table.table table-striped",
+            "p[style-name='Caption'] => figcaption:fresh"
+          ]
+        };
 
-        const { value: html } = await mammoth.convertToHtml({ arrayBuffer });
+        const { value: html } = await mammoth.convertToHtml({ arrayBuffer }, options);
         if (containerRef.current) {
-          containerRef.current.innerHTML = html;
+          containerRef.current.innerHTML = `
+            <style>
+              .docx-container { line-height: 1.6; }
+              .docx-container h1, .docx-container h2, .docx-container h3 { margin: 1.2em 0 0.6em; }
+              .docx-container p { margin: 0.6em 0; }
+              .docx-container ul, .docx-container ol { margin: 0.8em 1.2em; }
+              .docx-container table { border-collapse: collapse; width: 100%; margin: 1em 0; }
+              .docx-container table td, .docx-container table th { border: 1px solid rgba(0,0,0,0.1); padding: 6px 8px; }
+              .docx-container blockquote { border-left: 4px solid rgba(59,130,246,0.5); padding-left: 12px; margin-left: 0; color: inherit; }
+            </style>
+            <div class="docx-container">${html}</div>
+          `;
         }
       } catch (e) {
         console.error(e);
@@ -83,25 +110,24 @@ const DOCXReader = ({ docxUrl, docxFile, title = 'DOCX Reader', onClose }) => {
     setIsTranslating(true);
     try {
       const root = containerRef.current;
-      const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, null, false);
-      const nodes = [];
-      for (let n = walker.nextNode(); n; n = walker.nextNode()) {
-        if (n.textContent && n.textContent.trim()) nodes.push(n);
-      }
+      // Translate by blocks to reduce layout fragmentation and improve quality
+      const blocks = Array.from(
+        root.querySelectorAll('h1, h2, h3, h4, h5, h6, p, li, figcaption, blockquote')
+      );
 
-      const batchSize = 12;
-      for (let i = 0; i < nodes.length; i += batchSize) {
-        const batch = nodes.slice(i, i + batchSize);
+      const batchSize = 8;
+      for (let i = 0; i < blocks.length; i += batchSize) {
+        const batch = blocks.slice(i, i + batchSize);
         await Promise.all(
-          batch.map(async (textNode) => {
-            const src = textNode.textContent;
+          batch.map(async (el) => {
+            const src = el.textContent || '';
             try {
               const translated = await translateWithGoogle(src, targetLanguage, 'en');
-              if (translated && translated !== src) textNode.textContent = translated;
+              if (translated && translated !== src) el.textContent = translated;
             } catch (_) {}
           })
         );
-        const progress = Math.round(((i + batch.length) / nodes.length) * 100);
+        const progress = Math.round(((i + batch.length) / blocks.length) * 100);
         toast.loading(`Translating... ${progress}%`, { id: 'docx-translation-progress' });
       }
       toast.dismiss('docx-translation-progress');

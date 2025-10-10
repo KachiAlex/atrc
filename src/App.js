@@ -32,6 +32,7 @@ import DOCXPage from './pages/DOCXPage';
 import EventsPage from './pages/EventsPage';
 import AnnouncementsPage from './pages/AnnouncementsPage';
 import PWAInstallPrompt from './components/PWAInstallPrompt';
+import AIAssistantEnhanced from './components/AIAssistantEnhanced';
 
 import './index.css';
 
@@ -200,6 +201,10 @@ function App() {
             
             {/* PWA Install Prompt */}
             <PWAInstallPrompt />
+            
+            {/* AI Assistant - Enhanced with Voice, Suggestions & Analytics */}
+            <AIAssistantEnhanced />
+            
             <Toaster 
               position="top-right"
               toastOptions={{

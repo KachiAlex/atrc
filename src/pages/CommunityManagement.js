@@ -4,6 +4,7 @@ import { useLanguage } from '../contexts/LanguageContext';
 import { useAuth } from '../contexts/AuthContext';
 import { db } from '../firebase/config';
 import { collection, addDoc, updateDoc, deleteDoc, doc, getDocs, query, where } from 'firebase/firestore';
+import toast from 'react-hot-toast';
 
 const CommunityManagement = () => {
   const { isDarkMode } = useTheme();
@@ -13,6 +14,10 @@ const CommunityManagement = () => {
   const [loading, setLoading] = useState(true);
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingCommunity, setEditingCommunity] = useState(null);
+  const [showMembersModal, setShowMembersModal] = useState(false);
+  const [selectedCommunityForMembers, setSelectedCommunityForMembers] = useState(null);
+  const [members, setMembers] = useState([]);
+  const [loadingMembers, setLoadingMembers] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     ruler: '',
@@ -100,10 +105,75 @@ const CommunityManagement = () => {
       try {
         await deleteDoc(doc(db, 'communities', communityId));
         setCommunities(prev => prev.filter(c => c.id !== communityId));
+        toast.success('Community deleted successfully');
       } catch (error) {
         console.error('Error deleting community:', error);
+        toast.error('Failed to delete community');
       }
     }
+  };
+
+  const getTotalMembers = () => {
+    return communities.reduce((sum, c) => sum + (c.members || 0), 0);
+  };
+
+  const handleViewMembers = async () => {
+    if (communities.length === 0) {
+      toast.error('No communities available');
+      return;
+    }
+    setLoadingMembers(true);
+    setShowMembersModal(true);
+    
+    try {
+      // Fetch all users from Firestore
+      const usersRef = collection(db, 'users');
+      const usersSnapshot = await getDocs(usersRef);
+      const allUsers = usersSnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      setMembers(allUsers);
+      toast.success(`Loaded ${allUsers.length} members`);
+    } catch (error) {
+      console.error('Error fetching members:', error);
+      toast.error('Failed to load members');
+    } finally {
+      setLoadingMembers(false);
+    }
+  };
+
+  const handleGenerateReport = () => {
+    // Generate a downloadable report
+    const reportData = {
+      title: 'Community Management Report',
+      generatedAt: new Date().toLocaleString(),
+      totalCommunities: communities.length,
+      activeCommunities: communities.filter(c => c.status === 'active').length,
+      inactiveCommunities: communities.filter(c => c.status === 'inactive').length,
+      totalMembers: getTotalMembers(),
+      communities: communities.map(c => ({
+        name: c.name,
+        ruler: c.ruler,
+        location: c.location,
+        members: c.members || 0,
+        status: c.status
+      }))
+    };
+
+    // Create downloadable JSON file
+    const dataStr = JSON.stringify(reportData, null, 2);
+    const dataBlob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(dataBlob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `community-report-${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    
+    toast.success('Report generated and downloaded!');
   };
 
   if (loading) {
@@ -322,10 +392,16 @@ const CommunityManagement = () => {
                 >
                   {t('community.addNewCommunity')}
                 </button>
-                <button className="w-full bg-gray-600 text-white px-4 py-2 rounded-md hover:bg-gray-700 transition-colors">
-                  {t('community.importCommunities')}
+                <button 
+                  onClick={() => handleViewMembers()}
+                  className="w-full bg-gray-600 text-white px-4 py-2 rounded-md hover:bg-gray-700 transition-colors"
+                >
+                  {t('community.viewMembers')} ({getTotalMembers()})
                 </button>
-                <button className="w-full bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors">
+                <button 
+                  onClick={() => handleGenerateReport()}
+                  className="w-full bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors"
+                >
                   {t('community.generateReport')}
                 </button>
               </div>
@@ -365,6 +441,86 @@ const CommunityManagement = () => {
           </div>
         </div>
       </div>
+
+      {/* Members Modal */}
+      {showMembersModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className={`${isDarkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg max-w-4xl w-full max-h-[80vh] overflow-hidden`}>
+            <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+              <h2 className={`text-xl font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                Community Members ({members.length})
+              </h2>
+              <button
+                onClick={() => setShowMembersModal(false)}
+                className={`${isDarkMode ? 'text-gray-300 hover:text-white' : 'text-gray-600 hover:text-gray-900'}`}
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <div className="p-6 overflow-y-auto max-h-[60vh]">
+              {loadingMembers ? (
+                <div className="flex items-center justify-center py-12">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+                </div>
+              ) : members.length === 0 ? (
+                <div className="text-center py-12">
+                  <p className={`${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                    No members found
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {members.map((member) => (
+                    <div key={member.id} className={`${isDarkMode ? 'bg-gray-700' : 'bg-gray-50'} rounded-lg p-4`}>
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h3 className={`font-medium ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                            {member.displayName || member.email || 'Unknown User'}
+                          </h3>
+                          <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                            {member.email}
+                          </p>
+                          <div className="flex gap-2 mt-2">
+                            <span className={`text-xs px-2 py-1 rounded-full ${
+                              member.role === 'admin' ? 'bg-red-100 text-red-800' :
+                              member.role === 'ruler' ? 'bg-purple-100 text-purple-800' :
+                              member.role === 'chief' ? 'bg-blue-100 text-blue-800' :
+                              member.role === 'elder' ? 'bg-yellow-100 text-yellow-800' :
+                              'bg-gray-100 text-gray-800'
+                            }`}>
+                              {member.role || 'member'}
+                            </span>
+                            {member.community && (
+                              <span className="text-xs px-2 py-1 rounded-full bg-green-100 text-green-800">
+                                {communities.find(c => c.id === member.community)?.name || 'Community Member'}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                            {member.traditionalTitle || 'No title'}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+            <div className="px-6 py-4 border-t border-gray-200 flex justify-end">
+              <button
+                onClick={() => setShowMembersModal(false)}
+                className="bg-gray-600 text-white px-4 py-2 rounded-md hover:bg-gray-700 transition-colors"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
