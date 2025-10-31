@@ -41,7 +41,9 @@
     "firebase:login": "firebase login",
     "firebase:deploy": "firebase deploy",
     "firebase:serve": "firebase serve",
-    "firebase:emulators": "firebase emulators:start"
+    "firebase:emulators": "firebase emulators:start",
+    "setup:translation": "node setup-translation.js",
+    "setup:translation:win": "setup-translation.bat"
   },
   "eslintConfig": {
     "extends": [

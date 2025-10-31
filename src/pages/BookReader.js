@@ -17,7 +17,8 @@ import {
 } from '@heroicons/react/24/outline';
 import toast from 'react-hot-toast';
 import EPUBReader from '../components/EPUBReader';
-import DOCXReader from '../components/DOCXReader';
+import TranslationUI from '../components/TranslationUI';
+import { translateText, translateBookContent } from '../services/enhancedTranslationService';
 
 const BookReader = () => {
   const { currentUser } = useAuth();
@@ -39,6 +40,8 @@ const BookReader = () => {
   const [isTranslating, setIsTranslating] = useState(false);
   const [showTranslatedResults, setShowTranslatedResults] = useState(false);
   const [translatedContent, setTranslatedContent] = useState(null);
+  const [translationProgress, setTranslationProgress] = useState(null);
+  const [showEnhancedTranslation, setShowEnhancedTranslation] = useState(false);
   const [bookmarkedBooks, setBookmarkedBooks] = useState(new Set());
 
   const categories = [
@@ -223,30 +226,34 @@ const BookReader = () => {
     if (!selectedBookForTranslation) return;
     
     setIsTranslating(true);
+    setTranslationProgress({ completed: 0, total: 3, percentage: 0, currentItem: 'Starting...' });
+    
     try {
-      // Get the book content (title, author, description)
-      const contentToTranslate = {
+      // Enhanced translation with progress tracking
+      const bookContent = {
         title: selectedBookForTranslation.title,
         author: selectedBookForTranslation.author,
-        description: selectedBookForTranslation.description
+        description: selectedBookForTranslation.description,
+        chapters: [] // Add chapters if available
       };
 
-      // Translate the content using Google Translate API
-      console.log('Starting translation for:', contentToTranslate, 'to language:', targetLanguage);
-      const translatedResult = await translateContent(contentToTranslate, targetLanguage);
-      console.log('Translation result:', translatedResult);
+      const translatedResult = await translateBookContent(
+        bookContent, 
+        targetLanguage, 
+        'en',
+        (progress) => setTranslationProgress(progress)
+      );
       
-      // Show the translated content in a new modal
-      console.log('Setting translated content and showing results modal');
       setTranslatedContent(translatedResult);
       setShowTranslatedResults(true);
-      console.log('Translation modal should now be visible');
+      toast.success('Book translated successfully!');
       
     } catch (error) {
       console.error('Translation error:', error);
-      alert('Translation failed. Please try again.');
+      toast.error('Translation failed. Please try again.');
     } finally {
       setIsTranslating(false);
+      setTranslationProgress(null);
       closeTranslationModal();
     }
   };
@@ -375,17 +382,6 @@ const BookReader = () => {
         <EPUBReader
           bookUrl={selectedBook.bookUrl || selectedBook.pdfUrl}
           bookTitle={selectedBook.title}
-          onClose={closeReader}
-        />
-      );
-    }
-    
-    // Use DOCX reader for DOCX files
-    if (selectedBook.fileType === 'docx') {
-      return (
-        <DOCXReader
-          docxUrl={selectedBook.bookUrl}
-          title={selectedBook.title}
           onClose={closeReader}
         />
       );
@@ -824,13 +820,25 @@ const BookReader = () => {
                       <span className="sm:hidden">Read</span>
                     </button>
                     
-                    <button
-                      onClick={() => openTranslationModal(book)}
-                      className="bg-blue-500 text-white py-2.5 px-3 rounded-lg hover:bg-blue-600 transition-colors flex items-center justify-center touch-manipulation"
-                      title="Translate Book"
-                    >
-                      <LanguageIcon className="w-4 h-4" />
-                    </button>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => openTranslationModal(book)}
+                        className="bg-blue-500 text-white py-2.5 px-3 rounded-lg hover:bg-blue-600 transition-colors flex items-center justify-center touch-manipulation"
+                        title="Quick Translate"
+                      >
+                        <LanguageIcon className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => {
+                          setSelectedBook(book);
+                          setShowEnhancedTranslation(true);
+                        }}
+                        className="bg-green-500 text-white py-2.5 px-3 rounded-lg hover:bg-green-600 transition-colors flex items-center justify-center touch-manipulation"
+                        title="Enhanced Translate"
+                      >
+                        <LanguageIcon className="w-4 h-4" />
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -1001,6 +1009,55 @@ const BookReader = () => {
                     Open Original Book
                   </button>
                 </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Enhanced Translation Modal */}
+        {showEnhancedTranslation && selectedBook && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-7xl w-full max-h-[90vh] overflow-hidden">
+              <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+                  Enhanced Translation - {selectedBook.title}
+                </h2>
+                <button
+                  onClick={() => setShowEnhancedTranslation(false)}
+                  className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                >
+                  <XMarkIcon className="w-6 h-6" />
+                </button>
+              </div>
+              
+              <div className="p-6 overflow-y-auto max-h-[calc(90vh-120px)]">
+                <TranslationUI
+                  content={`
+                    <h1>${selectedBook.title}</h1>
+                    <p><strong>Author:</strong> ${selectedBook.author}</p>
+                    <p><strong>Description:</strong> ${selectedBook.description}</p>
+                    <div class="mt-4">
+                      <p>This is a sample of the enhanced translation interface. In a real implementation, 
+                      this would contain the full book content extracted from the PDF or document.</p>
+                      <p>You can now:</p>
+                      <ul class="list-disc list-inside mt-2 space-y-1">
+                        <li>Highlight any text and translate it instantly</li>
+                        <li>Translate the entire content with progress tracking</li>
+                        <li>View side-by-side original and translated text</li>
+                        <li>Copy translations to clipboard</li>
+                        <li>Listen to text-to-speech (if supported)</li>
+                        <li>View translation history</li>
+                      </ul>
+                    </div>
+                  `}
+                  onTranslationComplete={(result) => {
+                    console.log('Translation completed:', result);
+                    toast.success('Translation completed successfully!');
+                  }}
+                  showSideBySide={true}
+                  enableHighlight={true}
+                  enableAudio={true}
+                />
               </div>
             </div>
           </div>

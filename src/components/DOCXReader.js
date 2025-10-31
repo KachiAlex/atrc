@@ -34,6 +34,7 @@ const DOCXReader = ({ docxUrl, docxFile, title = 'DOCX Reader', onClose }) => {
           const fileIdMatch = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
           const id = fileIdMatch?.[1] || u.searchParams.get('id');
           if (id) {
+            // Use export=download for programmatic access (fetch will handle it correctly)
             return `https://drive.google.com/uc?export=download&id=${id}`;
           }
         }
@@ -57,7 +58,15 @@ const DOCXReader = ({ docxUrl, docxFile, title = 'DOCX Reader', onClose }) => {
           arrayBuffer = await arrayBufferFromFile(docxFile);
         } else if (docxUrl) {
           const normalizedUrl = toDirectDriveUrl(docxUrl);
-          const res = await fetch(normalizedUrl, { mode: 'cors', credentials: 'omit', redirect: 'follow', referrerPolicy: 'no-referrer' });
+          const res = await fetch(normalizedUrl, { 
+            mode: 'cors', 
+            credentials: 'omit', 
+            redirect: 'follow', 
+            referrerPolicy: 'no-referrer',
+            headers: {
+              'Accept': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/octet-stream'
+            }
+          });
           if (!res.ok) throw new Error(`Failed to fetch DOCX: ${res.status}`);
           arrayBuffer = await res.arrayBuffer();
         } else {
