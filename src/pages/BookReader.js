@@ -17,6 +17,7 @@ import {
 } from '@heroicons/react/24/outline';
 import toast from 'react-hot-toast';
 import EPUBReader from '../components/EPUBReader';
+import DocxReader from '../components/DocxReader';
 import TranslationUI from '../components/TranslationUI';
 import { translateText, translateBookContent } from '../services/enhancedTranslationService';
 
@@ -380,6 +381,17 @@ const BookReader = () => {
     if (selectedBook.fileType === 'epub') {
       return (
         <EPUBReader
+          bookUrl={selectedBook.bookUrl || selectedBook.pdfUrl}
+          bookTitle={selectedBook.title}
+          onClose={closeReader}
+        />
+      );
+    }
+
+    // DOCX renders in-app via mammoth (iframes just download .docx)
+    if (selectedBook.fileType === 'docx') {
+      return (
+        <DocxReader
           bookUrl={selectedBook.bookUrl || selectedBook.pdfUrl}
           bookTitle={selectedBook.title}
           onClose={closeReader}

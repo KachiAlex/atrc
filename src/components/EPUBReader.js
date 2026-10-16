@@ -27,9 +27,9 @@ const EPUBReader = ({ bookUrl, bookTitle, onClose }) => {
 
   // Helper function to handle CORS issues
   const getEpubUrl = (url) => {
-    // Validate URL first
+    // Validate URL first (resolve relative /uploads/... paths against origin)
     try {
-      new URL(url);
+      new URL(url, window.location.origin);
     } catch (error) {
       console.error('Invalid URL provided:', url);
       setCorsError(true);
