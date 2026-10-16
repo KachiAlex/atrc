@@ -112,7 +112,11 @@ const translateWithGoogleAPI = async (text, targetLang, sourceLang = 'en', retry
     });
 
     if (res && res.translatedText) {
-      return res.translatedText;
+      // If input was plain text, drop any markup the model echoed back
+      const inputHadMarkup = /<\/?[a-z][^>]*>/i.test(text || '');
+      return inputHadMarkup
+        ? res.translatedText
+        : res.translatedText.replace(/<\/?[a-z][^>]*>/gi, '');
     }
 
     throw new Error('Invalid response from translation API');

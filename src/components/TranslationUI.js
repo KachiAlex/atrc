@@ -64,6 +64,13 @@ const TranslationUI = ({
     }
   }, [enableHighlight]);
 
+  // Content can be HTML — translate the visible text, never the markup
+  const stripHtml = (s) => {
+    const d = document.createElement('div');
+    d.innerHTML = s || '';
+    return d.textContent || '';
+  };
+
   // Translate selected text
   const translateSelectedText = async () => {
     if (!selectedText) return;
@@ -71,7 +78,7 @@ const TranslationUI = ({
     setIsTranslating(true);
     try {
       const result = await translateText(selectedText, targetLanguage);
-      setTranslatedText(result);
+      setTranslatedText(stripHtml(result));
       setShowTranslation(true);
       
       // Add to history
@@ -98,8 +105,8 @@ const TranslationUI = ({
 
     setIsTranslating(true);
     try {
-      const result = await translateText(content, targetLanguage);
-      setTranslatedText(result);
+      const result = await translateText(stripHtml(content), targetLanguage);
+      setTranslatedText(stripHtml(result));
       setShowTranslation(true);
       setTranslationMode('full');
       

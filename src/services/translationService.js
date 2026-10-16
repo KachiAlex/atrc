@@ -57,6 +57,14 @@ export const SUPPORTED_LANGUAGES = [
  * @param {string} sourceLanguage - Source language code (default: 'en')
  * @returns {Promise<string>} Translated text
  */
+// If the input was plain text but the model echoed markup, strip it —
+// callers render the result as text and raw tags leak through otherwise.
+const stripEchoedMarkup = (input, output) => {
+  if (typeof output !== 'string') return output;
+  const inputHadMarkup = /<\/?[a-z][^>]*>/i.test(input || '');
+  return inputHadMarkup ? output : output.replace(/<\/?[a-z][^>]*>/gi, '');
+};
+
 export const translateWithGoogle = async (text, targetLanguage, sourceLanguage = 'en') => {
   if (!text || !text.trim()) {
     return text;
@@ -72,7 +80,7 @@ export const translateWithGoogle = async (text, targetLanguage, sourceLanguage =
       method: 'POST',
       body: { q: text, source: sourceLanguage, target: targetLanguage }
     });
-    if (res && res.translatedText) return res.translatedText;
+    if (res && res.translatedText) return stripEchoedMarkup(text, res.translatedText);
     throw new Error('Invalid response from translation API');
   } catch (error) {
     console.error('Translation API error:', error);
@@ -99,7 +107,7 @@ export const batchTranslate = async (texts, targetLanguage, sourceLanguage = 'en
       body: { texts, source: sourceLanguage, target: targetLanguage }
     });
     if (res && Array.isArray(res.translations)) {
-      return res.translations.map((t, i) => t || texts[i]);
+      return res.translations.map((t, i) => stripEchoedMarkup(texts[i], t || texts[i]));
     }
     throw new Error('Invalid response from translation API');
   } catch (error) {
