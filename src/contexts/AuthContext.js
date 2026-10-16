@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { auth, db } from '../api/config';
-import { onAuthStateChanged, signInWithEmailAndPassword, signOut, createUserWithEmailAndPassword } from '../api/auth';
+import { onAuthStateChanged, signInWithEmailAndPassword, signOut, createUserWithEmailAndPassword, refreshToken } from '../api/auth';
 import { doc, setDoc, getDoc } from '../api/store';
 
 const AuthContext = createContext();
@@ -42,7 +42,10 @@ export const AuthProvider = ({ children }) => {
       console.log('Creating user document with data:', userDocData);
       await setDoc(userDocRef, userDocData);
       console.log('User document created successfully');
-      
+
+      // Re-issue the JWT so it carries the chosen role immediately
+      try { await refreshToken(); } catch (e) { /* non-fatal */ }
+
       return result;
     } catch (error) {
       console.error('Error in signup:', error);

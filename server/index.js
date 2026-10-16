@@ -245,6 +245,23 @@ app.get('/api/auth/me', auth, async (req, res) => {
   res.json({ user: publicUser(u.rows[0], docRow) });
 });
 
+// Re-issue a token with the user's current role (used right after signup
+// writes the role doc, so the session doesn't carry a stale 'learner').
+app.post('/api/auth/token/refresh', auth, async (req, res) => {
+  const docRow = await getUserDoc(req.user.uid);
+  const role = (docRow && docRow.data && docRow.data.role) || 'learner';
+  res.json({ token: signToken(req.user.uid, role) });
+});
+
+// Admin view of outstanding reset tokens (no SMTP — admin hands them out).
+app.get('/api/auth/reset-tokens', auth, async (req, res) => {
+  if (req.user.role !== 'admin') return res.status(403).json({ error: 'admin only', code: 'auth/forbidden' });
+  const r = await pool.query(
+    "SELECT email, token, expires_at FROM reset_tokens WHERE expires_at > now() ORDER BY expires_at DESC LIMIT 50"
+  );
+  res.json({ tokens: r.rows });
+});
+
 app.post('/api/auth/logout', (_req, res) => res.json({ ok: true }));
 
 app.post('/api/auth/change-password', auth, async (req, res) => {
@@ -619,29 +636,60 @@ app.delete('/api/data/:collection/:id', auth, async (req, res) => {
 });
 
 // ---------- file uploads ----------
+const UPLOAD_ALLOWED_EXT = new Set([
+  'pdf', 'doc', 'docx', 'epub', 'ppt', 'pptx', 'xls', 'xlsx', 'txt', 'md', 'rtf', 'odt',
+  'jpg', 'jpeg', 'png', 'gif', 'webp', 'svg',
+  'mp3', 'mp4', 'webm', 'm4a', 'wav', 'ogg', 'mov'
+]);
+
+// Strip traversal/empties from a client-supplied relative path.
+const sanitizeRelPath = (p) =>
+  String(p || '')
+    .replace(/\\/g, '/')
+    .split('/')
+    .filter((seg) => seg && seg !== '..' && seg !== '.')
+    .join('/');
+
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, UPLOAD_DIR),
   filename: (req, file, cb) => {
-    const reqPath = String(req.body.path || file.originalname || 'file').replace(/\.\./g, '').replace(/^\/+/, '');
-    const dir = path.dirname(path.join(UPLOAD_DIR, reqPath));
+    // Files land under uploads/<uid>/... so users can't clobber each other.
+    const rel = sanitizeRelPath(req.body.path || file.originalname || 'file') || 'file';
+    const final = `${req.user.uid}/${rel}`;
+    const dir = path.dirname(path.join(UPLOAD_DIR, final));
     fs.mkdirSync(dir, { recursive: true });
-    cb(null, reqPath);
+    cb(null, final);
   }
 });
 const upload = multer({ storage, limits: { fileSize: 100 * 1024 * 1024 } });
 
-app.post('/api/upload', auth, upload.single('file'), (req, res) => {
-  const p = String((req.body && req.body.path) || (req.file && req.file.filename) || '').replace(/\.\./g, '').replace(/^\/+/, '');
-  if (!p || !req.file) return res.status(400).json({ error: 'file/path required' });
-  res.json({ path: p, url: '/uploads/' + p });
+app.post('/api/upload', auth, (req, res) => {
+  upload.single('file')(req, res, (err) => {
+    if (err) return res.status(400).json({ error: err.message || 'upload failed' });
+    if (!req.file) return res.status(400).json({ error: 'file/path required' });
+    const ext = (req.file.originalname.split('.').pop() || '').toLowerCase();
+    if (!UPLOAD_ALLOWED_EXT.has(ext)) {
+      fs.unlink(req.file.path, () => {});
+      return res.status(400).json({ error: `file type .${ext} not allowed`, code: 'upload/bad-type' });
+    }
+    const p = req.file.filename;
+    res.json({ path: p, url: '/uploads/' + p });
+  });
 });
 
 app.delete('/api/upload', auth, (req, res) => {
-  const p = String(req.query.path || '').replace(/\.\./g, '').replace(/^\/+/, '');
+  const p = sanitizeRelPath(req.query.path);
   if (!p) return res.status(400).json({ error: 'path required' });
   const full = path.join(UPLOAD_DIR, p);
   if (!full.startsWith(UPLOAD_DIR)) return res.status(400).json({ error: 'bad path' });
-  fs.unlink(full, () => res.json({ ok: true }));
+  // Users may only delete their own files; admins may delete anything.
+  if (req.user.role !== 'admin' && !p.startsWith(req.user.uid + '/')) {
+    return res.status(403).json({ error: 'not your file', code: 'auth/forbidden' });
+  }
+  fs.unlink(full, (err) => {
+    if (err) return res.status(err.code === 'ENOENT' ? 404 : 500).json({ error: 'file not found' });
+    res.json({ ok: true });
+  });
 });
 
 app.use('/uploads', express.static(UPLOAD_DIR, { maxAge: '30d', fallthrough: false }));

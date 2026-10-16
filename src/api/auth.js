@@ -91,6 +91,17 @@ export async function sendPasswordResetEmail(_auth, email) {
   await api('/auth/reset-password', { method: 'POST', body: { email } });
 }
 
+export async function confirmPasswordReset(_auth, token, newPassword) {
+  await api('/auth/reset-password/confirm', { method: 'POST', body: { token, newPassword } });
+}
+
+// Re-issue the JWT with the current doc role (call after role changes).
+export async function refreshToken() {
+  const res = await api('/auth/token/refresh', { method: 'POST' });
+  if (res && res.token) setToken(res.token);
+  return res && res.token;
+}
+
 export async function updatePassword(_user, newPassword, currentPassword) {
   await api('/auth/change-password', { method: 'POST', body: { newPassword, currentPassword } });
 }

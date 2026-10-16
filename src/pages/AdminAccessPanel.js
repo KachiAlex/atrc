@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { db } from '../api/config';
+import { api } from '../api/client';
 import { collection, getDocs, query, orderBy, doc, updateDoc, deleteDoc, addDoc } from '../api/store';
 import BookManagement from './BookManagement';
 import CourseManagement from './CourseManagement';
@@ -15,6 +16,25 @@ const AdminAccessPanel = () => {
   const [users, setUsers] = useState([]);
   const [showUserDetails, setShowUserDetails] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
+  const [resetInfo, setResetInfo] = useState(null);
+  const [resetBusy, setResetBusy] = useState(false);
+
+  const handleResetPassword = async (user) => {
+    setResetBusy(true);
+    try {
+      const temp = 'Atrc' + Math.random().toString(36).slice(2, 8) + '!';
+      await api('/auth/admin-reset', {
+        method: 'POST',
+        body: { uid: user.id, newPassword: temp }
+      });
+      setResetInfo({ email: user.email, password: temp });
+    } catch (e) {
+      console.error('Reset failed:', e);
+      setResetInfo({ error: e.message });
+    } finally {
+      setResetBusy(false);
+    }
+  };
 
   // Redirect if not admin
   useEffect(() => {
@@ -241,6 +261,7 @@ const AdminAccessPanel = () => {
                       <button
                           onClick={() => {
                             setSelectedUser(user);
+                            setResetInfo(null);
                             setShowUserDetails(true);
                           }}
                           className="flex items-center px-3 py-1 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-md transition-colors"
@@ -513,6 +534,14 @@ const AdminAccessPanel = () => {
                         </button>
                   )}
                   <button
+                    onClick={() => handleResetPassword(selectedUser)}
+                    disabled={resetBusy}
+                    className="flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 transition-colors disabled:opacity-60"
+                  >
+                    <span className="mr-2">🔑</span>
+                    {resetBusy ? 'Resetting…' : 'Reset Password'}
+                  </button>
+                  <button
                     onClick={() => {
                       handleDeleteUser(selectedUser.id);
                       setShowUserDetails(false);
@@ -523,6 +552,13 @@ const AdminAccessPanel = () => {
                     Delete User
                   </button>
                 </div>
+                {resetInfo && (
+                  <div className={`mt-3 p-3 rounded-lg text-sm ${resetInfo.error ? 'bg-red-50 text-red-800' : 'bg-green-50 text-green-800'}`}>
+                    {resetInfo.error
+                      ? `Reset failed: ${resetInfo.error}`
+                      : <>New temporary password for <strong>{resetInfo.email}</strong>: <code className="font-mono font-bold">{resetInfo.password}</code> — share it with the member securely.</>}
+                  </div>
+                )}
                       </div>
                   </div>
                     </div>

@@ -224,9 +224,9 @@ const ModernAuth = () => {
               </button>
               <p className="text-[14px] text-center pt-1" style={{ color: 'var(--muted)' }}>
                 Forgot your password?{' '}
-                <button type="button" className="font-semibold hover:underline" style={{ color: 'var(--brand)' }}>
+                <Link to="/reset-password" className="font-semibold hover:underline" style={{ color: 'var(--brand)' }}>
                   Reset here
-                </button>
+                </Link>
               </p>
             </form>
           ) : (

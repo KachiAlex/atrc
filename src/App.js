@@ -14,6 +14,7 @@ import HomePage from './pages/HomePage';
 import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
 import ModernAuth from './pages/auth/ModernAuth';
+import ResetPassword from './pages/auth/ResetPassword';
 import RoleBasedDashboard from './components/RoleBasedDashboard';
 import CommunityReport from './pages/CommunityReport';
 import DisputeResolution from './pages/DisputeResolution';
@@ -78,6 +79,7 @@ function App() {
                   <Route path="/login" element={<Login />} />
                   <Route path="/register" element={<Register />} />
                   <Route path="/auth" element={<ModernAuth />} />
+                  <Route path="/reset-password" element={<ResetPassword />} />
                   <Route path="/admin-setup" element={<AdminSetup />} />
               
               {/* Protected Routes - Simplified Structure */}
