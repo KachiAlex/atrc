@@ -1,78 +1,19 @@
-import axios from 'axios';
+import { api } from '../api/client';
 
 /**
  * AI Assistant Service
- * Provides intelligent assistance using multiple AI providers
- * Supports: OpenAI GPT-4, Anthropic Claude, Google Gemini
+ * Routes through the self-hosted backend (/api/ai/chat → Groq) so no
+ * provider keys ship in the browser bundle. Falls back to built-in
+ * guidance when the backend is unreachable.
  */
 
-// API Configuration
-const OPENAI_API_KEY = process.env.REACT_APP_OPENAI_API_KEY;
-const ANTHROPIC_API_KEY = process.env.REACT_APP_ANTHROPIC_API_KEY;
-const GEMINI_API_KEY = process.env.REACT_APP_GEMINI_API_KEY;
-
-// System prompt for the AI assistant
-const SYSTEM_PROMPT = `You are ATRC Assistant, an intelligent AI helper for the African Traditional Rulers Council (ATRC) digital platform. You help traditional rulers, chiefs, elders, and community members navigate the platform and accomplish their tasks.
-
-PLATFORM FEATURES:
-1. **Dashboard**: Overview of activities, quick stats, recent updates
-2. **Community Management**: Create/manage communities, view members, generate reports
-3. **Dispute Resolution**: File disputes, upload evidence, track resolution status
-4. **Event Management**: Create/manage cultural events and ceremonies
-5. **Announcements**: View and create announcements (admin only)
-6. **Reports & Analytics**: View statistics, charts, download reports
-7. **Educational Platform**: Access books (PDF, DOCX, EPUB) and video courses with translation
-8. **Live Meetings**: Join virtual meetings and conferences
-9. **Profile & Settings**: Manage user profile and preferences
-10. **Translation**: Content available in 100+ languages including Yoruba, Igbo, Hausa, Swahili
-
-USER ROLES:
-- **Admin**: Full system access, user management
-- **Traditional Ruler**: Community leadership, dispute resolution
-- **Chief**: Community management, event organization
-- **Elder**: Dispute mediation, cultural guidance
-- **Community Member**: Basic access to community features
-
-YOUR CAPABILITIES:
-- Guide users through platform navigation
-- Explain features and how to use them
-- Provide step-by-step instructions
-- Answer questions about traditional governance
-- Offer cultural insights respectfully
-- Suggest relevant features based on user needs
-- Help troubleshoot common issues
-
-COMMUNICATION STYLE:
-- Be respectful, warm, and professional
-- Use clear, simple language
-- Acknowledge traditional titles and cultural context
-- Provide concise but comprehensive answers
-- Offer specific action steps when appropriate
-- Be encouraging and supportive
-
-When users ask for help:
-1. Understand their current context (which page they're on)
-2. Provide relevant, actionable guidance
-3. Offer to help with next steps
-4. Suggest related features they might find useful`;
+// System prompt lives server-side now (see /api/ai/chat in server/index.js).
 
 class AIService {
   constructor() {
     this.conversationHistory = [];
     this.maxHistoryLength = 20; // Keep last 20 messages
-    this.provider = this.selectProvider();
-  }
-
-  selectProvider() {
-    // Priority: OpenAI > Anthropic > Gemini > Fallback
-    if (OPENAI_API_KEY && OPENAI_API_KEY !== 'YOUR_OPENAI_API_KEY_HERE') {
-      return 'openai';
-    } else if (ANTHROPIC_API_KEY && ANTHROPIC_API_KEY !== 'YOUR_ANTHROPIC_API_KEY_HERE') {
-      return 'anthropic';
-    } else if (GEMINI_API_KEY && GEMINI_API_KEY !== 'YOUR_GEMINI_API_KEY_HERE') {
-      return 'gemini';
-    }
-    return 'fallback';
+    this.provider = 'backend'; // /api/ai/chat
   }
 
   /**
@@ -95,148 +36,21 @@ class AIService {
   }
 
   /**
-   * Get context-aware system prompt
+   * Send message via the backend AI proxy
    */
-  getContextualPrompt(context) {
-    let contextPrompt = SYSTEM_PROMPT;
-
-    if (context.currentPage) {
-      contextPrompt += `\n\nCURRENT CONTEXT:\nThe user is currently on the "${context.currentPage}" page.`;
-    }
-
-    if (context.userRole) {
-      contextPrompt += `\nUser Role: ${context.userRole}`;
-    }
-
-    if (context.userName) {
-      contextPrompt += `\nUser Name: ${context.userName}`;
-    }
-
-    return contextPrompt;
-  }
-
-  /**
-   * Send message using OpenAI GPT-4
-   */
-  async sendMessageOpenAI(message, context = {}) {
-    try {
-      const messages = [
-        { role: 'system', content: this.getContextualPrompt(context) },
-        ...this.conversationHistory,
-        { role: 'user', content: message }
-      ];
-
-      const response = await axios.post(
-        'https://api.openai.com/v1/chat/completions',
-        {
-          model: 'gpt-4o-mini', // Fast, cost-effective ($0.15/1M input tokens)
-          messages,
-          temperature: 0.7,
-          max_tokens: 1500,
-          top_p: 1,
-          frequency_penalty: 0,
-          presence_penalty: 0
-        },
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${OPENAI_API_KEY}`
-          }
-        }
-      );
-
-      const aiResponse = response.data.choices[0].message.content;
-      
-      // Update conversation history
-      this.addToHistory('user', message);
-      this.addToHistory('assistant', aiResponse);
-
-      return aiResponse;
-    } catch (error) {
-      console.error('OpenAI API error:', error);
-      throw new Error('Failed to get AI response from OpenAI');
-    }
-  }
-
-  /**
-   * Send message using Anthropic Claude
-   */
-  async sendMessageAnthropic(message, context = {}) {
-    try {
-      const response = await axios.post(
-        'https://api.anthropic.com/v1/messages',
-        {
-          model: 'claude-3-sonnet-20240229',
-          max_tokens: 1024,
-          system: this.getContextualPrompt(context),
-          messages: [
-            ...this.conversationHistory.map(msg => ({
-              role: msg.role === 'assistant' ? 'assistant' : 'user',
-              content: msg.content
-            })),
-            { role: 'user', content: message }
-          ]
-        },
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            'x-api-key': ANTHROPIC_API_KEY,
-            'anthropic-version': '2023-06-01'
-          }
-        }
-      );
-
-      const aiResponse = response.data.content[0].text;
-      
-      // Update conversation history
-      this.addToHistory('user', message);
-      this.addToHistory('assistant', aiResponse);
-
-      return aiResponse;
-    } catch (error) {
-      console.error('Anthropic API error:', error);
-      throw new Error('Failed to get AI response from Anthropic');
-    }
-  }
-
-  /**
-   * Send message using Google Gemini
-   */
-  async sendMessageGemini(message, context = {}) {
-    try {
-      const response = await axios.post(
-        `https://generativelanguage.googleapis.com/v1/models/gemini-pro:generateContent?key=${GEMINI_API_KEY}`,
-        {
-          contents: [
-            {
-              parts: [
-                { text: this.getContextualPrompt(context) + '\n\n' + message }
-              ]
-            }
-          ],
-          generationConfig: {
-            temperature: 0.7,
-            maxOutputTokens: 1000,
-          }
-        },
-        {
-          headers: {
-            'Content-Type': 'application/json'
-          }
-        }
-      );
-
-      const aiResponse = response.data.candidates[0].content.parts[0].text;
-      
-      // Update conversation history
-      this.addToHistory('user', message);
-      this.addToHistory('assistant', aiResponse);
-
-      return aiResponse;
-    } catch (error) {
-      console.error('Gemini API error:', error);
-      throw new Error('Failed to get AI response from Gemini');
-    }
+  async sendMessageBackend(message, context = {}) {
+    const res = await api('/ai/chat', {
+      method: 'POST',
+      body: {
+        message,
+        context,
+        history: this.conversationHistory
+      }
+    });
+    const aiResponse = res.reply;
+    this.addToHistory('user', message);
+    this.addToHistory('assistant', aiResponse);
+    return aiResponse;
   }
 
   /**
@@ -337,7 +151,7 @@ What would you like to update?`
 **Current Page:** ${context.currentPage || 'Dashboard'}
 **Your Role:** ${context.userRole || 'User'}
 
-To enable full AI capabilities, configure an AI API key (OpenAI, Anthropic, or Gemini) in your environment settings.
+To enable full AI capabilities, the backend needs a configured AI provider (contact an administrator).
 
 What specific feature would you like to learn about?`;
   }
@@ -351,24 +165,7 @@ What specific feature would you like to learn about?`;
     }
 
     try {
-      switch (this.provider) {
-        case 'openai':
-          return await this.sendMessageOpenAI(message, context);
-        
-        case 'anthropic':
-          return await this.sendMessageAnthropic(message, context);
-        
-        case 'gemini':
-          return await this.sendMessageGemini(message, context);
-        
-        case 'fallback':
-        default:
-          // Add to history for fallback too
-          this.addToHistory('user', message);
-          const fallbackResponse = this.getFallbackResponse(message, context);
-          this.addToHistory('assistant', fallbackResponse);
-          return fallbackResponse;
-      }
+      return await this.sendMessageBackend(message, context);
     } catch (error) {
       console.error('AI Service error:', error);
       
@@ -467,30 +264,11 @@ What specific feature would you like to learn about?`;
    * Get AI provider info
    */
   getProviderInfo() {
-    const providers = {
-      openai: {
-        name: 'OpenAI GPT-4',
-        description: 'Advanced AI with deep reasoning',
-        status: 'active'
-      },
-      anthropic: {
-        name: 'Anthropic Claude',
-        description: 'Thoughtful and nuanced responses',
-        status: 'active'
-      },
-      gemini: {
-        name: 'Google Gemini',
-        description: 'Fast and efficient AI',
-        status: 'active'
-      },
-      fallback: {
-        name: 'Pattern Matching',
-        description: 'Basic assistance (configure AI API for full features)',
-        status: 'limited'
-      }
+    return {
+      name: 'ATRC Assistant',
+      description: 'Powered by Groq via the ATRC backend',
+      status: 'active'
     };
-
-    return providers[this.provider] || providers.fallback;
   }
 }
 

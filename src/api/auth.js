@@ -91,6 +91,6 @@ export async function sendPasswordResetEmail(_auth, email) {
   await api('/auth/reset-password', { method: 'POST', body: { email } });
 }
 
-export async function updatePassword(_user, newPassword) {
-  await api('/auth/change-password', { method: 'POST', body: { newPassword } });
+export async function updatePassword(_user, newPassword, currentPassword) {
+  await api('/auth/change-password', { method: 'POST', body: { newPassword, currentPassword } });
 }

@@ -22,6 +22,61 @@ const pool = new Pool({ connectionString: DATABASE_URL });
 const app = express();
 app.use(express.json({ limit: '10mb' }));
 
+if (!process.env.JWT_SECRET) {
+  console.warn('WARNING: JWT_SECRET not set — using insecure default. Set it in the environment.');
+}
+
+// ---------- access rules for the document store ----------
+// Readable without auth (public pages): landing/public feeds only.
+const PUBLIC_READ = new Set(['announcements', 'events', 'liveMeetings']);
+// Writable by admins only.
+const ADMIN_WRITE = new Set(['announcements', 'adminSettings', 'books', 'courses']);
+// Fields stripped from user docs when the requester is not an admin.
+const USER_PUBLIC_FIELDS = ['displayName', 'firstName', 'lastName', 'role', 'title', 'kingdom', 'community', 'photoURL', 'isVerified'];
+
+const topCollection = (c) => String(c).split('/')[0];
+const isPublicRead = (c) => PUBLIC_READ.has(topCollection(c));
+const isAdminWrite = (c) => ADMIN_WRITE.has(topCollection(c));
+
+function publicUserData(data) {
+  const out = {};
+  for (const k of USER_PUBLIC_FIELDS) if (k in data) out[k] = data[k];
+  return out;
+}
+
+// Like auth() but tolerates missing/invalid token (req.user = null).
+function optionalAuth(req, _res, next) {
+  const header = req.headers.authorization || '';
+  const token = header.startsWith('Bearer ') ? header.slice(7) : null;
+  if (token) {
+    try { req.user = jwt.verify(token, JWT_SECRET); } catch { req.user = null; }
+  } else req.user = null;
+  next();
+}
+
+const requireUser = (req, res) => {
+  if (!req.user) { res.status(401).json({ error: 'unauthenticated', code: 'auth/unauthenticated' }); return false; }
+  return true;
+};
+const requireAdmin = (req, res) => {
+  if (!req.user) { res.status(401).json({ error: 'unauthenticated', code: 'auth/unauthenticated' }); return false; }
+  if (req.user.role !== 'admin') { res.status(403).json({ error: 'admin only', code: 'auth/forbidden' }); return false; }
+  return true;
+};
+
+// ---------- simple login rate limiter: 10 attempts / 5 min / IP ----------
+const loginAttempts = new Map();
+function loginLimiter(req, res, next) {
+  const ip = req.ip || 'unknown';
+  const now = Date.now();
+  const rec = loginAttempts.get(ip) || { n: 0, reset: now + 5 * 60 * 1000 };
+  if (now > rec.reset) { rec.n = 0; rec.reset = now + 5 * 60 * 1000; }
+  rec.n++;
+  loginAttempts.set(ip, rec);
+  if (rec.n > 10) return res.status(429).json({ error: 'too many attempts, try again later', code: 'auth/rate-limited' });
+  next();
+}
+
 fs.mkdirSync(UPLOAD_DIR, { recursive: true });
 
 async function initDb() {
@@ -103,7 +158,7 @@ function publicUser(uidRow, docRow) {
 }
 
 // ---------- auth routes ----------
-app.post('/api/auth/register', async (req, res) => {
+app.post('/api/auth/register', loginLimiter, async (req, res) => {
   try {
     const { email, password, ...profile } = req.body || {};
     if (!email || !password) return res.status(400).json({ error: 'email and password required' });
@@ -155,7 +210,7 @@ app.post('/api/auth/register', async (req, res) => {
   }
 });
 
-app.post('/api/auth/login', async (req, res) => {
+app.post('/api/auth/login', loginLimiter, async (req, res) => {
   try {
     const { email, password } = req.body || {};
     if (!email || !password) return res.status(400).json({ error: 'email and password required' });
@@ -195,16 +250,18 @@ app.post('/api/auth/logout', (_req, res) => res.json({ ok: true }));
 app.post('/api/auth/change-password', auth, async (req, res) => {
   try {
     const { currentPassword, newPassword } = req.body || {};
+    if (!currentPassword) {
+      return res.status(400).json({ error: 'current password required', code: 'auth/requires-recent-login' });
+    }
     if (!newPassword || String(newPassword).length < 6) {
       return res.status(400).json({ error: 'new password too short', code: 'auth/weak-password' });
     }
     const u = await pool.query('SELECT password_hash FROM auth_users WHERE uid=$1', [req.user.uid]);
     if (!u.rowCount) return res.status(404).json({ error: 'user not found' });
 
-    if (currentPassword) {
-      const ok = await bcrypt.compare(String(currentPassword), u.rows[0].password_hash);
-      if (!ok) return res.status(401).json({ error: 'wrong password', code: 'auth/wrong-password' });
-    }
+    const ok = await bcrypt.compare(String(currentPassword), u.rows[0].password_hash);
+    if (!ok) return res.status(401).json({ error: 'wrong password', code: 'auth/wrong-password' });
+
     const hash = await bcrypt.hash(String(newPassword), 10);
     await pool.query('UPDATE auth_users SET password_hash=$1 WHERE uid=$2', [hash, req.user.uid]);
     res.json({ ok: true });
@@ -241,6 +298,22 @@ app.post('/api/auth/reset-password/confirm', async (req, res) => {
   res.json({ ok: true });
 });
 
+// Admin sets a temporary password for a user (no SMTP — admin shares it directly).
+app.post('/api/auth/admin-reset', auth, async (req, res) => {
+  if (req.user.role !== 'admin') return res.status(403).json({ error: 'admin only', code: 'auth/forbidden' });
+  const { email, uid, newPassword } = req.body || {};
+  if (!newPassword || String(newPassword).length < 6) {
+    return res.status(400).json({ error: 'password too short', code: 'auth/weak-password' });
+  }
+  if (!email && !uid) return res.status(400).json({ error: 'email or uid required' });
+  const hash = await bcrypt.hash(String(newPassword), 10);
+  const r = uid
+    ? await pool.query('UPDATE auth_users SET password_hash=$1 WHERE uid=$2', [hash, uid])
+    : await pool.query('UPDATE auth_users SET password_hash=$1 WHERE email=$2', [hash, String(email).toLowerCase()]);
+  if (!r.rowCount) return res.status(404).json({ error: 'user not found' });
+  res.json({ ok: true });
+});
+
 app.post('/api/auth/update-profile', auth, async (req, res) => {
   const allowed = ['displayName', 'firstName', 'lastName', 'phone', 'title', 'kingdom', 'photoURL', 'community', 'preferences'];
   const updates = {};
@@ -265,6 +338,7 @@ function expandOps(value) {
   if (value.__fs === 'increment') return value.by || 0;
   if (value.__fs === 'arrayUnion') return expandOps(value.values || []);
   if (value.__fs === 'arrayRemove') return [];
+  if (value.__fs === 'delete') return undefined;
   const out = {};
   for (const [k, v] of Object.entries(value)) out[k] = expandOps(v);
   return out;
@@ -303,6 +377,8 @@ async function applyUpdates(id, collection, updates) {
       const arr = Array.isArray(target[leaf]) ? target[leaf] : [];
       const rm = expandOps(val.values || []).map(x => JSON.stringify(x));
       target[leaf] = arr.filter(x => !rm.includes(JSON.stringify(x)));
+    } else if (val && typeof val === 'object' && val.__fs === 'delete') {
+      delete target[leaf];
     } else {
       target[leaf] = expandOps(val);
     }
@@ -385,9 +461,12 @@ function buildWhere(collection, filters, startAfter, orderField, orderDir) {
   return { where: clauses.join(' AND '), params };
 }
 
-app.post('/api/data/:collection/query', auth, async (req, res) => {
+app.post('/api/data/:collection/query', optionalAuth, async (req, res) => {
   try {
     const col = req.params.collection;
+    if (!req.user && !isPublicRead(col)) {
+      return res.status(401).json({ error: 'unauthenticated', code: 'auth/unauthenticated' });
+    }
     const { filters = [], orderBy = [], limit: lim = null, startAfter = null } = req.body || {};
 
     const orderField = orderBy.length ? orderBy[0].field : null;
@@ -403,24 +482,38 @@ app.post('/api/data/:collection/query', auth, async (req, res) => {
     if (lim) { sql += ` LIMIT $${params.length + 1}`; params.push(Math.min(parseInt(lim, 10) || 50, 1000)); }
 
     const r = await pool.query(sql, params);
-    res.json({ docs: r.rows.map(row => ({ id: row.id, data: row.data })) });
+    const stripUsers = topCollection(col) === 'users' && (!req.user || req.user.role !== 'admin');
+    res.json({ docs: r.rows.map(row => ({ id: row.id, data: stripUsers ? publicUserData(row.data) : row.data })) });
   } catch (e) {
     console.error('query error', e.message);
     res.status(400).json({ error: e.message });
   }
 });
 
-app.get('/api/data/:collection/:id', auth, async (req, res) => {
+app.get('/api/data/:collection/:id', optionalAuth, async (req, res) => {
+  const col = req.params.collection;
+  if (!req.user && !isPublicRead(col)) {
+    return res.status(401).json({ error: 'unauthenticated', code: 'auth/unauthenticated' });
+  }
   const r = await pool.query(
     'SELECT id, data FROM documents WHERE collection=$1 AND id=$2',
-    [req.params.collection, req.params.id]
+    [col, req.params.id]
   );
   if (!r.rowCount) return res.status(404).json({ error: 'not found' });
-  res.json({ id: r.rows[0].id, data: r.rows[0].data });
+  const isAdmin = req.user && req.user.role === 'admin';
+  const isSelf = req.user && req.user.uid === req.params.id;
+  const data = (topCollection(col) === 'users' && !isAdmin && !isSelf)
+    ? publicUserData(r.rows[0].data)
+    : r.rows[0].data;
+  res.json({ id: r.rows[0].id, data });
 });
 
 app.post('/api/data/:collection', auth, async (req, res) => {
   try {
+    const col = req.params.collection;
+    if ((isAdminWrite(col) || topCollection(col) === 'users') && req.user.role !== 'admin') {
+      return res.status(403).json({ error: 'admin only', code: 'auth/forbidden' });
+    }
     const data = expandOps(req.body.data || req.body || {});
     const id = crypto.randomUUID();
     await pool.query(
@@ -448,21 +541,31 @@ function stripRestricted(collection, data, user) {
 app.put('/api/data/:collection/:id', auth, async (req, res) => {
   try {
     const col = req.params.collection;
+    if (isAdminWrite(col) && req.user.role !== 'admin') {
+      return res.status(403).json({ error: 'admin only', code: 'auth/forbidden' });
+    }
     const merge = !!(req.body && req.body.merge);
     let incoming = expandOps((req.body && req.body.data) || {});
 
     const cur = await pool.query('SELECT data FROM documents WHERE collection=$1 AND id=$2', [col, req.params.id]);
     const isCreate = !cur.rowCount;
-    incoming = stripRestricted(col, incoming, req.user);
+    if (isCreate) {
+      // Guard: never let a write to collection A overwrite/move a doc that lives in collection B
+      const exists = await pool.query('SELECT collection FROM documents WHERE id=$1', [req.params.id]);
+      if (exists.rowCount && exists.rows[0].collection !== col) {
+        return res.status(409).json({ error: 'id belongs to another collection', code: 'data/id-conflict' });
+      }
+    }
+    incoming = stripRestricted(topCollection(col), incoming, req.user);
     // 'admin' role only assignable by an admin, or when no admin exists yet (bootstrap)
     if (incoming.role === 'admin' && req.user.role !== 'admin' && (await adminCount()) > 0) {
       delete incoming.role;
     }
     // non-admins may only write their own user document
-    if (col === 'users' && req.user.role !== 'admin' && req.params.id !== req.user.uid) {
+    if (topCollection(col) === 'users' && req.user.role !== 'admin' && req.params.id !== req.user.uid) {
       return res.status(403).json({ error: 'cannot modify other users' });
     }
-    if (col === 'users' && isCreate && !('role' in incoming)) incoming.role = 'learner';
+    if (topCollection(col) === 'users' && isCreate && !('role' in incoming)) incoming.role = 'learner';
 
     const data = (merge && cur.rowCount) ? { ...cur.rows[0].data, ...incoming } : incoming;
     const now = new Date().toISOString();
@@ -484,8 +587,18 @@ app.put('/api/data/:collection/:id', auth, async (req, res) => {
 app.patch('/api/data/:collection/:id', auth, async (req, res) => {
   try {
     const col = req.params.collection;
+    if (isAdminWrite(col) && req.user.role !== 'admin') {
+      return res.status(403).json({ error: 'admin only', code: 'auth/forbidden' });
+    }
     let updates = (req.body && req.body.updates) || {};
-    updates = stripRestricted(col, updates, req.user, false);
+    updates = stripRestricted(topCollection(col), updates, req.user);
+    // non-admins may only patch their own user document, and may never grant 'admin'
+    if (topCollection(col) === 'users' && req.user.role !== 'admin') {
+      if (req.params.id !== req.user.uid) {
+        return res.status(403).json({ error: 'cannot modify other users' });
+      }
+      if (updates.role === 'admin') delete updates.role;
+    }
     const ok = await applyUpdates(req.params.id, col, updates);
     if (!ok) return res.status(404).json({ error: 'not found' });
     res.json({ id: req.params.id });
@@ -496,11 +609,12 @@ app.patch('/api/data/:collection/:id', auth, async (req, res) => {
 });
 
 app.delete('/api/data/:collection/:id', auth, async (req, res) => {
-  if (req.params.collection === 'users' && req.user.role !== 'admin') {
+  const col = req.params.collection;
+  if (topCollection(col) === 'auth_users') return res.status(403).json({ error: 'forbidden' });
+  if ((topCollection(col) === 'users' || isAdminWrite(col)) && req.user.role !== 'admin') {
     return res.status(403).json({ error: 'admin only' });
   }
-  if (req.params.collection === 'auth_users') return res.status(403).json({ error: 'forbidden' });
-  await pool.query('DELETE FROM documents WHERE collection=$1 AND id=$2', [req.params.collection, req.params.id]);
+  await pool.query('DELETE FROM documents WHERE collection=$1 AND id=$2', [col, req.params.id]);
   res.json({ ok: true });
 });
 
@@ -762,6 +876,55 @@ app.post('/api/translate', auth, async (req, res) => {
     res.json(texts ? { translations: results } : { translatedText: results[0] });
   } catch (e) {
     console.error('translate error', e);
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// ---------- AI assistant proxy (Groq; key stays server-side) ----------
+const AI_SYSTEM_PROMPT = `You are ATRC Assistant, an intelligent AI helper for the African Traditional Rulers Council (ATRC) digital platform. You help traditional rulers, chiefs, elders, and community members navigate the platform and accomplish their tasks.
+
+PLATFORM FEATURES: dashboard with stats and live meetings, community management, dispute resolution with evidence upload, events and announcements, reports & analytics, a digital library (PDF/DOCX/EPUB books with translation into 40+ languages), video courses with quizzes and certificates, user profile & settings.
+
+USER ROLES: admin (full access, user management), ruler (community leadership, disputes), chief (community management, events), elder (dispute mediation, guidance), learner/member (basic access).
+
+STYLE: respectful, warm, professional. Use clear, simple language. Acknowledge traditional titles and cultural context. Provide concise, actionable guidance.`;
+
+app.post('/api/ai/chat', auth, async (req, res) => {
+  try {
+    if (!GROQ_API_KEY) {
+      return res.status(503).json({ error: 'AI provider not configured', code: 'ai/unavailable' });
+    }
+    const { message, history = [], context = {} } = req.body || {};
+    if (!message || !String(message).trim()) {
+      return res.status(400).json({ error: 'message required' });
+    }
+
+    let system = AI_SYSTEM_PROMPT;
+    if (context.currentPage) system += `\nThe user is currently on the "${context.currentPage}" page.`;
+    if (context.userRole) system += `\nUser role: ${context.userRole}.`;
+    if (context.userName) system += `\nUser name: ${context.userName}.`;
+
+    const messages = [
+      { role: 'system', content: system },
+      ...history.slice(-12).map((m) => ({ role: m.role === 'assistant' ? 'assistant' : 'user', content: String(m.content).slice(0, 2000) })),
+      { role: 'user', content: String(message).slice(0, 2000) }
+    ];
+
+    const resp = await fetch(GROQ_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${GROQ_API_KEY}` },
+      body: JSON.stringify({ model: TRANSLATE_MODEL, temperature: 0.7, max_tokens: 1500, messages })
+    });
+    if (!resp.ok) {
+      const t = await resp.text().catch(() => '');
+      console.error('AI chat provider error:', resp.status, t.slice(0, 200));
+      return res.status(502).json({ error: 'AI provider failed' });
+    }
+    const data = await resp.json();
+    const reply = data.choices?.[0]?.message?.content || '';
+    res.json({ reply });
+  } catch (e) {
+    console.error('ai chat error', e);
     res.status(500).json({ error: e.message });
   }
 });
