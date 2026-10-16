@@ -143,22 +143,22 @@ const DOCXReader = ({ docxUrl, docxFile, title = 'DOCX Reader', onClose }) => {
   return (
     <div className={`fixed inset-0 z-50 ${isDarkMode ? 'bg-gray-900' : 'bg-white'} flex flex-col`}>
       <div className={`${isDarkMode ? 'bg-gray-800' : 'bg-white'} shadow-lg border-b`}>
-        <div className="px-4 py-3 flex items-center justify-between">
+        <div className="px-3 sm:px-4 py-3 flex flex-wrap items-center justify-between gap-y-2">
           <button
             onClick={onClose}
-            className={`${isDarkMode ? 'text-gray-300 hover:text-white hover:bg-gray-700' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'} px-4 py-2 rounded-lg`}
+            className={`${isDarkMode ? 'text-gray-300 hover:text-white hover:bg-gray-700' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'} px-4 py-2 rounded-lg whitespace-nowrap flex-shrink-0`}>
           >
             ← Back
           </button>
-          <div className="text-center flex-1">
+          <div className="text-center sm:text-left flex-1 min-w-0">
             <h1 className={`${isDarkMode ? 'text-white' : 'text-gray-900'} text-lg font-semibold truncate`}>{title}</h1>
-            <p className={`${isDarkMode ? 'text-gray-400' : 'text-gray-600'} text-sm`}>DOCX Reader - Translation Enabled</p>
+            <p className={`${isDarkMode ? 'text-gray-400' : 'text-gray-600'} text-sm hidden sm:block`}>DOCX Reader - Translation Enabled</p>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto justify-end">
             <select
               value={targetLanguage}
               onChange={(e) => setTargetLanguage(e.target.value)}
-              className={`${isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'} px-3 py-2 border rounded-lg`}
+              className={`${isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'} px-3 py-2 border rounded-lg flex-1 sm:flex-none min-w-0`}>
             >
               {languages.map(l => (
                 <option key={l.code} value={l.code}>{l.name}</option>
@@ -167,7 +167,7 @@ const DOCXReader = ({ docxUrl, docxFile, title = 'DOCX Reader', onClose }) => {
             <button
               onClick={translateContainer}
               disabled={isTranslating}
-              className={`${isTranslating ? 'bg-gray-400 text-gray-200 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700 text-white'} px-4 py-2 rounded-lg`}
+              className={`${isTranslating ? 'bg-gray-400 text-gray-200 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700 text-white'} px-4 py-2 rounded-lg whitespace-nowrap flex-shrink-0`}>
             >
               {isTranslating ? 'Translating…' : (isTranslated ? 'Re-translate' : 'Translate Document')}
             </button>

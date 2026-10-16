@@ -981,3 +981,65 @@ select:-webkit-autofill:focus {
 .docx-content table { width: 100%; border-collapse: collapse; margin: 1em 0; }
 .docx-content td, .docx-content th { border: 1px solid rgba(128,128,128,.4); padding: 6px 10px; }
 .docx-content blockquote { border-left: 3px solid rgba(128,128,128,.5); padding-left: 1em; margin: 1em 0; font-style: italic; }
+
+/* ============ Mobile hardening ============ */
+
+/* Long content (URLs, emails, untranslated runs) never breaks layout */
+p, h1, h2, h3, h4, h5, h6, td, th, li, label, a, span, blockquote {
+  overflow-wrap: break-word;
+}
+
+/* Flex children may shrink below content width — prevents crushed
+   headers/cards and lets truncate/min-w-0 actually work */
+.flex > * {
+  min-width: 0;
+}
+
+/* Media never exceeds its container */
+img, video, iframe, embed, object {
+  max-width: 100%;
+}
+
+pre, code {
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* iOS Safari zooms when an input's font is under 16px — force 16px
+   on small screens so forms don't jump */
+@media (max-width: 768px) {
+  input, select, textarea {
+    font-size: 16px !important;
+  }
+}
+
+/* Comfortable touch targets on coarse pointers */
+@media (pointer: coarse) {
+  button:not(.p-0), [role="button"], select {
+    min-height: 44px;
+  }
+  /* Bigger hit area for icon-only links/buttons inside navs */
+  nav a, nav button {
+    min-height: 44px;
+  }
+}
+
+/* Respect notches / home indicators on full-bleed fixed bars */
+.pb-safe { padding-bottom: env(safe-area-inset-bottom); }
+.pt-safe { padding-top: env(safe-area-inset-top); }
+
+/* Subtle tap highlight instead of the grey flash */
+a, button, [role="button"] {
+  -webkit-tap-highlight-color: rgba(0, 0, 0, 0.08);
+}
+
+/* Selects and dropdowns can never exceed the viewport */
+select {
+  max-width: 100%;
+}
+
+/* Tables scroll sideways inside their container on small screens */
+@media (max-width: 640px) {
+  .docx-content { overflow-x: auto; }
+  .docx-content table { min-width: 420px; }
+}
