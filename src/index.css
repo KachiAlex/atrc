@@ -41,6 +41,8 @@
   --info-fg: #17275F;
   --neutral-bg: #E8E6E0;
   --neutral-fg: #4A4F63;
+  --input-bg: #FFFFFF;
+  --input-border: #CFC5AE;
   --danger-bg: #F8E0DC;
   --danger-fg: #9B2C2C;
   
@@ -104,6 +106,8 @@
   --info-fg: #B5C3FF;
   --neutral-bg: #252C4F;
   --neutral-fg: #B7BDD8;
+  --input-bg: #131A3A;
+  --input-border: #27315F;
   --danger-bg: #3A1215;
   --danger-fg: #F0968E;
 }
@@ -505,12 +509,12 @@ select:-webkit-autofill:focus {
   .a-btn-ghost:hover { background: var(--surface2); }
 
   .a-input {
-    @apply block w-full rounded-[10px] text-[15px] transition-colors duration-150;
-    background: var(--surface);
+    @apply block w-full rounded-[10px] text-[16px] transition-colors duration-150;
+    background: var(--input-bg);
     color: var(--ink);
-    border: 1px solid var(--border);
-    padding: 10px 14px;
-    min-height: 44px;
+    border: 1.5px solid var(--input-border);
+    padding: 0 14px;
+    min-height: 50px;
   }
   .a-input:focus {
     outline: 3px solid rgba(227, 176, 75, 0.5);
@@ -518,8 +522,8 @@ select:-webkit-autofill:focus {
   }
 
   .a-label {
-    @apply block font-semibold text-[13px] uppercase tracking-wide mb-1.5;
-    color: var(--muted);
+    @apply block font-semibold text-[14px] mb-1.5;
+    color: var(--ink);
   }
 
   .a-badge {
@@ -531,7 +535,7 @@ select:-webkit-autofill:focus {
   .a-badge-info    { background: var(--info-bg); color: var(--info-fg); }
   .a-badge-neutral { background: var(--neutral-bg); color: var(--neutral-fg); }
   .a-badge-danger  { background: var(--danger-bg); color: var(--danger-fg); }
-  .a-badge-live    { background: #E3B04B; color: #14182B; }
+  .a-badge-live    { background: #9B2C2C; color: #FFFFFF; letter-spacing: 0.08em; }
 
   .a-page {
     background: var(--bg);
@@ -543,7 +547,7 @@ select:-webkit-autofill:focus {
     font-family: 'Playfair Display', serif;
     font-weight: 700;
     color: var(--ink);
-    font-size: 34px;
+    font-size: clamp(26px, 4vw, 36px);
     line-height: 1.15;
   }
 
@@ -551,9 +555,17 @@ select:-webkit-autofill:focus {
     font-family: 'Playfair Display', serif;
     font-weight: 600;
     color: var(--ink);
-    font-size: 21px;
+    font-size: 22px;
     line-height: 1.25;
   }
+
+  .a-btn-outline {
+    @apply a-btn;
+    background: transparent;
+    color: var(--brand);
+    border: 1.5px solid var(--brand);
+  }
+  .a-btn-outline:hover { background: var(--brand-soft); }
 
   .a-muted { color: var(--muted); }
 }

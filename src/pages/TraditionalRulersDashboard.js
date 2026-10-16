@@ -230,6 +230,16 @@ const TraditionalRulersDashboard = () => {
     return date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
   };
 
+  const eventMonth = (d) => {
+    const date = new Date(d);
+    return isNaN(date) ? '—' : date.toLocaleDateString('en-GB', { month: 'short' }).toUpperCase();
+  };
+
+  const eventDay = (d) => {
+    const date = new Date(d);
+    return isNaN(date) ? '—' : String(date.getDate()).padStart(2, '0');
+  };
+
   const greeting = () => {
     const h = new Date().getHours();
     if (h < 12) return 'Good morning';
@@ -241,90 +251,104 @@ const TraditionalRulersDashboard = () => {
     <div className="a-page min-h-screen">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-9 py-6 sm:py-9">
         {/* Greeting + actions */}
-        <div className="flex flex-wrap items-start justify-between gap-4 mb-8">
+        <div className="flex flex-wrap items-end justify-between gap-5 mb-8">
           <div>
-            <h1 className="a-page-title">
+            <h1 className="a-page-title" style={{ color: 'var(--brand)' }}>
               {greeting()}, {currentUser?.displayName || 'Ruler'}
             </h1>
-            <p className="mt-1.5 text-[16px]" style={{ color: 'var(--muted)' }}>
+            <p className="mt-1.5 text-[18px]" style={{ color: 'var(--muted)' }}>
               Here is what needs the council's attention today.
             </p>
           </div>
-          <div className="flex gap-2.5">
-            <button onClick={() => setActiveTab('events')} className="a-btn-ghost">
-              <Icon name="plus" size={17} /> Create event
+          <div className="flex flex-wrap gap-3">
+            <button
+              onClick={() => setActiveTab('events')}
+              className="min-h-[46px] inline-flex items-center gap-2 px-5 rounded-[10px] border-[1.5px] text-[16px] font-semibold transition-colors"
+              style={{ borderColor: 'var(--brand)', color: 'var(--brand)', background: 'transparent' }}
+            >
+              <Icon name="plus" size={18} /> Create event
             </button>
             <Link to="/app/community" className="a-btn-primary">
-              <Icon name="fileEdit" size={17} /> File a report
+              <Icon name="plus" size={18} /> File a report
             </Link>
           </div>
         </div>
 
         {/* Overview (default view) */}
         {activeTab === 'overview' && (
-          <div className="space-y-6">
+          <div className="flex flex-col gap-8">
             {/* Stat cards */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-5">
               {[
                 { label: 'Upcoming events', value: upcomingEventsList.length || stats.upcomingEvents, icon: 'events' },
                 { label: 'Meetings this month', value: nextMeeting ? 1 : 0, icon: 'meetings' },
                 { label: 'Open reports', value: recentReports.length, icon: 'reports' },
                 { label: 'Courses in progress', value: 0, icon: 'courses' },
               ].map((s) => (
-                <div key={s.label} className="a-card !p-4 sm:!p-5">
+                <div key={s.label} className="a-card !p-4 lg:!p-[20px_22px] flex flex-col lg:flex-row lg:items-center gap-2 lg:gap-4">
                   <div
-                    className="w-9 h-9 rounded-[10px] flex items-center justify-center mb-3"
+                    className="w-[34px] h-[34px] lg:w-12 lg:h-12 rounded-[9px] lg:rounded-[12px] flex items-center justify-center flex-shrink-0"
                     style={{ background: 'var(--brand-soft)', color: 'var(--brand)' }}
                   >
-                    <Icon name={s.icon} size={20} />
+                    <Icon name={s.icon} size={24} className="hidden lg:block" />
+                    <Icon name={s.icon} size={18} className="lg:hidden" />
                   </div>
-                  <div className="text-[26px] font-bold leading-none">{s.value}</div>
-                  <div className="text-[14px] font-medium mt-1.5" style={{ color: 'var(--muted)' }}>{s.label}</div>
+                  <div>
+                    <div className="font-display font-bold text-[28px] lg:text-[34px] leading-none">{s.value}</div>
+                    <div className="text-[14px] lg:text-[15px] mt-1" style={{ color: 'var(--muted)' }}>{s.label}</div>
+                  </div>
                 </div>
               ))}
             </div>
 
-            {/* Next meeting — live card */}
-            <div className="rounded-card p-5 sm:p-6 text-white" style={{ background: 'var(--hero)' }}>
-              <div className="flex flex-wrap items-center justify-between gap-4">
-                <div>
-                  <div className="flex items-center gap-2.5 mb-2">
-                    <span className="text-[12px] font-semibold uppercase tracking-wide text-[#AAB4E0]">Next meeting</span>
-                    <span className="a-badge a-badge-live">LIVE TODAY</span>
-                  </div>
-                  <div className="font-serif font-semibold text-[22px]">
-                    {nextMeeting?.title || 'Quarterly Council Assembly'}
-                  </div>
-                  <div className="text-[14px] text-[#C9D0EE] mt-0.5">
-                    {nextMeeting?.scheduledAt
-                      ? fmtDate(nextMeeting.scheduledAt)
-                      : 'Check the meetings page for the next session'} · open to council delegates
+            {/* 3:2 columns — main | side */}
+            <div className="flex flex-wrap gap-7 items-start">
+              <div className="flex-[3_1_480px] min-w-0 flex flex-col gap-7">
+                {/* Next meeting — live card */}
+                <div className="rounded-[20px] p-7 text-white" style={{ background: 'var(--hero)' }}>
+                  <div className="flex flex-wrap items-center justify-between gap-5">
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2.5 text-[13px] font-semibold uppercase tracking-[0.1em] text-[#E3B04B]">
+                        Next meeting
+                        <span className="inline-flex items-center gap-1.5 bg-[#9B2C2C] text-white text-[12px] font-bold tracking-[0.08em] px-2.5 py-1 rounded-full">
+                          <span className="w-[7px] h-[7px] rounded-full bg-white inline-block" />
+                          LIVE TODAY
+                        </span>
+                      </div>
+                      <h2 className="font-display font-semibold text-[28px] leading-[1.2] mt-2.5">
+                        {nextMeeting?.title || 'Quarterly Council Assembly'}
+                      </h2>
+                      <div className="text-[16px] text-[#C9D0EE] mt-1.5">
+                        {nextMeeting?.scheduledAt
+                          ? fmtDate(nextMeeting.scheduledAt)
+                          : 'Today, 4:00 PM'} · open to council delegates
+                      </div>
+                    </div>
+                    <Link
+                      to="/app/meetings"
+                      className="min-h-[50px] inline-flex items-center gap-2.5 px-6 rounded-[12px] font-bold bg-[#E3B04B] text-[#14182B] hover:bg-[#EDBE5E] transition-colors"
+                    >
+                      <Icon name="meetings" size={20} /> Join live
+                    </Link>
                   </div>
                 </div>
-                <Link to="/app/meetings" className="a-btn-gold">
-                  <Icon name="play" size={16} /> Join live
-                </Link>
-              </div>
-            </div>
 
-            <div className="grid lg:grid-cols-2 gap-5">
-              {/* Recent reports */}
-              <div className="a-card">
-                <div className="flex items-center justify-between mb-4">
-                  <h2 className="a-section-title">Recent community reports</h2>
-                  <Link to="/app/community" className="text-[14px] font-semibold inline-flex items-center gap-1" style={{ color: 'var(--brand)' }}>
-                    View all <Icon name="arrowRight" size={15} />
-                  </Link>
-                </div>
-                {recentReports.length === 0 ? (
-                  <p className="text-[15px] py-6 text-center" style={{ color: 'var(--muted)' }}>No reports filed yet.</p>
-                ) : (
-                  <div className="space-y-1">
-                    {recentReports.map((r) => (
-                      <div key={r.id} className="flex items-center justify-between gap-3 py-2.5 border-b last:border-0" style={{ borderColor: 'var(--border)' }}>
-                        <div className="min-w-0">
-                          <div className="font-semibold text-[15px] truncate">{r.title || r.subject || 'Report'}</div>
-                          <div className="text-[13px]" style={{ color: 'var(--muted)' }}>
+                {/* Recent reports */}
+                <div className="a-card !pt-2 !px-6 !pb-3">
+                  <div className="flex items-center justify-between py-4 pb-2">
+                    <h2 className="a-section-title">Recent community reports</h2>
+                    <Link to="/app/community" className="font-semibold text-[15px]" style={{ color: 'var(--gold)' }}>
+                      View all
+                    </Link>
+                  </div>
+                  {recentReports.length === 0 ? (
+                    <p className="text-[15px] py-6 text-center" style={{ color: 'var(--muted)' }}>No reports filed yet.</p>
+                  ) : (
+                    recentReports.map((r) => (
+                      <div key={r.id} className="flex items-center gap-4 py-4 border-t" style={{ borderColor: 'var(--border)' }}>
+                        <div className="flex-1 min-w-0">
+                          <div className="font-semibold text-[17px] truncate">{r.title || r.subject || 'Report'}</div>
+                          <div className="text-[14.5px]" style={{ color: 'var(--muted)' }}>
                             Filed {fmtDate(r.createdAt)}{r.location || r.ward ? ` · ${r.location || r.ward}` : ''}
                           </div>
                         </div>
@@ -332,58 +356,69 @@ const TraditionalRulersDashboard = () => {
                           {r.status || 'Submitted'}
                         </span>
                       </div>
-                    ))}
-                  </div>
-                )}
+                    ))
+                  )}
+                </div>
               </div>
 
-              {/* Upcoming events */}
-              <div className="a-card">
-                <div className="flex items-center justify-between mb-4">
-                  <h2 className="a-section-title">Upcoming events</h2>
-                  <Link to="/app/events" className="text-[14px] font-semibold inline-flex items-center gap-1" style={{ color: 'var(--brand)' }}>
-                    View all <Icon name="arrowRight" size={15} />
+              <div className="flex-[2_1_320px] min-w-0 flex flex-col gap-7">
+                {/* Upcoming events */}
+                <div className="a-card !pt-2 !px-6 !pb-3">
+                  <div className="flex items-center justify-between py-4 pb-2">
+                    <h2 className="a-section-title">Upcoming events</h2>
+                    <Link to="/app/events" className="font-semibold text-[15px]" style={{ color: 'var(--gold)' }}>
+                      View all
+                    </Link>
+                  </div>
+                  {upcomingEventsList.length === 0 ? (
+                    <p className="text-[15px] py-6 text-center" style={{ color: 'var(--muted)' }}>No upcoming events.</p>
+                  ) : (
+                    upcomingEventsList.map((ev) => (
+                      <div key={ev.id} className="flex items-center gap-3.5 py-3.5 border-t" style={{ borderColor: 'var(--border)' }}>
+                        <div
+                          className="flex-shrink-0 w-[54px] text-center rounded-[10px] py-1.5"
+                          style={{ background: 'var(--brand-soft)', color: 'var(--brand)' }}
+                        >
+                          <div className="text-[11px] font-bold tracking-[0.1em] uppercase">{eventMonth(ev.date)}</div>
+                          <div className="font-display font-bold text-[23px] leading-[1.1]">{eventDay(ev.date)}</div>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="font-semibold truncate">{ev.title}</div>
+                          <div className="text-[14px]" style={{ color: 'var(--muted)' }}>{ev.type || 'Community'}</div>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+
+                {/* Continue learning */}
+                <div className="a-card !p-[22px_24px]">
+                  <div className="text-[13px] font-semibold tracking-[0.1em] uppercase" style={{ color: 'var(--gold)' }}>
+                    Continue learning
+                  </div>
+                  <h2 className="font-display font-semibold text-[22px] mt-2">Leadership Foundations</h2>
+                  <div className="text-[15px] mt-0.5" style={{ color: 'var(--muted)' }}>Module 3 of 8</div>
+                  <div
+                    role="progressbar"
+                    aria-valuemin={0}
+                    aria-valuemax={100}
+                    aria-valuenow={38}
+                    aria-label="Course progress"
+                    className="mt-4 h-2.5 rounded-full overflow-hidden"
+                    style={{ background: 'var(--surface2)' }}
+                  >
+                    <div className="h-full rounded-full" style={{ width: '38%', background: 'var(--btn)' }} />
+                  </div>
+                  <div className="text-[14px] mt-1.5" style={{ color: 'var(--muted)' }}>38% complete</div>
+                  <Link
+                    to="/app/courses"
+                    className="mt-4 min-h-[44px] inline-flex items-center gap-2 px-[18px] rounded-[10px] border-[1.5px] text-[16px] font-semibold transition-colors"
+                    style={{ borderColor: 'var(--brand)', color: 'var(--brand)', background: 'transparent' }}
+                  >
+                    Resume lesson
                   </Link>
                 </div>
-                {upcomingEventsList.length === 0 ? (
-                  <p className="text-[15px] py-6 text-center" style={{ color: 'var(--muted)' }}>No upcoming events.</p>
-                ) : (
-                  <div className="space-y-1">
-                    {upcomingEventsList.map((ev) => (
-                      <div key={ev.id} className="flex items-center justify-between gap-3 py-2.5 border-b last:border-0" style={{ borderColor: 'var(--border)' }}>
-                        <div className="min-w-0">
-                          <div className="font-semibold text-[15px] truncate">{ev.title}</div>
-                          <div className="text-[13px]" style={{ color: 'var(--muted)' }}>
-                            {fmtDate(ev.date)}{ev.location ? ` · ${ev.location}` : ''}
-                          </div>
-                        </div>
-                        <span className="a-badge a-badge-info flex-shrink-0 capitalize">{ev.type || 'Event'}</span>
-                      </div>
-                    ))}
-                  </div>
-                )}
               </div>
-            </div>
-
-            {/* Continue learning */}
-            <div className="a-card flex flex-wrap items-center justify-between gap-4">
-              <div className="flex items-center gap-4 min-w-0">
-                <div
-                  className="w-11 h-11 rounded-[12px] flex items-center justify-center flex-shrink-0"
-                  style={{ background: 'var(--warn-bg)', color: 'var(--warn-fg)' }}
-                >
-                  <Icon name="courses" size={22} />
-                </div>
-                <div className="min-w-0">
-                  <div className="text-[12px] font-semibold uppercase tracking-wide" style={{ color: 'var(--muted)' }}>Continue learning</div>
-                  <div className="font-semibold text-[16px]">Leadership Foundations</div>
-                  <div className="mt-1.5 w-48 h-1.5 rounded-full" style={{ background: 'var(--surface2)' }}>
-                    <div className="h-1.5 rounded-full bg-[#E3B04B]" style={{ width: '38%' }} />
-                  </div>
-                  <div className="text-[13px] mt-1" style={{ color: 'var(--muted)' }}>Module 3 of 8 · 38% complete</div>
-                </div>
-              </div>
-              <Link to="/app/courses" className="a-btn-primary">Resume lesson</Link>
             </div>
           </div>
         )}
@@ -411,7 +446,7 @@ const TraditionalRulersDashboard = () => {
         </div>
 
         {/* Tab Content */}
-        <div className={`${isDarkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-md p-4 sm:p-6 mt-5`}>
+        <div className="a-card mt-5">
           {activeTab === 'overview' && (
             <p className="text-[15px]" style={{ color: 'var(--muted)' }}>
               Pick a management tab above — profile, verification, projects, community, analytics, documents, events, learning or library.
@@ -524,25 +559,25 @@ const TraditionalRulersDashboard = () => {
                   </h4>
                   <div className="space-y-3">
                     <div className="flex items-center">
-                      <span className="text-green-500 mr-3">✅</span>
+                      <Icon name="checkCircle" size={20} className="mr-3 flex-shrink-0" style={{ color: 'var(--ok-fg)' }} />
                       <span className={`${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
                         Official throne documentation
                       </span>
                     </div>
                     <div className="flex items-center">
-                      <span className="text-green-500 mr-3">✅</span>
+                      <Icon name="checkCircle" size={20} className="mr-3 flex-shrink-0" style={{ color: 'var(--ok-fg)' }} />
                       <span className={`${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
                         Government recognition certificate
                       </span>
                     </div>
                     <div className="flex items-center">
-                      <span className="text-green-500 mr-3">✅</span>
+                      <Icon name="checkCircle" size={20} className="mr-3 flex-shrink-0" style={{ color: 'var(--ok-fg)' }} />
                       <span className={`${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
                         Community endorsement letters
                       </span>
                     </div>
                     <div className="flex items-center">
-                      <span className="text-green-500 mr-3">✅</span>
+                      <Icon name="checkCircle" size={20} className="mr-3 flex-shrink-0" style={{ color: 'var(--ok-fg)' }} />
                       <span className={`${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
                         ATRC membership application
                       </span>
@@ -1061,7 +1096,7 @@ const TraditionalRulersDashboard = () => {
                         {stats.totalMembers}
                       </p>
                     </div>
-                    <div className="text-2xl">👥</div>
+                    <Icon name="users" size={26} style={{ color: 'var(--brand)' }} />
                   </div>
                   <div className="mt-2">
                     <span className="text-green-600 text-sm">+12%</span>
@@ -1081,7 +1116,7 @@ const TraditionalRulersDashboard = () => {
                         3
                       </p>
                     </div>
-                    <div className="text-2xl">🏗️</div>
+                    <Icon name="analytics" size={26} style={{ color: 'var(--brand)' }} />
                   </div>
                   <div className="mt-2">
                     <span className="text-blue-600 text-sm">+1</span>
@@ -1101,7 +1136,7 @@ const TraditionalRulersDashboard = () => {
                         {stats.upcomingEvents}
                       </p>
                     </div>
-                    <div className="text-2xl">📅</div>
+                    <Icon name="events" size={26} style={{ color: 'var(--brand)' }} />
                   </div>
                   <div className="mt-2">
                     <span className="text-purple-600 text-sm">+2</span>
@@ -1121,7 +1156,7 @@ const TraditionalRulersDashboard = () => {
                         {stats.documentsPublished}
                       </p>
                     </div>
-                    <div className="text-2xl">📄</div>
+                    <Icon name="file" size={26} style={{ color: 'var(--brand)' }} />
                   </div>
                   <div className="mt-2">
                     <span className="text-green-600 text-sm">+3</span>
@@ -1322,7 +1357,7 @@ const TraditionalRulersDashboard = () => {
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 <div className={`p-6 rounded-lg border ${isDarkMode ? 'bg-gray-700 border-gray-600' : 'bg-gray-50 border-gray-200'} hover:shadow-md transition-shadow`}>
-                  <div className="text-3xl mb-3">📚</div>
+                  <Icon name="library" size={36} className="mb-3" style={{ color: 'var(--brand)' }} />
                   <h4 className={`font-semibold mb-2 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
                     Christ-Shaped Leadership 101
                   </h4>
@@ -1337,7 +1372,7 @@ const TraditionalRulersDashboard = () => {
                   </button>
                 </div>
                 <div className={`p-6 rounded-lg border ${isDarkMode ? 'bg-gray-700 border-gray-600' : 'bg-gray-50 border-gray-200'} hover:shadow-md transition-shadow`}>
-                  <div className="text-3xl mb-3">⚖️</div>
+                  <Icon name="disputes" size={36} className="mb-3" style={{ color: 'var(--brand)' }} />
                   <h4 className={`font-semibold mb-2 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
                     Customary Law and Governance
                   </h4>
@@ -1352,7 +1387,7 @@ const TraditionalRulersDashboard = () => {
                   </button>
                 </div>
                 <div className={`p-6 rounded-lg border ${isDarkMode ? 'bg-gray-700 border-gray-600' : 'bg-gray-50 border-gray-200'} hover:shadow-md transition-shadow`}>
-                  <div className="text-3xl mb-3">🤝</div>
+                  <Icon name="users" size={36} className="mb-3" style={{ color: 'var(--brand)' }} />
                   <h4 className={`font-semibold mb-2 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
                     Conflict Resolution for Rulers
                   </h4>

@@ -4,9 +4,10 @@ import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import toast from 'react-hot-toast';
 import { translateWithGoogle, batchTranslate, detectLanguage } from '../services/translationService';
+import Icon from './ui/Icon';
 
 const EPUBReader = ({ bookUrl, bookTitle, onClose }) => {
-  const { isDarkMode } = useTheme();
+  const { isDarkMode, toggleTheme } = useTheme();
   const { language } = useLanguage();
   const [location, setLocation] = useState(null);
   const [selections, setSelections] = useState([]);
@@ -18,6 +19,10 @@ const EPUBReader = ({ bookUrl, bookTitle, onClose }) => {
   const [isBookTranslated, setIsBookTranslated] = useState(false);
   const [originalLanguage, setOriginalLanguage] = useState('en');
   const [renditionRef, setRenditionRef] = useState(null);
+  const [toc, setToc] = useState([]);
+  const [fontSizePct, setFontSizePct] = useState(100);
+  const [bookmarks, setBookmarks] = useState([]);
+  const [currentChapter, setCurrentChapter] = useState('');
 
 
   // Helper function to handle CORS issues
@@ -41,29 +46,6 @@ const EPUBReader = ({ bookUrl, bookTitle, onClose }) => {
 
   // Use the validated URL
   const epubUrl = getEpubUrl(bookUrl);
-  
-  // If URL is invalid, show error
-  if (!epubUrl) {
-    return (
-      <div className={`fixed inset-0 z-50 ${isDarkMode ? 'bg-gray-900' : 'bg-white'} flex items-center justify-center`}>
-        <div className="text-center p-8 max-w-md">
-          <div className="text-6xl mb-4">❌</div>
-          <h3 className={`text-xl font-semibold mb-4 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-            Invalid Book URL
-          </h3>
-          <p className={`text-sm mb-6 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-            The book file URL is not valid. Please contact an administrator.
-          </p>
-          <button
-            onClick={onClose}
-            className="bg-primary-600 text-white px-6 py-2 rounded-[10px] hover:bg-primary-700 transition-colors"
-          >
-            Back to Library
-          </button>
-        </div>
-      </div>
-    );
-  }
 
   const languages = [
     { code: 'en', name: 'English' },
@@ -79,6 +61,33 @@ const EPUBReader = ({ bookUrl, bookTitle, onClose }) => {
     { code: 'am', name: 'Amharic' },
     { code: 'om', name: 'Oromo' }
   ];
+
+  // Font size controls (A- / A+)
+  useEffect(() => {
+    if (renditionRef) {
+      try {
+        renditionRef.themes.fontSize(`${fontSizePct}%`);
+      } catch (e) { /* rendition not ready */ }
+    }
+  }, [fontSizePct, renditionRef]);
+
+  const changeFontSize = (delta) => {
+    setFontSizePct((p) => Math.min(140, Math.max(80, p + delta)));
+  };
+
+  const goToHref = (href) => {
+    if (renditionRef && href) {
+      renditionRef.display(href);
+    }
+  };
+
+  const addBookmark = () => {
+    if (!location) return;
+    const chapter = currentChapter || 'Page';
+    if (bookmarks.some((b) => b.cfi === location)) return;
+    setBookmarks([...bookmarks, { cfi: location, label: chapter }]);
+    toast.success('Bookmark saved');
+  };
 
   // Enhanced translation function using Google Translate API
   const translateText = async (text, targetLang) => {
@@ -103,7 +112,7 @@ const EPUBReader = ({ bookUrl, bookTitle, onClose }) => {
     const walker = doc.createTreeWalker(doc.body, NodeFilter.SHOW_TEXT, null, false);
     const nodes = [];
     let node;
-    
+
     while ((node = walker.nextNode())) {
       const text = node.textContent?.trim();
       if (text && text.length > 0) {
@@ -132,7 +141,7 @@ const EPUBReader = ({ bookUrl, bookTitle, onClose }) => {
           }
         })
       );
-      
+
       // Update progress
       const progress = Math.round(((i + batch.length) / nodes.length) * 100);
       toast.loading(`Translating... ${progress}%`, { id: 'epub-translation-progress' });
@@ -149,7 +158,7 @@ const EPUBReader = ({ bookUrl, bookTitle, onClose }) => {
     try {
       // Access the views from the rendition manager
       const views = renditionRef.views();
-      
+
       if (!views || !views._views || views._views.length === 0) {
         console.warn('No views available in rendition');
         return;
@@ -159,7 +168,7 @@ const EPUBReader = ({ bookUrl, bookTitle, onClose }) => {
 
       for (let i = 0; i < views._views.length; i++) {
         const view = views._views[i];
-        
+
         if (view && view.document) {
           console.log(`Translating view ${i + 1}/${views._views.length}`);
           await translateDocumentNodes(view.document);
@@ -168,7 +177,7 @@ const EPUBReader = ({ bookUrl, bookTitle, onClose }) => {
 
       toast.dismiss('epub-translation-progress');
       console.log('Translation completed successfully');
-      
+
     } catch (error) {
       console.error('Error accessing rendition views:', error);
       toast.dismiss('epub-translation-progress');
@@ -187,12 +196,12 @@ const EPUBReader = ({ bookUrl, bookTitle, onClose }) => {
     let translatingToastId;
     try {
       translatingToastId = toast.loading('Translating book... This may take a moment.');
-      
+
       // Translate current view
       await applyTranslationToRendition();
 
       setIsBookTranslated(true);
-      
+
       // Set up listener for future page renders
       if (renditionRef) {
         renditionRef.off('rendered'); // Remove any existing listeners
@@ -209,7 +218,7 @@ const EPUBReader = ({ bookUrl, bookTitle, onClose }) => {
       }
       if (translatingToastId) toast.dismiss(translatingToastId);
       toast.success(`Book translated to ${languages.find(l => l.code === targetLanguage)?.name}!`);
-      
+
     } catch (error) {
       console.error('Full book translation error:', error);
       if (translatingToastId) toast.dismiss(translatingToastId);
@@ -225,14 +234,14 @@ const EPUBReader = ({ bookUrl, bookTitle, onClose }) => {
       try {
         // Remove translation listener
         renditionRef.off('rendered');
-        
+
         // Force reload the current location to get original content
         const currentLocation = location;
         setIsBookTranslated(false);
-        
+
         // Reload the page to show original content
         await renditionRef.display(currentLocation);
-        
+
         toast.success('Book reset to original language');
       } catch (error) {
         console.error('Reset error:', error);
@@ -258,13 +267,13 @@ const EPUBReader = ({ bookUrl, bookTitle, onClose }) => {
     try {
       const lastSelection = selections[selections.length - 1];
       const translated = await translateText(lastSelection.contents, targetLanguage);
-      
+
       setTranslatedContent({
         original: lastSelection.contents,
         translated: translated,
         targetLanguage: targetLanguage
       });
-      
+
       setShowTranslationPanel(true);
       toast.success('Text translated successfully!');
     } catch (error) {
@@ -278,253 +287,368 @@ const EPUBReader = ({ bookUrl, bookTitle, onClose }) => {
 
   const readerTheme = isDarkMode ? {
     body: {
-      background: '#1f2937',
-      color: '#f9fafb'
+      background: '#131A3A',
+      color: '#EEF0F8'
     },
     link: {
-      color: '#60a5fa'
+      color: '#9DB0FF'
     }
   } : {
     body: {
-      background: '#ffffff',
-      color: '#111827'
+      background: '#FFFCF6',
+      color: '#14182B'
     },
     link: {
-      color: '#2563eb'
+      color: '#17275F'
     }
   };
 
+  const ghostBtn =
+    'w-11 h-11 inline-flex items-center justify-center rounded-[10px] border transition-colors';
+  const ghostStyle = {
+    borderColor: 'var(--border)',
+    background: 'transparent',
+    color: 'var(--ink)',
+  };
+
+  // If URL is invalid, show error
+  if (!epubUrl) {
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: 'var(--bg)' }}>
+        <div className="text-center p-8 max-w-md">
+          <Icon name="close" size={48} className="mx-auto mb-4" style={{ color: 'var(--danger-fg)' }} />
+          <h3 className="font-display font-bold text-[24px] mb-3" style={{ color: 'var(--ink)' }}>
+            Invalid book URL
+          </h3>
+          <p className="text-[15px] mb-6" style={{ color: 'var(--muted)' }}>
+            The book file URL is not valid. Please contact an administrator.
+          </p>
+          <button onClick={onClose} className="a-btn-primary">
+            Back to Library
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className={`fixed inset-0 z-50 ${isDarkMode ? 'bg-gray-900' : 'bg-white'}`}>
-      {/* Header */}
-      <div className={`${isDarkMode ? 'bg-gray-800' : 'bg-white'} shadow-lg border-b`}>
-        <div className="px-4 py-3">
-          <div className="flex justify-between items-center">
-            <button
-              onClick={onClose}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
-                isDarkMode 
-                  ? 'text-gray-300 hover:text-white hover:bg-gray-700' 
-                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
-              }`}
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-              </svg>
-              <span>Back to Library</span>
-            </button>
-            
-            <div className="flex-1 mx-4 min-w-0 text-center">
-              <h1 className={`text-lg font-semibold truncate ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-                {bookTitle}
-              </h1>
-              <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                EPUB Reader - Translation Enabled
-              </p>
-            </div>
-
-            <div className="flex items-center gap-3">
-              {/* Language Selector */}
-              <select
-                value={targetLanguage}
-                onChange={(e) => setTargetLanguage(e.target.value)}
-                className={`px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 ${
-                  isDarkMode 
-                    ? 'bg-gray-700 border-gray-600 text-white' 
-                    : 'bg-white border-gray-300 text-gray-900'
-                }`}
-              >
-                {languages.map(lang => (
-                  <option key={lang.code} value={lang.code}>
-                    {lang.name}
-                  </option>
-                ))}
-              </select>
-
-              {/* Translate Entire Book Button */}
-              {!isBookTranslated ? (
-                <button
-                  onClick={translateEntireBook}
-                  disabled={isTranslating || targetLanguage === originalLanguage}
-                  className={`px-4 py-2 rounded-lg transition-colors ${
-                    isTranslating || targetLanguage === originalLanguage
-                      ? 'bg-gray-400 text-gray-200 cursor-not-allowed'
-                      : 'bg-primary-600 text-white hover:bg-primary-700'
-                  }`}
-                >
-                  {isTranslating ? (
-                    <>
-                      <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                      </svg>
-                      Translating...
-                    </>
-                  ) : (
-                    <>
-                      <svg className="w-4 h-4 mr-2 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129" />
-                      </svg>
-                      Translate Book
-                    </>
-                  )}
-                </button>
-              ) : (
-                <button
-                  onClick={resetToOriginal}
-                  className="px-4 py-2 bg-[#E3B04B] text-[#14182B] rounded-[10px] hover:bg-[#C69433] font-semibold transition-colors"
-                >
-                  <svg className="w-4 h-4 mr-2 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                  </svg>
-                  Original Language
-                </button>
-              )}
-
-              {/* Current Language Indicator */}
-              <div className={`px-3 py-2 rounded-lg text-sm ${
-                isBookTranslated 
-                  ? 'bg-green-100 text-green-800'
-                  : isDarkMode
-                  ? 'bg-gray-700 text-gray-300'
-                  : 'bg-gray-100 text-gray-700'
-              }`}>
-                {isBookTranslated 
-                  ? `📖 ${languages.find(l => l.code === targetLanguage)?.name}`
-                  : `📖 ${languages.find(l => l.code === originalLanguage)?.name}`
-                }
-              </div>
+    <div className="fixed inset-0 z-50 flex flex-col" style={{ background: 'var(--bg)', color: 'var(--ink)' }}>
+      {/* ===== Header ===== */}
+      <header
+        className="flex items-center justify-between gap-3 px-4 sm:px-6 py-3 border-b flex-shrink-0"
+        style={{ borderColor: 'var(--border)', background: 'var(--bg)' }}
+      >
+        <div className="flex items-center gap-3 min-w-0">
+          <button
+            onClick={onClose}
+            className={`${ghostBtn} !w-auto px-3 gap-2 text-[15px] font-semibold`}
+            style={ghostStyle}
+            aria-label="Back to library"
+          >
+            <Icon name="arrowLeft" size={18} />
+            <span className="hidden sm:inline">Library</span>
+          </button>
+          <div className="min-w-0">
+            <div className="font-display font-semibold text-[19px] leading-[1.2] truncate">{bookTitle}</div>
+            <div className="text-[13.5px] truncate" style={{ color: 'var(--muted)' }}>
+              {currentChapter ? `${currentChapter} · ` : ''}EPUB · translation enabled
             </div>
           </div>
         </div>
-      </div>
+        <div className="flex items-center gap-2">
+          <button onClick={() => changeFontSize(-10)} className={`${ghostBtn} font-bold text-[15px]`} style={ghostStyle} aria-label="Smaller text">
+            A−
+          </button>
+          <button onClick={() => changeFontSize(10)} className={`${ghostBtn} font-bold text-[20px]`} style={ghostStyle} aria-label="Larger text">
+            A+
+          </button>
+          <button onClick={addBookmark} className={ghostBtn} style={ghostStyle} aria-label="Bookmark this page">
+            <Icon name="bookmark" size={20} />
+          </button>
+          <button
+            onClick={toggleTheme}
+            className={`${ghostBtn} !w-auto px-3.5 gap-2 text-[15px] font-semibold`}
+            style={ghostStyle}
+            aria-label={isDarkMode ? 'Switch to day reading' : 'Switch to night reading'}
+          >
+            <Icon name={isDarkMode ? 'sun' : 'moon'} size={18} />
+            <span className="hidden sm:inline">{isDarkMode ? 'Day' : 'Night'}</span>
+          </button>
+        </div>
+      </header>
 
-      <div className="flex h-[calc(100vh-80px)]">
-        {/* Main Reader */}
-        <div className="flex-1">
+      {/* ===== 3-pane body ===== */}
+      <div className="flex-1 flex flex-wrap items-stretch min-h-0">
+
+        {/* Contents rail */}
+        <aside
+          className="hidden md:flex flex-col gap-1.5 px-4 py-6 border-r overflow-y-auto w-[280px] flex-shrink-0"
+          style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}
+        >
+          <div className="px-3 pb-2 text-[12px] font-semibold tracking-[0.12em] uppercase" style={{ color: 'var(--gold)' }}>
+            Contents
+          </div>
+          {toc.length === 0 ? (
+            <p className="px-3 text-[14px]" style={{ color: 'var(--muted)' }}>Loading chapters…</p>
+          ) : (
+            toc.map((item, i) => {
+              const active = item.label?.trim() === currentChapter;
+              return (
+                <button
+                  key={item.href || i}
+                  onClick={() => goToHref(item.href)}
+                  className="min-h-[44px] flex items-center px-3 rounded-[10px] text-left text-[15.5px] transition-colors"
+                  style={
+                    active
+                      ? { background: 'var(--brand-soft)', color: 'var(--brand)', fontWeight: 700 }
+                      : { color: 'var(--muted)' }
+                  }
+                >
+                  {i + 1} · {item.label?.trim() || `Chapter ${i + 1}`}
+                </button>
+              );
+            })
+          )}
+        </aside>
+
+        {/* Page */}
+        <main className="flex-1 min-w-0 flex flex-col items-center px-4 sm:px-8 py-6 overflow-hidden">
           {corsError ? (
             <div className="flex items-center justify-center h-full">
               <div className="text-center p-8 max-w-md">
-                <div className="text-6xl mb-4">⚠️</div>
-                <h3 className={`text-xl font-semibold mb-4 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-                  CORS Access Issue
+                <Icon name="warning" size={48} className="mx-auto mb-4" style={{ color: 'var(--warn-fg)' }} />
+                <h3 className="font-display font-bold text-[24px] mb-3" style={{ color: 'var(--ink)' }}>
+                  File access issue
                 </h3>
-                <p className={`text-sm mb-6 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-                  Firebase Storage CORS policy is preventing EPUB file access. This is a temporary limitation.
+                <p className="text-[15px] mb-6" style={{ color: 'var(--muted)' }}>
+                  The book file could not be loaded. Try a PDF upload, or contact an administrator.
                 </p>
-                <div className="space-y-3">
-                  <p className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                    <strong>Temporary Solutions:</strong>
-                  </p>
-                  <div className={`text-left text-xs space-y-2 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                    <p>• Upload books in PDF format for immediate reading</p>
-                    <p>• EPUB translation features will be available after CORS configuration</p>
-                    <p>• Contact admin to configure Firebase Storage CORS settings</p>
-                  </div>
-                  <button
-                    onClick={onClose}
-                    className="mt-4 bg-primary-600 text-white px-6 py-2 rounded-[10px] hover:bg-primary-700 transition-colors"
-                  >
-                    Back to Library
-                  </button>
-                </div>
+                <button onClick={onClose} className="a-btn-primary">
+                  Back to Library
+                </button>
               </div>
             </div>
           ) : (
-            <ReactReader
-            url={epubUrl}
-            location={location}
-            locationChanged={(epubcfi) => setLocation(epubcfi)}
-            getRendition={(rendition) => {
-              // Store rendition reference for translation
-              setRenditionRef(rendition);
-              
-              // Apply theme
-              rendition.themes.default(readerTheme);
-              
-              // Best-effort: disable context menu/selection if accessible
-              rendition.on('rendered', (_section, view) => {
-                try {
-                  const contents = typeof rendition.getContents === 'function' ? rendition.getContents() : [];
-                  const list = Array.isArray(contents) ? contents : (contents ? [contents] : []);
-                  list.forEach((c) => {
+            <article
+              className="w-full max-w-[760px] flex-1 min-h-0 rounded-[16px] border overflow-hidden"
+              style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}
+            >
+              <ReactReader
+                url={epubUrl}
+                location={location}
+                locationChanged={(epubcfi) => setLocation(epubcfi)}
+                getRendition={(rendition) => {
+                  // Store rendition reference for translation
+                  setRenditionRef(rendition);
+
+                  // Apply theme
+                  rendition.themes.default(readerTheme);
+                  try {
+                    rendition.themes.fontSize(`${fontSizePct}%`);
+                  } catch (e) { /* not ready */ }
+
+                  // Load table of contents
+                  try {
+                    rendition.book.loaded.navigation.then((nav) => {
+                      if (nav && nav.toc) setToc(nav.toc);
+                    });
+                  } catch (e) { /* no nav */ }
+
+                  // Track current chapter
+                  rendition.on('relocated', (loc) => {
                     try {
-                      if (c && c.document) {
-                        c.document.addEventListener('contextmenu', (e) => e.preventDefault());
-                        c.document.addEventListener('selectstart', (e) => e.preventDefault());
-                      }
-                    } catch (_) {}
+                      const spineItem = rendition.book.spine.get(loc?.start?.cfi);
+                      const navItem = rendition.book.navigation?.toc?.find(
+                        (t) => spineItem && spineItem.href && t.href && spineItem.href.includes(t.href.split('#')[0])
+                      );
+                      if (navItem) setCurrentChapter(navItem.label?.trim());
+                    } catch (e) { /* ignore */ }
                   });
-                  if (view && view.document) {
+
+                  // Best-effort: disable context menu/selection if accessible
+                  rendition.on('rendered', (_section, view) => {
                     try {
-                      view.document.addEventListener('contextmenu', (e) => e.preventDefault());
-                      view.document.addEventListener('selectstart', (e) => e.preventDefault());
-                    } catch (_) {}
-                  }
-                } catch (e) {
-                  // Silently ignore sandboxed about:srcdoc iframes
+                      const contents = typeof rendition.getContents === 'function' ? rendition.getContents() : [];
+                      const list = Array.isArray(contents) ? contents : (contents ? [contents] : []);
+                      list.forEach((c) => {
+                        try {
+                          if (c && c.document) {
+                            c.document.addEventListener('contextmenu', (e) => e.preventDefault());
+                            c.document.addEventListener('selectstart', (e) => e.preventDefault());
+                          }
+                        } catch (_) {}
+                      });
+                      if (view && view.document) {
+                        try {
+                          view.document.addEventListener('contextmenu', (e) => e.preventDefault());
+                          view.document.addEventListener('selectstart', (e) => e.preventDefault());
+                        } catch (_) {}
+                      }
+                    } catch (e) {
+                      // Silently ignore sandboxed about:srcdoc iframes
+                    }
+                  });
+
+                  // Handle CORS and other errors gracefully
+                  rendition.on('error', (error) => {
+                    console.error('EPUB loading error:', error);
+                    if (error.message && (error.message.includes('CORS') || error.message.includes('Invalid URL'))) {
+                      toast.error('EPUB file access issue. CORS configuration may be needed.');
+                      setCorsError(true);
+                    }
+                  });
+                }}
+                epubOptions={{
+                  flow: 'scrolled-doc',
+                  manager: 'default',
+                  requestMethod: 'GET',
+                  requestCredentials: 'omit'
+                }}
+                loadingView={
+                  <div className="flex items-center justify-center h-full">
+                    <div className="text-center">
+                      <div className="animate-spin rounded-full h-12 w-12 border-b-2 mx-auto mb-4" style={{ borderColor: 'var(--brand)' }} />
+                      <p style={{ color: 'var(--muted)' }}>Loading EPUB book...</p>
+                    </div>
+                  </div>
                 }
-              });
-              
-              // Handle CORS and other errors gracefully
-              rendition.on('error', (error) => {
-                console.error('EPUB loading error:', error);
-                if (error.message && (error.message.includes('CORS') || error.message.includes('Invalid URL'))) {
-                  toast.error('EPUB file access issue. CORS configuration may be needed.');
-                  setCorsError(true);
-                }
-              });
-            }}
-            epubOptions={{
-              flow: 'scrolled-doc',
-              manager: 'default',
-              requestMethod: 'GET',
-              requestCredentials: 'omit'
-            }}
-            loadingView={
-              <div className="flex items-center justify-center h-full">
-                <div className="text-center">
-                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto mb-4"></div>
-                  <p className={`${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>Loading EPUB book...</p>
-                </div>
-              </div>
-            }
-          />
+              />
+            </article>
           )}
-        </div>
+        </main>
+
+        {/* Translate rail */}
+        <aside
+          className="hidden lg:flex flex-col gap-5 px-5 py-6 border-l overflow-y-auto w-[300px] flex-shrink-0"
+          style={{ background: 'var(--bg)', borderColor: 'var(--border)' }}
+        >
+          <div className="text-[12px] font-semibold tracking-[0.12em] uppercase" style={{ color: 'var(--gold)' }}>
+            Translate
+          </div>
+
+          {/* Language list */}
+          <div className="flex flex-col gap-1">
+            {languages.map((l) => (
+              <button
+                key={l.code}
+                onClick={() => setTargetLanguage(l.code)}
+                className="min-h-[44px] flex items-center px-3 rounded-[10px] text-left text-[15.5px] transition-colors"
+                style={
+                  targetLanguage === l.code
+                    ? { background: 'var(--brand-soft)', color: 'var(--brand)', fontWeight: 700 }
+                    : { color: 'var(--ink)' }
+                }
+              >
+                {l.name}
+              </button>
+            ))}
+          </div>
+
+          {/* Selection card */}
+          <div className="a-card !p-4">
+            <div className="font-semibold">Selection</div>
+            <div className="mt-0.5 text-[14.5px]" style={{ color: 'var(--muted)' }}>
+              Select text on the page to translate it in place.
+            </div>
+            <button
+              onClick={translateSelectedText}
+              disabled={isTranslating}
+              className="a-btn-outline w-full mt-3 !text-[15.5px] disabled:opacity-60"
+            >
+              {isTranslating ? 'Translating…' : 'Translate selection'}
+            </button>
+          </div>
+
+          {/* Whole chapter card */}
+          <div className="a-card !p-4">
+            <div className="font-semibold">Whole chapter</div>
+            <div className="mt-0.5 text-[14.5px]" style={{ color: 'var(--muted)' }}>
+              {isBookTranslated
+                ? `Translated to ${languages.find((l) => l.code === targetLanguage)?.name}`
+                : `Translate into ${languages.find((l) => l.code === targetLanguage)?.name}`}
+            </div>
+            {isBookTranslated ? (
+              <button
+                onClick={resetToOriginal}
+                className="a-btn-gold w-full mt-3.5 !text-[15.5px] !font-bold"
+              >
+                Show original
+              </button>
+            ) : (
+              <button
+                onClick={translateEntireBook}
+                disabled={isTranslating || targetLanguage === originalLanguage}
+                className="a-btn-primary w-full mt-3.5 !text-[15.5px] !font-bold disabled:opacity-60"
+              >
+                {isTranslating ? 'Translating…' : 'Translate whole chapter'}
+              </button>
+            )}
+          </div>
+
+          {/* Bookmarks */}
+          <div>
+            <div className="text-[12px] font-semibold tracking-[0.12em] uppercase" style={{ color: 'var(--gold)' }}>
+              Bookmarks
+            </div>
+            {bookmarks.length === 0 ? (
+              <p className="mt-2 text-[14px]" style={{ color: 'var(--muted)' }}>
+                Use the bookmark button above to save your place.
+              </p>
+            ) : (
+              <div className="mt-2 flex flex-col">
+                {bookmarks.map((b, i) => (
+                  <button
+                    key={i}
+                    onClick={() => goToHref(b.cfi)}
+                    className="min-h-[48px] flex items-center gap-2.5 border-t text-left text-[15.5px] transition-colors hover:opacity-80"
+                    style={{ borderColor: 'var(--border)', color: 'var(--ink)' }}
+                  >
+                    <Icon name="bookmark" size={18} className="flex-shrink-0" style={{ color: 'var(--gold)' }} />
+                    {b.label}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        </aside>
       </div>
 
-      {/* Translation Panel */}
+      {/* Translation result panel */}
       {showTranslationPanel && translatedContent && (
-        <div className="absolute top-20 right-4 w-80 bg-white dark:bg-gray-800 rounded-lg shadow-xl border z-50 max-h-96 overflow-y-auto">
+        <div
+          className="absolute bottom-6 right-6 w-80 rounded-[16px] border shadow-xl z-50 max-h-96 overflow-y-auto"
+          style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}
+        >
           <div className="p-4">
             <div className="flex justify-between items-center mb-3">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+              <h3 className="font-display font-semibold text-[19px]" style={{ color: 'var(--ink)' }}>
                 Translation
               </h3>
               <button
                 onClick={() => setShowTranslationPanel(false)}
-                className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                className="w-9 h-9 inline-flex items-center justify-center rounded-[8px] transition-colors"
+                style={{ color: 'var(--muted)' }}
+                aria-label="Close translation"
               >
-                ✕
+                <Icon name="close" size={18} />
               </button>
             </div>
-            
+
             <div className="space-y-3">
               <div>
-                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                <label className="text-[13px] font-semibold" style={{ color: 'var(--muted)' }}>
                   Original ({languages.find(l => l.code === originalLanguage)?.name || 'English'}):
                 </label>
-                <p className="text-sm text-gray-600 dark:text-gray-400 mt-1 p-2 bg-gray-50 dark:bg-gray-700 rounded">
+                <p className="text-[14px] mt-1 p-2.5 rounded-[8px]" style={{ background: 'var(--surface2)', color: 'var(--muted)' }}>
                   {translatedContent.original}
                 </p>
               </div>
-              
+
               <div>
-                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                <label className="text-[13px] font-semibold" style={{ color: 'var(--muted)' }}>
                   Translation ({languages.find(l => l.code === translatedContent.targetLanguage)?.name}):
                 </label>
-                <p className="text-sm text-gray-900 dark:text-white mt-1 p-2 bg-[#E4E8F7] dark:bg-[#1E2958] rounded">
+                <p className="text-[14px] mt-1 p-2.5 rounded-[8px]" style={{ background: 'var(--warn-bg)', color: 'var(--ink)' }}>
                   {translatedContent.translated}
                 </p>
               </div>
@@ -534,11 +658,12 @@ const EPUBReader = ({ bookUrl, bookTitle, onClose }) => {
       )}
 
       {/* Watermark */}
-      <div className="absolute bottom-4 right-4 pointer-events-none z-50">
-        <div className={`px-3 py-1 rounded-lg text-xs font-medium ${
-          isDarkMode ? 'bg-gray-900 bg-opacity-70 text-gray-300' : 'bg-white bg-opacity-70 text-gray-600'
-        }`}>
-          ATRC Digital Library - Translation Enabled
+      <div className="absolute bottom-4 left-4 pointer-events-none z-40">
+        <div
+          className="px-3 py-1 rounded-[8px] text-[12px] font-medium"
+          style={{ background: 'var(--surface)', color: 'var(--muted)', opacity: 0.8, border: '1px solid var(--border)' }}
+        >
+          ATRC Digital Library
         </div>
       </div>
     </div>

@@ -121,7 +121,10 @@ const Navbar = () => {
           aria-label="Notifications"
         >
           <Icon name="bell" size={20} />
-          <span className="absolute top-2.5 right-2.5 w-2 h-2 rounded-full bg-[#E3B04B]" />
+          <span
+            className="absolute top-[9px] right-[10px] w-[9px] h-[9px] rounded-full bg-[#C0392B]"
+            style={{ border: '2px solid var(--surface)' }}
+          />
         </button>
 
         {/* User */}

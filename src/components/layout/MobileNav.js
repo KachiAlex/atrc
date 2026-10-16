@@ -41,59 +41,66 @@ const MobileNav = () => {
 
   return (
     <>
-      {/* Mobile top bar */}
-      <div
-        className="lg:hidden sticky top-0 z-40 border-b"
-        style={{ background: 'var(--bg)', borderColor: 'var(--border)' }}
-      >
-        <div className="px-4 py-2.5 flex items-center justify-between">
+      {/* Mobile top bar — always dark indigo */}
+      <div className="lg:hidden sticky top-0 z-40 bg-[#0F1A44]">
+        <div className="h-16 px-4 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2.5 min-w-0 hover:opacity-90">
-            <CrownMark size={34} variant="gold" />
-            <div className="min-w-0">
-              <h1 className="text-base font-bold leading-tight truncate" style={{ color: 'var(--ink)' }}>ATRC</h1>
-              <p className="text-[12px] leading-tight truncate" style={{ color: 'var(--muted)' }}>Traditional Rulers</p>
-            </div>
+            <CrownMark size={36} variant="gold" />
+            <h1 className="font-display font-bold text-[22px] text-white leading-tight">ATRC</h1>
           </Link>
-          <button
-            onClick={toggleTheme}
-            className="min-h-[44px] min-w-[44px] inline-flex items-center justify-center rounded-[10px] border"
-            style={{ borderColor: 'var(--border)', background: 'var(--surface)', color: 'var(--ink)' }}
-            aria-label="Toggle theme"
-          >
-            <Icon name={isDarkMode ? 'sun' : 'moon'} size={20} />
-          </button>
+          <div className="flex items-center gap-1">
+            <button
+              onClick={toggleTheme}
+              className="w-11 h-11 inline-flex items-center justify-center text-white"
+              aria-label="Toggle theme"
+            >
+              <Icon name={isDarkMode ? 'sun' : 'moon'} size={22} />
+            </button>
+            <span className="w-[38px] h-[38px] rounded-full bg-[#E3B04B] text-[#14182B] flex items-center justify-center font-bold text-[15px]">
+              {initials}
+            </span>
+          </div>
         </div>
       </div>
 
       {/* Bottom tab bar */}
       <nav
-        className="lg:hidden fixed bottom-0 left-0 right-0 z-40 border-t"
-        style={{ background: 'var(--surface)', borderColor: 'var(--border)', paddingBottom: 'env(safe-area-inset-bottom)' }}
+        aria-label="Main"
+        className="lg:hidden fixed bottom-0 left-0 right-0 z-40 border-t grid grid-cols-5"
+        style={{ background: 'var(--surface)', borderColor: 'var(--border)', paddingBottom: 'max(8px, env(safe-area-inset-bottom))' }}
       >
-        <div className="flex">
-          {tabs.map((tab) => (
+        {tabs.map((tab) => {
+          const active = isActive(tab.href);
+          return (
             <Link
               key={tab.name}
               to={tab.href}
-              className="flex-1 flex flex-col items-center justify-center gap-0.5 py-2 min-h-[56px] text-[12px] font-semibold transition-colors"
-              style={{ color: isActive(tab.href) ? 'var(--brand)' : 'var(--muted)' }}
+              className="flex flex-col items-center justify-center gap-[3px] min-h-[64px] text-[12px] transition-colors"
+              style={{ color: active ? 'var(--brand)' : 'var(--muted)', fontWeight: active ? 700 : 600 }}
             >
-              <Icon name={tab.icon} size={22} />
+              <span
+                className="w-[52px] h-[30px] rounded-[15px] flex items-center justify-center"
+                style={active ? { background: 'var(--brand-soft)' } : undefined}
+              >
+                <Icon name={tab.icon} size={22} />
+              </span>
               {tab.name}
             </Link>
-          ))}
-          <button
-            onClick={() => setIsOpen(true)}
-            className="flex-1 flex flex-col items-center justify-center gap-0.5 py-2 min-h-[56px] text-[12px] font-semibold"
-            style={{ color: 'var(--muted)' }}
-          >
+          );
+        })}
+        <button
+          onClick={() => setIsOpen(true)}
+          className="flex flex-col items-center justify-center gap-[3px] min-h-[64px] text-[12px] font-semibold"
+          style={{ color: 'var(--muted)' }}
+        >
+          <span className="w-[52px] h-[30px] flex items-center justify-center">
             <Icon name="menu" size={22} />
-            More
-          </button>
-        </div>
+          </span>
+          More
+        </button>
       </nav>
       {/* Bottom padding so content isn't hidden behind tab bar */}
-      <div className="lg:hidden h-[60px]" />
+      <div className="lg:hidden h-[72px]" />
 
       {/* Drawer */}
       {isOpen && (
@@ -108,8 +115,8 @@ const MobileNav = () => {
                 <div className="flex items-center gap-2.5">
                   <CrownMark size={36} variant="gold" />
                   <div>
-                    <h1 className="text-base font-bold text-white leading-tight">ATRC</h1>
-                    <p className="text-[12px] text-[#AAB4E0]">Traditional Rulers</p>
+                    <h1 className="font-display font-bold text-white leading-tight">ATRC</h1>
+                    <p className="text-[11px] tracking-[0.08em] uppercase text-[#E3B04B]">Traditional Rulers</p>
                   </div>
                 </div>
                 <button
@@ -127,16 +134,16 @@ const MobileNav = () => {
                     key={item.name}
                     to={item.href}
                     onClick={close}
-                    className={`flex items-center gap-3 px-3 py-3 rounded-[10px] text-[15px] font-medium min-h-[44px] transition-colors ${
+                    className={`flex items-center gap-3 px-[14px] rounded-[10px] text-[16px] min-h-[46px] transition-colors ${
                       isActive(item.href)
-                        ? 'bg-[#1A2866] text-white'
-                        : 'text-[#C9D0EE] hover:bg-[#1A2866] hover:text-white'
+                        ? 'bg-[#22338A] text-white font-semibold'
+                        : 'text-[#C9D0EE] font-medium hover:bg-[#1A2866] hover:text-white'
                     }`}
                   >
                     <Icon
                       name={item.icon}
                       size={20}
-                      className={isActive(item.href) ? 'text-[#E3B04B]' : 'text-[#8B98C9]'}
+                      className={isActive(item.href) ? 'text-[#E3B04B]' : 'text-[#C9D0EE]'}
                     />
                     {item.name}
                   </Link>
@@ -144,16 +151,16 @@ const MobileNav = () => {
               </nav>
 
               {/* User card + logout */}
-              <div className="mt-8 rounded-[12px] bg-[#1A2350] p-4">
+              <div className="mt-8 rounded-[12px] bg-[#16245A] p-3">
                 <div className="flex items-center gap-3">
-                  <div className="h-10 w-10 rounded-full bg-[#E3B04B] flex items-center justify-center flex-shrink-0">
-                    <span className="text-sm font-bold text-[#14182B]">{initials}</span>
+                  <div className="w-[42px] h-[42px] rounded-full bg-[#E3B04B] flex items-center justify-center flex-shrink-0">
+                    <span className="font-bold text-[#14182B]">{initials}</span>
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-white truncate">
+                    <p className="font-semibold text-white truncate">
                       {currentUser?.displayName || 'Member'}
                     </p>
-                    <p className="text-[13px] text-[#AAB4E0] capitalize">{userRole || 'Member'}</p>
+                    <p className="text-[14px] text-[#AAB4E0] capitalize">{userRole || 'Member'}</p>
                   </div>
                   <button
                     onClick={logout}

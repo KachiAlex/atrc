@@ -103,6 +103,7 @@ module.exports = {
       fontFamily: {
         'sans': ['"Source Sans 3"', 'system-ui', '-apple-system', 'sans-serif'],
         'serif': ['"Playfair Display"', 'serif'],
+        'display': ['"Playfair Display"', 'serif'],
       },
       borderRadius: {
         card: '16px',

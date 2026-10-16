@@ -287,24 +287,30 @@ How can I assist you today?`,
 
   if (!isOpen) {
     return (
-      <button
-        onClick={() => setIsOpen(true)}
-        className={`fixed bottom-6 right-6 z-50 p-4 rounded-full shadow-lg transition-all transform hover:scale-110 ${
-          isDarkMode 
-            ? 'bg-primary-600 hover:bg-primary-700' 
-            : 'bg-primary-500 hover:bg-primary-600'
-        } text-white`}
-        aria-label="Open AI Assistant"
-        title="Open AI Assistant (Ctrl+K)"
-      >
-        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
-        </svg>
-        <span className="absolute -top-1 -right-1 flex h-3 w-3">
-          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-          <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
+      <div className="fixed bottom-7 right-7 z-50 flex items-center gap-3">
+        <span
+          className="px-[18px] py-2.5 rounded-full text-[15px] font-semibold"
+          style={{
+            background: 'var(--surface)',
+            color: 'var(--ink)',
+            border: '1px solid var(--border)',
+            boxShadow: '0 8px 24px rgba(10,15,40,.16)',
+          }}
+        >
+          Ask the assistant
         </span>
-      </button>
+        <button
+          onClick={() => setIsOpen(true)}
+          className="w-[60px] h-[60px] rounded-full flex items-center justify-center transition-transform hover:scale-105"
+          style={{ background: '#E3B04B', color: '#14182B', boxShadow: '0 10px 28px rgba(10,15,40,.28)' }}
+          aria-label="Open AI Assistant"
+          title="Open AI Assistant (Ctrl+K)"
+        >
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z" />
+          </svg>
+        </button>
+      </div>
     );
   }
 

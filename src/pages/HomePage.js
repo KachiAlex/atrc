@@ -40,7 +40,8 @@ const HomePage = () => {
       console.error('Error fetching announcements:', error);
       setAnnouncements([
         { id: 1, title: 'Assembly agenda published', content: 'Read the full agenda before you RSVP.', createdAt: '2024-10-12' },
-        { id: 2, title: 'Course enrolment is open', content: 'Leadership Foundations is now accepting new learners.', createdAt: '2024-10-09' }
+        { id: 2, title: 'Course enrolment is open', content: 'New Leadership Institute intake.', createdAt: '2024-10-09' },
+        { id: 3, title: 'Updated guidance for community reports', content: 'What to include when you file.', createdAt: '2024-10-02' }
       ]);
     } finally {
       setLoadingAnnouncements(false);
@@ -84,100 +85,126 @@ const HomePage = () => {
     };
   };
 
-  const eventTypeColor = (type) => {
+  const eventBadgeClass = (type) => {
     const t = (type || '').toLowerCase();
-    if (t === 'governance' || t === 'meeting') return 'a-badge-info';
-    if (t === 'community' || t === 'ceremony') return 'a-badge-warn';
-    return 'a-badge-ok';
+    if (t === 'community' || t === 'dialogue') return 'a-badge-ok';
+    if (t === 'culture' || t === 'ceremony') return 'a-badge-warn';
+    return 'a-badge-info';
   };
 
+  const goldDark = '#8A6210';
+
   return (
-    <div className="min-h-screen" style={{ background: 'var(--bg)', color: 'var(--ink)' }}>
+    <div className="min-h-screen text-[17px] leading-[1.55]" style={{ background: 'var(--bg)', color: 'var(--ink)' }}>
 
       {/* ===== Top nav ===== */}
-      <nav
-        className="sticky top-0 z-40 border-b"
-        style={{ background: 'var(--bg)', borderColor: 'var(--border)' }}
-      >
-        <div className="max-w-6xl mx-auto px-5 flex items-center justify-between h-[68px]">
-          <Link to="/" className="flex items-center gap-2.5">
-            <CrownMark size={38} variant="dark" />
-            <div className="leading-tight">
-              <div className="font-bold text-[16px]">ATRC</div>
-              <div className="text-[12px]" style={{ color: 'var(--muted)' }}>Traditional Rulers</div>
+      <nav className="border-b" style={{ background: 'var(--bg)', borderColor: 'var(--border)' }}>
+        <div className="max-w-6xl mx-auto px-6 lg:px-8 py-4 flex flex-wrap items-center justify-between gap-4">
+          <Link to="/" aria-label="ATRC home" className="flex items-center gap-3">
+            <CrownMark size={40} variant="dark" />
+            <div className="leading-[1.1]">
+              <div className="font-display font-bold text-[24px]" style={{ color: 'var(--brand)' }}>ATRC</div>
+              <div className="text-[11px] tracking-[0.09em] uppercase" style={{ color: 'var(--muted)' }}>African Traditional Rulers Council</div>
             </div>
           </Link>
-          <div className="hidden md:flex items-center gap-7 text-[15px] font-medium" style={{ color: 'var(--muted)' }}>
+          <div className="hidden md:flex items-center gap-7 text-[16px] font-medium">
             <a href="#platform" className="hover:opacity-70">Platform</a>
             <a href="#institute" className="hover:opacity-70">Leadership Institute</a>
             <Link to="/events" className="hover:opacity-70">Events</Link>
             <Link to="/announcements" className="hover:opacity-70">Announcements</Link>
           </div>
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-3">
             <button
               onClick={toggleTheme}
-              className="min-h-[44px] min-w-[44px] inline-flex items-center justify-center rounded-[10px] border"
+              className="w-11 h-11 inline-flex items-center justify-center rounded-[10px] border"
               style={{ borderColor: 'var(--border)', background: 'var(--surface)', color: 'var(--ink)' }}
               aria-label="Toggle theme"
             >
-              <Icon name={isDarkMode ? 'sun' : 'moon'} size={19} />
+              <Icon name={isDarkMode ? 'sun' : 'moon'} size={20} />
             </button>
-            <Link to="/auth" className="a-btn-ghost hidden sm:inline-flex">Sign in</Link>
-            <Link to="/auth" className="a-btn-primary">Join</Link>
+            <Link
+              to="/auth"
+              className="hidden sm:inline-flex min-h-[44px] items-center px-5 rounded-[10px] border-[1.5px] font-semibold transition-colors"
+              style={{ borderColor: 'var(--brand)', color: 'var(--brand)' }}
+            >
+              Sign in
+            </Link>
+            <Link to="/auth" className="a-btn-primary min-h-[44px] px-5">Join</Link>
           </div>
         </div>
       </nav>
 
       {/* ===== Hero ===== */}
-      <section style={{ background: 'var(--hero)' }} className="text-white">
-        <WeaveBand height={14} />
-        <div className="max-w-6xl mx-auto px-5 pt-16 pb-20 lg:pt-24 lg:pb-28 grid lg:grid-cols-2 gap-14 items-center">
-          <div>
-            <h1 className="font-serif font-bold leading-[1.08] text-[42px] sm:text-[54px] lg:text-[62px]">
+      <section style={{ background: '#0F1A44' }} className="text-white">
+        <div className="max-w-6xl mx-auto px-6 lg:px-8 pt-[88px] pb-24 flex flex-wrap items-center gap-14">
+          <div className="flex-[1_1_480px] min-w-0">
+            <div className="inline-flex items-center gap-2.5 text-[13px] font-semibold tracking-[0.14em] uppercase text-[#E3B04B]">
+              <span className="w-7 h-0.5 bg-[#E3B04B] inline-block" />
               The digital home of traditional leadership
-            </h1>
-            <p className="mt-5 text-[19px] leading-relaxed text-[#C9D0EE] max-w-xl">
+            </div>
+            <h1 className="mt-5 font-display font-bold leading-[1.08] tracking-[-0.01em] text-[42px] sm:text-[54px] lg:text-[62px]">
               Where the council gathers, wherever its people are.
+            </h1>
+            <p className="mt-6 text-[20px] leading-[1.55] text-[#C9D0EE] max-w-[540px]">
+              Hold meetings, settle disputes, record community progress and learn together. One platform for kings, chiefs, elders and the communities they serve.
             </p>
-            <div className="mt-9 flex flex-wrap gap-3">
-              <Link to="/auth" className="a-btn-gold text-[16px] px-7">Join the council</Link>
+            <div className="mt-9 flex flex-wrap gap-3.5">
+              <Link
+                to="/auth"
+                className="min-h-[52px] inline-flex items-center gap-2.5 px-7 rounded-[12px] font-bold text-[17px] bg-[#E3B04B] text-[#14182B] hover:bg-[#EDBE5E] transition-colors"
+              >
+                Join the council
+                <Icon name="arrowRight" size={20} />
+              </Link>
               <Link
                 to="/events"
-                className="a-btn text-[16px] px-7 border border-[#3D4B8C] text-white hover:bg-[#1A2866]"
-                style={{ background: 'transparent' }}
+                className="min-h-[52px] inline-flex items-center px-7 rounded-[12px] border-[1.5px] border-[#8A97CF] text-white font-semibold text-[17px] hover:bg-white/10 transition-colors"
               >
                 See public events
               </Link>
             </div>
           </div>
 
-          {/* Floating preview cards */}
-          <div className="hidden lg:flex flex-col gap-4 relative">
-            <div className="self-start w-[300px] rounded-card p-4 shadow-xl" style={{ background: 'var(--surface)', color: 'var(--ink)' }}>
-              <div className="flex items-center justify-between">
-                <span className="text-[12px] font-semibold uppercase tracking-wide" style={{ color: 'var(--muted)' }}>Live meeting</span>
-                <span className="a-badge a-badge-live">LIVE</span>
+          {/* Preview cards */}
+          <div className="hidden lg:flex flex-[1_1_420px] min-w-0 flex-col gap-4">
+            <div
+              className="rounded-[20px] p-[22px] text-[#14182B]"
+              style={{ background: '#FFFCF6', boxShadow: '0 24px 48px rgba(5,10,35,.35)' }}
+            >
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-[13px] font-semibold tracking-[0.08em] uppercase text-[#5B6075]">Live meeting</span>
+                <span className="inline-flex items-center gap-1.5 bg-[#9B2C2C] text-white text-[12px] font-bold tracking-[0.08em] px-2.5 py-1 rounded-full">
+                  <span className="w-[7px] h-[7px] rounded-full bg-white inline-block" />
+                  LIVE
+                </span>
               </div>
-              <div className="mt-2 font-semibold text-[16px]">Quarterly Council Assembly</div>
-              <div className="text-[14px]" style={{ color: 'var(--muted)' }}>Sample meeting card</div>
+              <div className="mt-3.5 h-[170px] rounded-[12px] bg-[#17275F] flex items-center justify-center">
+                <span className="w-14 h-14 rounded-full bg-[#E3B04B] text-[#14182B] flex items-center justify-center">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 4.5v15a1 1 0 0 0 1.5.86l12.5-7.5a1 1 0 0 0 0-1.72L8.5 3.64A1 1 0 0 0 7 4.5z"/></svg>
+                </span>
+              </div>
+              <div className="mt-3.5 font-display font-semibold text-[21px]">Quarterly Council Assembly</div>
+              <div className="mt-0.5 text-[15px] text-[#5B6075]">Sample meeting card</div>
             </div>
-            <div className="self-end w-[300px] rounded-card p-4 shadow-xl" style={{ background: 'var(--surface)', color: 'var(--ink)' }}>
-              <span className="text-[12px] font-semibold uppercase tracking-wide" style={{ color: 'var(--muted)' }}>Report filed</span>
-              <div className="mt-2 font-semibold text-[16px]">Water point repair, Ward 3</div>
-              <div className="text-[14px]" style={{ color: 'var(--muted)' }}>Status: under review</div>
-            </div>
-            <div className="self-start w-[300px] rounded-card p-4 shadow-xl ml-10" style={{ background: 'var(--surface)', color: 'var(--ink)' }}>
-              <span className="text-[12px] font-semibold uppercase tracking-wide" style={{ color: 'var(--muted)' }}>Announcement</span>
-              <div className="mt-2 font-semibold text-[16px]">Assembly agenda published</div>
-              <div className="text-[14px]" style={{ color: 'var(--muted)' }}>From the council secretariat</div>
+            <div className="flex flex-wrap gap-4">
+              <div className="flex-1 min-w-[180px] bg-[#16245A] border border-[#2A3A78] rounded-[16px] px-[18px] py-4">
+                <div className="text-[13px] text-[#E3B04B] font-semibold tracking-[0.06em] uppercase">Report filed</div>
+                <div className="mt-1 text-[16px] text-white font-medium">Water point repair, Ward 3</div>
+                <div className="mt-0.5 text-[14px] text-[#AAB4E0]">Status: under review</div>
+              </div>
+              <div className="flex-1 min-w-[180px] bg-[#16245A] border border-[#2A3A78] rounded-[16px] px-[18px] py-4">
+                <div className="text-[13px] text-[#E3B04B] font-semibold tracking-[0.06em] uppercase">Announcement</div>
+                <div className="mt-1 text-[16px] text-white font-medium">Assembly agenda published</div>
+                <div className="mt-0.5 text-[14px] text-[#AAB4E0]">From the council secretariat</div>
+              </div>
             </div>
           </div>
         </div>
-        <WeaveBand height={14} />
+        <WeaveBand height={16} />
       </section>
 
       {/* ===== Feature chips ===== */}
-      <section className="max-w-6xl mx-auto px-5 py-14">
+      <section className="max-w-6xl mx-auto px-6 lg:px-8 py-14">
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {featureChips.map((chip) => (
             <div key={chip.label} className="a-card flex items-start gap-3">
@@ -192,42 +219,51 @@ const HomePage = () => {
       </section>
 
       {/* ===== The platform ===== */}
-      <section id="platform" className="max-w-6xl mx-auto px-5 pb-20">
-        <span className="a-badge a-badge-info mb-4">The platform</span>
-        <h2 className="font-serif font-bold text-[30px] sm:text-[38px] leading-tight max-w-2xl">
-          The work of governance and the work of learning, in one place
-        </h2>
-        <p className="mt-4 text-[17px] max-w-2xl" style={{ color: 'var(--muted)' }}>
-          Every tool follows the way councils already operate: record, deliberate, decide, share.
-        </p>
-        <div className="mt-10 grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+      <section id="platform" className="max-w-6xl mx-auto px-6 lg:px-8 pb-24">
+        <div className="max-w-[680px]">
+          <div className="text-[13px] font-semibold tracking-[0.14em] uppercase" style={{ color: 'var(--gold)' }}>The platform</div>
+          <h2 className="mt-3 font-display font-bold text-[32px] sm:text-[42px] leading-[1.15]" style={{ color: 'var(--brand)' }}>
+            The work of governance and the work of learning, in one place
+          </h2>
+          <p className="mt-4 text-[19px]" style={{ color: 'var(--muted)' }}>
+            Every tool follows the way councils already operate: record, deliberate, decide, share.
+          </p>
+        </div>
+        <div className="mt-12 grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {features.map((f) => (
-            <div key={f.title} className="a-card">
+            <div key={f.title} className="a-card !p-7">
               <div
-                className="w-11 h-11 rounded-[12px] flex items-center justify-center mb-4"
+                className="w-12 h-12 rounded-[12px] flex items-center justify-center"
                 style={{ background: 'var(--brand-soft)', color: 'var(--brand)' }}
               >
                 <Icon name={f.icon} size={24} />
               </div>
-              <h3 className="font-serif font-semibold text-[20px] mb-2">{f.title}</h3>
-              <p className="text-[15px] leading-relaxed" style={{ color: 'var(--muted)' }}>{f.desc}</p>
+              <h3 className="font-display font-semibold text-[23px] mt-[18px]">{f.title}</h3>
+              <p className="text-[16.5px] mt-2" style={{ color: 'var(--muted)' }}>{f.desc}</p>
             </div>
           ))}
         </div>
       </section>
 
       {/* ===== Leadership Institute ===== */}
-      <section id="institute" style={{ background: 'var(--surface)' }} className="border-y" >
-        <div className="max-w-6xl mx-auto px-5 py-20 grid lg:grid-cols-2 gap-12 items-center">
+      <section id="institute" style={{ background: 'var(--surface2)' }} className="border-y">
+        <div className="max-w-6xl mx-auto px-6 lg:px-8 py-24 grid lg:grid-cols-2 gap-12 items-center">
           <div>
-            <span className="a-badge a-badge-warn mb-4">Leadership Institute</span>
-            <h2 className="font-serif font-bold text-[30px] sm:text-[38px] leading-tight">
+            <div className="text-[13px] font-semibold tracking-[0.14em] uppercase" style={{ color: 'var(--gold)' }}>Leadership Institute</div>
+            <h2 className="mt-3 font-display font-bold text-[32px] sm:text-[42px] leading-[1.15]" style={{ color: 'var(--brand)' }}>
               Read, translate and learn at your own pace
             </h2>
-            <ul className="mt-6 space-y-3.5 text-[16px]" style={{ color: 'var(--muted)' }}>
-              <li className="flex gap-2.5"><Icon name="check" size={20} className="flex-shrink-0 mt-0.5" style={{ color: 'var(--ok-fg)' }} />Pick up where you left off. Progress and bookmarks are saved to your account.</li>
-              <li className="flex gap-2.5"><Icon name="check" size={20} className="flex-shrink-0 mt-0.5" style={{ color: 'var(--ok-fg)' }} />Select any passage to translate it, or translate a whole chapter.</li>
-              <li className="flex gap-2.5"><Icon name="check" size={20} className="flex-shrink-0 mt-0.5" style={{ color: 'var(--ok-fg)' }} />Courses with lessons, quizzes, discussion and certificates.</li>
+            <ul className="mt-6 space-y-4 text-[17px]">
+              {[
+                'Pick up where you left off. Progress and bookmarks are saved to your account.',
+                'Select any passage to translate it, or translate a whole chapter.',
+                'Courses with lessons, quizzes, discussion and certificates.',
+              ].map((li) => (
+                <li key={li} className="flex items-start gap-3">
+                  <Icon name="check" size={22} className="flex-shrink-0 mt-0.5" style={{ color: 'var(--gold)' }} />
+                  {li}
+                </li>
+              ))}
             </ul>
             <Link to="/auth" className="a-btn-primary mt-8 px-7">Open the Institute</Link>
           </div>
@@ -257,94 +293,131 @@ const HomePage = () => {
         </div>
       </section>
 
-      {/* ===== Events ===== */}
-      <section className="max-w-6xl mx-auto px-5 py-20">
-        <div className="flex items-center justify-between mb-8">
-          <h2 className="font-serif font-bold text-[28px] sm:text-[34px]">Upcoming events</h2>
-          <Link to="/events" className="text-[15px] font-semibold inline-flex items-center gap-1.5" style={{ color: 'var(--brand)' }}>
-            View all <Icon name="arrowRight" size={16} />
-          </Link>
-        </div>
-        {loadingEvents ? (
-          <div className="text-center py-10 a-muted">Loading events…</div>
-        ) : (
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            {events.map((event) => (
-              <div key={event.id} className="a-card">
-                <div className="flex items-start justify-between gap-3">
-                  <h3 className="font-serif font-semibold text-[19px] leading-snug">{event.title}</h3>
-                  <Icon name="events" size={20} className="flex-shrink-0 mt-1" style={{ color: 'var(--brand)' }} />
-                </div>
-                <p className="mt-2 text-[14px]" style={{ color: 'var(--muted)' }}>
-                  {formatDate(event.date)}{event.location ? ` · ${event.location}` : ''} · RSVP open
-                </p>
-                <span className={`a-badge mt-4 capitalize ${eventTypeColor(event.type)}`}>
-                  {event.type || 'Event'}
-                </span>
+      {/* ===== Events + Announcements (one section, 3:2) ===== */}
+      <section id="events" className="max-w-6xl mx-auto px-6 lg:px-8 py-24">
+        <div className="flex flex-wrap gap-14">
+
+          {/* Events */}
+          <div className="flex-[3_1_520px] min-w-0">
+            <div className="flex items-baseline justify-between gap-4">
+              <h2 className="font-display font-bold text-[32px]" style={{ color: 'var(--brand)' }}>Upcoming events</h2>
+              <Link to="/events" className="font-semibold whitespace-nowrap" style={{ color: goldDark }}>View all</Link>
+            </div>
+            {loadingEvents ? (
+              <div className="text-center py-10" style={{ color: 'var(--muted)' }}>Loading events…</div>
+            ) : (
+              <div className="mt-6 flex flex-col gap-4">
+                {events.map((event) => {
+                  const db2 = dateBlock(event.date);
+                  return (
+                    <div key={event.id} className="flex gap-5 items-center a-card !px-[22px] !py-[18px]">
+                      <div className="flex-shrink-0 w-16 text-center rounded-[12px] py-2" style={{ background: 'var(--brand)' }}>
+                        <div className="text-[12px] tracking-[0.1em] font-semibold" style={{ color: 'var(--gold)' }}>{db2.mon}</div>
+                        <div className="font-display font-bold text-[28px] leading-[1.1] text-white">{db2.day}</div>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="font-display font-semibold text-[21px] truncate">{event.title}</div>
+                        <div className="text-[15px]" style={{ color: 'var(--muted)' }}>
+                          {event.location ? `${event.location} · ` : ''}Public event · RSVP open
+                        </div>
+                      </div>
+                      <span className={`a-badge flex-shrink-0 capitalize ${eventBadgeClass(event.type)}`}>
+                        {event.type || 'Event'}
+                      </span>
+                    </div>
+                  );
+                })}
               </div>
-            ))}
+            )}
           </div>
-        )}
+
+          {/* Announcements */}
+          <div className="flex-[2_1_340px] min-w-0">
+            <div className="flex items-baseline justify-between gap-4">
+              <h2 className="font-display font-bold text-[32px]" style={{ color: 'var(--brand)' }}>Announcements</h2>
+              <Link to="/announcements" className="font-semibold whitespace-nowrap" style={{ color: goldDark }}>View all</Link>
+            </div>
+            {loadingAnnouncements ? (
+              <div className="text-center py-10" style={{ color: 'var(--muted)' }}>Loading announcements…</div>
+            ) : (
+              <div className="mt-6 a-card !px-6 !py-1.5">
+                {announcements.map((a, i) => (
+                  <div
+                    key={a.id}
+                    className="py-[18px]"
+                    style={i < announcements.length - 1 ? { borderBottom: '1px solid var(--border)' } : undefined}
+                  >
+                    <div className="text-[13px] font-semibold tracking-[0.06em] uppercase" style={{ color: goldDark }}>
+                      {formatDate(a.createdAt || a.date)}
+                    </div>
+                    <div className="mt-0.5 font-semibold text-[17.5px]">{a.title}</div>
+                    <div className="text-[15px]" style={{ color: 'var(--muted)' }}>
+                      {a.content || a.description}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
       </section>
 
-      {/* ===== Announcements ===== */}
-      <section className="max-w-6xl mx-auto px-5 pb-20">
-        <div className="flex items-center justify-between mb-8">
-          <h2 className="font-serif font-bold text-[28px] sm:text-[34px]">Announcements</h2>
-          <Link to="/announcements" className="text-[15px] font-semibold inline-flex items-center gap-1.5" style={{ color: 'var(--brand)' }}>
-            View all <Icon name="arrowRight" size={16} />
-          </Link>
-        </div>
-        {loadingAnnouncements ? (
-          <div className="text-center py-10 a-muted">Loading announcements…</div>
-        ) : (
-          <div className="space-y-4">
-            {announcements.map((a) => {
-              const db2 = dateBlock(a.createdAt || a.date);
-              return (
-                <div key={a.id} className="a-card flex gap-5 items-start">
-                  <div
-                    className="flex-shrink-0 w-14 rounded-[10px] py-2 text-center"
-                    style={{ background: 'var(--brand-soft)', color: 'var(--brand)' }}
-                  >
-                    <div className="text-[18px] font-bold leading-none">{db2.day}</div>
-                    <div className="text-[11px] font-semibold tracking-wide mt-1">{db2.mon}</div>
-                  </div>
-                  <div className="min-w-0">
-                    <h3 className="font-semibold text-[17px]">{a.title}</h3>
-                    <p className="text-[15px] mt-1 line-clamp-2" style={{ color: 'var(--muted)' }}>
-                      {a.content || a.description}
-                    </p>
-                  </div>
-                </div>
-              );
-            })}
+      {/* ===== Final CTA ===== */}
+      <section style={{ background: 'var(--hero)' }} className="text-white">
+        <div className="max-w-[860px] mx-auto px-6 lg:px-8 py-[88px] text-center">
+          <h2 className="font-display font-bold text-[34px] sm:text-[42px] leading-[1.15]">
+            Bring your community onto one platform
+          </h2>
+          <p className="mt-4 text-[19px] text-[#C9D0EE] max-w-[600px] mx-auto">
+            Create an account to file reports, join meetings and start learning. Existing members can sign in.
+          </p>
+          <div className="mt-8 flex flex-wrap gap-3.5 justify-center">
+            <Link
+              to="/auth"
+              className="min-h-[52px] inline-flex items-center px-[30px] rounded-[12px] font-bold bg-[#E3B04B] text-[#14182B] hover:bg-[#EDBE5E] transition-colors"
+            >
+              Create your account
+            </Link>
+            <Link
+              to="/auth"
+              className="min-h-[52px] inline-flex items-center px-[30px] rounded-[12px] border-[1.5px] border-[#8A97CF] text-white font-semibold hover:bg-white/10 transition-colors"
+            >
+              Sign in
+            </Link>
           </div>
-        )}
+        </div>
       </section>
 
       {/* ===== Footer ===== */}
-      <footer style={{ background: 'var(--side)' }} className="text-white">
-        <WeaveBand height={14} />
-        <div className="max-w-6xl mx-auto px-5 py-14">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-8">
-            <div className="flex items-center gap-3">
-              <CrownMark size={40} variant="gold" />
-              <div>
-                <div className="font-bold text-[17px]">ATRC</div>
-                <div className="text-[13px] text-[#AAB4E0]">African Traditional Rulers Council</div>
-              </div>
+      <footer style={{ background: '#0A1233' }} className="text-[#AAB4E0]">
+        <div className="max-w-6xl mx-auto px-6 lg:px-8 pt-14 pb-10 flex flex-wrap gap-10 justify-between">
+          <div className="flex-[1_1_320px] max-w-[420px]">
+            <div className="font-display font-bold text-[26px] text-white">ATRC</div>
+            <div className="mt-1 text-[13px] tracking-[0.09em] uppercase text-[#E3B04B]">African Traditional Rulers Council</div>
+            <p className="mt-3.5 text-[15.5px]">
+              A digital platform for traditional governance, dispute resolution and cultural preservation.
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-14">
+            <div className="flex flex-col gap-2.5 text-[15.5px]">
+              <span className="text-white font-semibold">Platform</span>
+              <a href="#platform" className="hover:text-white">Features</a>
+              <a href="#institute" className="hover:text-white">Leadership Institute</a>
             </div>
-            <div className="flex flex-wrap gap-6 text-[15px] text-[#C9D0EE]">
+            <div className="flex flex-col gap-2.5 text-[15.5px]">
+              <span className="text-white font-semibold">Public</span>
               <Link to="/events" className="hover:text-white">Events</Link>
               <Link to="/announcements" className="hover:text-white">Announcements</Link>
+            </div>
+            <div className="flex flex-col gap-2.5 text-[15.5px]">
+              <span className="text-white font-semibold">Members</span>
               <Link to="/auth" className="hover:text-white">Sign in</Link>
-              <Link to="/auth" className="hover:text-white">Join the council</Link>
+              <Link to="/auth" className="hover:text-white">Join</Link>
             </div>
           </div>
-          <div className="mt-10 pt-6 border-t border-[#27315F] text-[13px] text-[#8B98C9]">
-            © {new Date().getFullYear()} African Traditional Rulers Council
-          </div>
+        </div>
+        <div className="max-w-6xl mx-auto px-6 lg:px-8 pb-8 text-[14px] text-[#8C97C9]">
+          © {new Date().getFullYear()} African Traditional Rulers Council
         </div>
       </footer>
     </div>

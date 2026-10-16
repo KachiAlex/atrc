@@ -125,36 +125,36 @@ const ModernAuth = () => {
   };
 
   const valueProps = [
-    'A dashboard shaped to your role',
-    'Interface and books in your language',
-    'Live and recorded council meetings',
+    { icon: 'shield', text: 'A dashboard shaped to your role' },
+    { icon: 'language', text: 'Interface and books in your language' },
+    { icon: 'meetings', text: 'Live and recorded council meetings' },
   ];
 
   return (
     <div className="min-h-screen flex" style={{ background: 'var(--bg)' }}>
       {/* ===== Left brand panel ===== */}
-      <div className="hidden lg:flex w-[44%] flex-col text-white" style={{ background: 'var(--side)' }}>
-        <WeaveBand height={14} />
-        <div className="flex-1 flex flex-col justify-center px-12 xl:px-16">
-          <CrownMark size={52} variant="gold" />
-          <h1 className="font-serif font-bold text-[36px] xl:text-[44px] leading-[1.12] mt-8">
+      <div className="hidden lg:flex w-[44%] flex-col justify-between text-white" style={{ background: '#0F1A44' }}>
+        <div className="px-14 pt-11">
+          <Link to="/" className="inline-flex items-center gap-3">
+            <CrownMark size={40} variant="gold" />
+            <span className="font-display font-bold text-[26px]">ATRC</span>
+          </Link>
+          <h1 className="font-display font-bold text-[46px] leading-[1.12] mt-24 max-w-[460px]">
             The council's digital home
           </h1>
-          <p className="mt-5 text-[17px] leading-relaxed text-[#C9D0EE] max-w-md">
+          <p className="mt-[18px] text-[19px] leading-[1.5] text-[#C9D0EE] max-w-[440px]">
             Sign in to your dashboard to file reports, join meetings, read in your own language and keep learning.
           </p>
-          <ul className="mt-9 space-y-4">
+          <ul className="mt-9 space-y-4 text-[17px]">
             {valueProps.map((v) => (
-              <li key={v} className="flex items-center gap-3 text-[16px] text-[#E4E8F7]">
-                <span className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: '#1A2866' }}>
-                  <Icon name="check" size={17} className="text-[#E3B04B]" />
-                </span>
-                {v}
+              <li key={v.text} className="flex items-center gap-3">
+                <Icon name={v.icon} size={22} className="text-[#E3B04B] flex-shrink-0" />
+                {v.text}
               </li>
             ))}
           </ul>
         </div>
-        <WeaveBand height={14} />
+        <WeaveBand height={16} />
       </div>
 
       {/* ===== Right form ===== */}
@@ -181,7 +181,7 @@ const ModernAuth = () => {
               <button
                 key={tab.label}
                 onClick={() => { setIsLogin(tab.id); setError(''); }}
-                className="flex-1 py-2.5 px-4 rounded-[10px] text-[15px] font-semibold transition-colors min-h-[44px]"
+                className="flex-1 py-2.5 px-4 rounded-[9px] text-[16px] font-semibold transition-colors min-h-[46px]"
                 style={
                   isLogin === tab.id
                     ? { background: 'var(--surface)', color: 'var(--ink)', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }
@@ -193,7 +193,7 @@ const ModernAuth = () => {
             ))}
           </div>
 
-          <h2 className="font-serif font-bold text-[28px]" style={{ color: 'var(--ink)' }}>
+          <h2 className="font-display font-bold text-[32px]" style={{ color: 'var(--brand)' }}>
             {isLogin ? 'Welcome back' : 'Create your account'}
           </h2>
           <p className="mt-1.5 mb-7 text-[15px]" style={{ color: 'var(--muted)' }}>
@@ -215,7 +215,11 @@ const ModernAuth = () => {
             <form onSubmit={handleLogin} className="space-y-4">
               {field('email', 'Email', 'email')}
               {field('password', 'Password', 'password')}
-              <button type="submit" disabled={loading} className="a-btn-primary w-full disabled:opacity-60">
+              <button
+                type="submit"
+                disabled={loading}
+                className="a-btn-primary w-full !min-h-[52px] !rounded-[12px] !text-[17px] !font-bold disabled:opacity-60"
+              >
                 {loading ? 'Signing in…' : 'Sign in'}
               </button>
               <p className="text-[14px] text-center pt-1" style={{ color: 'var(--muted)' }}>
@@ -256,7 +260,11 @@ const ModernAuth = () => {
               {field('password', 'Password', 'password')}
               {field('confirmPassword', 'Confirm password', 'password')}
 
-              <button type="submit" disabled={loading} className="a-btn-primary w-full disabled:opacity-60">
+              <button
+                type="submit"
+                disabled={loading}
+                className="a-btn-primary w-full !min-h-[52px] !rounded-[12px] !text-[17px] !font-bold disabled:opacity-60"
+              >
                 {loading ? 'Creating account…' : 'Create account'}
               </button>
             </form>
