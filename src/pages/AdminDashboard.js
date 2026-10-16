@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { db } from '../firebase/config';
-import { collection, getDocs, query, orderBy, where, doc, updateDoc, deleteDoc } from 'firebase/firestore';
+import { db } from '../api/config';
+import { collection, getDocs, query, orderBy, where, doc, updateDoc, deleteDoc } from '../api/store';
 import { createCustomAdmin } from '../utils/createDefaultAdmin';
 import BookManagement from './BookManagement';
 
@@ -639,8 +639,8 @@ const AdminDashboard = () => {
                 onSubmit={async (e) => {
                   e.preventDefault();
                   try {
-                    await (await import('firebase/firestore')).addDoc(
-                      (await import('firebase/firestore')).collection(db, 'announcements'),
+                    await (await import('../api/store')).addDoc(
+                      (await import('../api/store')).collection(db, 'announcements'),
                       {
                         title: newAnnouncement.title,
                         content: newAnnouncement.content,
@@ -702,8 +702,8 @@ const AdminDashboard = () => {
                 onSubmit={async (e) => {
                   e.preventDefault();
                   try {
-                    await (await import('firebase/firestore')).addDoc(
-                      (await import('firebase/firestore')).collection(db, 'events'),
+                    await (await import('../api/store')).addDoc(
+                      (await import('../api/store')).collection(db, 'events'),
                       {
                         title: newEvent.title,
                         description: newEvent.description,

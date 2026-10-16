@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { auth, db } from '../firebase/config';
-import { onAuthStateChanged, signInWithEmailAndPassword, signOut, createUserWithEmailAndPassword } from 'firebase/auth';
-import { doc, setDoc, getDoc } from 'firebase/firestore';
+import { auth, db } from '../api/config';
+import { onAuthStateChanged, signInWithEmailAndPassword, signOut, createUserWithEmailAndPassword } from '../api/auth';
+import { doc, setDoc, getDoc } from '../api/store';
 
 const AuthContext = createContext();
 
@@ -21,7 +21,10 @@ export const AuthProvider = ({ children }) => {
   const signup = async (email, password, userData = {}) => {
     try {
       const result = await createUserWithEmailAndPassword(auth, email, password);
-      
+
+      // Never persist credentials in the user document
+      const { password: _p, confirmPassword: _cp, ...safeUserData } = userData;
+
       // Create user document in Firestore with default role
       const userDocRef = doc(db, 'users', result.user.uid);
       const userDocData = {
@@ -33,7 +36,7 @@ export const AuthProvider = ({ children }) => {
         isVerified: (userData.role === 'admin'), // Admin users are auto-verified, others need approval
         verifiedAt: (userData.role === 'admin') ? new Date() : null,
         verifiedBy: (userData.role === 'admin') ? 'system' : null,
-        ...userData
+        ...safeUserData
       };
       
       console.log('Creating user document with data:', userDocData);

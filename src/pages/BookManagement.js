@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { collection, addDoc, getDocs, deleteDoc, doc, updateDoc, query, orderBy, where } from 'firebase/firestore';
-import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
-import { db, storage } from '../firebase/config';
+import { collection, addDoc, getDocs, deleteDoc, doc, updateDoc, query, orderBy, where } from '../api/store';
+import { ref, uploadBytes, getDownloadURL, deleteObject } from '../api/storage';
+import { db, storage } from '../api/config';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useAuth } from '../contexts/AuthContext';
 import BookUploadModal from '../components/BookUploadModal';

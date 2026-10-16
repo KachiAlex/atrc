@@ -57,15 +57,14 @@ const ModernAuth = () => {
     setLoading(true);
 
     try {
+      const { password, confirmPassword, ...profile } = formData;
       const userData = {
-        email: formData.email,
-        password: formData.password,
+        ...profile,
         role: role,
-        displayName: formData.fullName || formData.throneName,
-        ...formData
+        displayName: formData.fullName || formData.throneName
       };
 
-      await signup(userData);
+      await signup(formData.email, formData.password, userData);
       navigate('/app/dashboard');
     } catch (error) {
       setError('Failed to create account. Please try again.');

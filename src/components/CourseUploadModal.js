@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { collection, addDoc } from 'firebase/firestore';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { db, storage } from '../firebase/config';
+import { collection, addDoc } from '../api/store';
+import { ref, uploadBytes, getDownloadURL } from '../api/storage';
+import { db, storage } from '../api/config';
 import VideoUploadManager from './VideoUploadManager';
 import toast from 'react-hot-toast';
 

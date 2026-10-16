@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useAuth } from '../contexts/AuthContext';
-import { db } from '../firebase/config';
-import { collection, addDoc, updateDoc, deleteDoc, doc, getDocs, query, where } from 'firebase/firestore';
+import { db } from '../api/config';
+import { collection, addDoc, updateDoc, deleteDoc, doc, getDocs, query, where } from '../api/store';
 import toast from 'react-hot-toast';
 
 const CommunityManagement = () => {

@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { db } from '../firebase/config';
-import { collection, getDocs, query, orderBy, doc, updateDoc, deleteDoc } from 'firebase/firestore';
+import { db } from '../api/config';
+import { collection, getDocs, query, orderBy, doc, updateDoc, deleteDoc } from '../api/store';
 import BookManagement from './BookManagement';
 import CourseManagement from './CourseManagement';
 
@@ -350,7 +350,7 @@ const AdminAccessPanel = () => {
                       <div>
                         <span className="text-sm font-medium text-gray-600">Joined:</span>
                         <p className="text-gray-900">
-                          {selectedUser.createdAt ? new Date(selectedUser.createdAt.seconds * 1000).toLocaleDateString() : 'Unknown'}
+                          {selectedUser.createdAt ? new Date(selectedUser.createdAt).toLocaleDateString() : 'Unknown'}
                         </p>
                       </div>
                     </div>

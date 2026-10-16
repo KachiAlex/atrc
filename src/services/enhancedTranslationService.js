@@ -1,6 +1,6 @@
 import axios from 'axios';
-import { collection, doc, getDoc, setDoc, addDoc, query, where, getDocs, orderBy, limit } from 'firebase/firestore';
-import { db } from '../firebase/config';
+import { collection, doc, getDoc, setDoc, addDoc, query, where, getDocs, orderBy, limit } from '../api/store';
+import { db } from '../api/config';
 
 /**
  * Enhanced Translation Service with Chunking and Caching
@@ -65,7 +65,7 @@ const getCachedTranslation = async (cacheKey) => {
     if (cacheDoc.exists()) {
       const data = cacheDoc.data();
       const now = new Date();
-      const cacheTime = data.timestamp.toDate();
+      const cacheTime = new Date(data.timestamp);
       const hoursDiff = (now - cacheTime) / (1000 * 60 * 60);
       
       if (hoursDiff < CACHE_EXPIRY_HOURS) {
@@ -348,11 +348,11 @@ export const getTranslationStats = async () => {
       }
       
       // Recent translations
-      if (data.timestamp && data.timestamp.toDate() > oneDayAgo) {
+      if (data.timestamp && new Date(data.timestamp) > oneDayAgo) {
         stats.recentTranslations.push({
           id: doc.id,
           targetLang: data.targetLang,
-          timestamp: data.timestamp.toDate(),
+          timestamp: new Date(data.timestamp),
           textLength: data.originalText?.length || 0
         });
       }

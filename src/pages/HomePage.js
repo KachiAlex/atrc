@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { collection, getDocs, query, orderBy, limit, where } from 'firebase/firestore';
-import { db } from '../firebase/config';
+import { collection, getDocs, query, orderBy, limit, where } from '../api/store';
+import { db } from '../api/config';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import LanguageSelector from '../components/LanguageSelector';
@@ -884,7 +884,7 @@ const HomePage = () => {
                         </span>
                         <span className="text-sm text-gray-500">
                           {announcement.createdAt 
-                            ? new Date(announcement.createdAt.seconds * 1000).toLocaleDateString()
+                            ? new Date(announcement.createdAt).toLocaleDateString()
                             : announcement.date
                           }
                         </span>

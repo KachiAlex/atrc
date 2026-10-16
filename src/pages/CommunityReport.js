@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useAuth } from '../contexts/AuthContext';
-import { db } from '../firebase/config';
-import { collection, addDoc, query, where, getDocs, serverTimestamp, orderBy } from 'firebase/firestore';
+import { db } from '../api/config';
+import { collection, addDoc, query, where, getDocs, serverTimestamp, orderBy } from '../api/store';
 
 const CommunityReport = () => {
   const { isDarkMode } = useTheme();

@@ -4,7 +4,6 @@
   "description": "Africa Traditional Rulers for Christ - Digital Platform for Traditional Rulers",
   "private": true,
   "dependencies": {
-    "@dataconnect/generated": "file:src/dataconnect-generated",
     "@heroicons/react": "^2.2.0",
     "@testing-library/jest-dom": "^5.16.5",
     "@testing-library/react": "^13.4.0",
@@ -12,7 +11,6 @@
     "autoprefixer": "^10.4.15",
     "axios": "^1.12.2",
     "date-fns": "^2.30.0",
-    "firebase": "^10.5.0",
     "framer-motion": "^10.16.4",
     "lucide-react": "^0.263.1",
     "mammoth": "^1.11.0",

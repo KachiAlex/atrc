@@ -1,0 +1,23 @@
+services:
+  app:
+    build: .
+    container_name: atrc-app
+    ports:
+      - "8080:80"
+    environment:
+      POSTGRES_USER: atrc
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: atrc
+      PGDATA: /var/lib/postgresql/data
+      DATABASE_URL: postgres://atrc:${POSTGRES_PASSWORD}@127.0.0.1:5432/atrc
+      JWT_SECRET: ${JWT_SECRET}
+      UPLOAD_DIR: /var/lib/atrc/uploads
+      PORT: 3001
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - uploads:/var/lib/atrc/uploads
+    restart: unless-stopped
+
+volumes:
+  pgdata:
+  uploads:

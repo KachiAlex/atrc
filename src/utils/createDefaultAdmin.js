@@ -1,6 +1,6 @@
-import { auth, db } from '../firebase/config';
-import { createUserWithEmailAndPassword } from 'firebase/auth';
-import { doc, setDoc, getDoc } from 'firebase/firestore';
+import { auth, db } from '../api/config';
+import { createUserWithEmailAndPassword } from '../api/auth';
+import { doc, setDoc, getDoc } from '../api/store';
 
 /**
  * Creates a default admin user for the ATRC platform

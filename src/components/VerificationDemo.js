@@ -158,7 +158,7 @@ const VerificationDemo = () => {
                         ⏳ Pending Verification
                       </span>
                       <span className="text-xs text-gray-500">
-                        Applied: {new Date(user.createdAt.seconds * 1000).toLocaleDateString()}
+                        Applied: {new Date(user.createdAt).toLocaleDateString()}
                       </span>
                     </div>
                   </div>
@@ -201,7 +201,7 @@ const VerificationDemo = () => {
                     <div>
                       <span className="text-sm font-medium text-gray-600">Application Date:</span>
                       <p className="text-gray-900">
-                        {new Date(user.createdAt.seconds * 1000).toLocaleDateString()}
+                        {new Date(user.createdAt).toLocaleDateString()}
                       </p>
                     </div>
                     <div>

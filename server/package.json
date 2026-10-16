@@ -1,0 +1,17 @@
+{
+  "name": "atrc-api",
+  "version": "1.0.0",
+  "private": true,
+  "description": "ATRC backend API - Postgres document store + auth (Firebase replacement)",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "express": "^4.21.2",
+    "jsonwebtoken": "^9.0.2",
+    "multer": "^2.0.2",
+    "pg": "^8.13.1"
+  }
+}

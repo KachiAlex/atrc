@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { collection, addDoc, getDocs, deleteDoc, doc, updateDoc, query, orderBy, where } from 'firebase/firestore';
-import { db } from '../firebase/config';
+import { collection, addDoc, getDocs, deleteDoc, doc, updateDoc, query, orderBy, where } from '../api/store';
+import { db } from '../api/config';
 
 const LiveMeetings = () => {
   const [meetings, setMeetings] = useState([]);

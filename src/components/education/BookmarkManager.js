@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
-import { db } from '../../firebase/config';
-import { doc, setDoc, updateDoc, collection, query, where, getDocs, deleteDoc } from 'firebase/firestore';
+import { db } from '../../api/config';
+import { doc, setDoc, updateDoc, collection, query, where, getDocs, deleteDoc } from '../../api/store';
 import { BookmarkIcon, PencilIcon, TrashIcon, EyeIcon } from '@heroicons/react/24/outline';
 
 const BookmarkManager = () => {

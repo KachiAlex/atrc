@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { collection, query, orderBy, onSnapshot, doc, updateDoc, deleteDoc } from 'firebase/firestore';
-import { ref, deleteObject } from 'firebase/storage';
-import { db, storage } from '../firebase/config';
+import { collection, query, orderBy, onSnapshot, doc, updateDoc, deleteDoc } from '../api/store';
+import { ref, deleteObject } from '../api/storage';
+import { db, storage } from '../api/config';
 import CourseUploadModal from '../components/CourseUploadModal';
 import VideoEmbed from '../components/VideoEmbed';
 import toast from 'react-hot-toast';

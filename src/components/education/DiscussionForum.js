@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
-import { db } from '../../firebase/config';
-import { doc, getDoc, setDoc, updateDoc, collection, query, where, getDocs, orderBy, limit, addDoc } from 'firebase/firestore';
+import { db } from '../../api/config';
+import { doc, getDoc, setDoc, updateDoc, collection, query, where, getDocs, orderBy, limit, addDoc } from '../../api/store';
 import { ChatBubbleLeftRightIcon, HeartIcon, ShareIcon, FlagIcon, UserIcon } from '@heroicons/react/24/outline';
 import { HeartIcon as HeartSolidIcon } from '@heroicons/react/24/solid';
 

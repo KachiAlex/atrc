@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
-import { db } from '../../firebase/config';
-import { doc, getDoc, setDoc, updateDoc, collection, query, where, getDocs } from 'firebase/firestore';
+import { db } from '../../api/config';
+import { doc, getDoc, setDoc, updateDoc, collection, query, where, getDocs } from '../../api/store';
 import { QuestionMarkCircleIcon, CheckCircleIcon, XCircleIcon, ClockIcon, TrophyIcon } from '@heroicons/react/24/outline';
 
 const QuizSystem = () => {

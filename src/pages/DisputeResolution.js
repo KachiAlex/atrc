@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useAuth } from '../contexts/AuthContext';
-import { db, storage } from '../firebase/config';
+import { db, storage } from '../api/config';
 import { 
   collection, 
   addDoc, 
@@ -13,8 +13,8 @@ import {
   where, 
   orderBy,
   serverTimestamp 
-} from 'firebase/firestore';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+} from '../api/store';
+import { ref, uploadBytes, getDownloadURL } from '../api/storage';
 import toast from 'react-hot-toast';
 
 const DisputeResolution = () => {

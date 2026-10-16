@@ -3,9 +3,9 @@
   Note: This file is served from /service-worker.js at the site root.
 */
 
-const CACHE_NAME = 'atrc-pwa-cache-v2';
-const STATIC_CACHE = 'atrc-static-v2';
-const DYNAMIC_CACHE = 'atrc-dynamic-v2';
+const CACHE_NAME = 'atrc-pwa-cache-v3';
+const STATIC_CACHE = 'atrc-static-v3';
+const DYNAMIC_CACHE = 'atrc-dynamic-v3';
 
 const APP_SHELL = [
   '/',
@@ -92,18 +92,8 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Stale-while-revalidate for API calls
-  if (request.url.includes('/api/') || request.url.includes('firestore.googleapis.com')) {
-    event.respondWith(
-      caches.match(request).then((cached) => {
-        const fetchPromise = fetch(request).then((response) => {
-          const copy = response.clone();
-          caches.open(DYNAMIC_CACHE).then((cache) => cache.put(request, copy));
-          return response;
-        });
-        return cached || fetchPromise;
-      })
-    );
+  // Never cache API or upload requests — always hit the network
+  if (url.pathname.startsWith('/api/') || url.pathname.startsWith('/uploads/')) {
     return;
   }
 

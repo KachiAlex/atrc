@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { db, storage } from '../firebase/config';
-import { collection, addDoc, getDocs, query, orderBy, serverTimestamp, updateDoc, doc } from 'firebase/firestore';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { db, storage } from '../api/config';
+import { collection, addDoc, getDocs, query, orderBy, serverTimestamp, updateDoc, doc } from '../api/store';
+import { ref, uploadBytes, getDownloadURL } from '../api/storage';
 import { useAuth } from '../contexts/AuthContext';
 
 const ProjectReports = () => {
@@ -146,7 +146,7 @@ const ProjectReports = () => {
         p.budget || '',
         `"${(p.timeline || '').replace(/"/g, '""')}"`,
         `"${(p.description || '').replace(/"/g, '""')}"`,
-        p.createdAt?.toDate ? p.createdAt.toDate().toLocaleDateString() : ''
+        p.createdAt?.toDate ? new Date(p.createdAt).toLocaleDateString() : ''
       ].join(','))
     ].join('\n');
 
@@ -300,7 +300,7 @@ const ProjectReports = () => {
               <div className="text-sm text-gray-600 dark:text-gray-300 mt-1">
                 {p.community || '—'} • {p.timeline || '—'}
                 {p.createdAt?.toDate && (
-                  <span> • {p.createdAt.toDate().toLocaleDateString()}</span>
+                  <span> • {new Date(p.createdAt).toLocaleDateString()}</span>
                 )}
               </div>
               <div className="text-sm mt-2">{p.description}</div>

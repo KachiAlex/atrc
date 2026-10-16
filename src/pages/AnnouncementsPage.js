@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { collection, getDocs, query, orderBy, limit, startAfter } from 'firebase/firestore';
-import { db } from '../firebase/config';
+import { collection, getDocs, query, orderBy, limit, startAfter } from '../api/store';
+import { db } from '../api/config';
 import { useTheme } from '../contexts/ThemeContext';
 import { Link } from 'react-router-dom';
 
@@ -174,7 +174,7 @@ const AnnouncementsPage = () => {
                         <span className="mr-2">📅</span>
                         <span>
                           {announcement.createdAt 
-                            ? new Date(announcement.createdAt.seconds * 1000).toLocaleDateString()
+                            ? new Date(announcement.createdAt).toLocaleDateString()
                             : announcement.date
                           }
                         </span>
