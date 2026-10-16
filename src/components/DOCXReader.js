@@ -108,16 +108,24 @@ const DOCXReader = ({ docxUrl, docxFile, title = 'DOCX Reader', onClose }) => {
         root.querySelectorAll('h1, h2, h3, h4, h5, h6, p, li, figcaption, blockquote')
       );
 
-      const batchSize = 8;
+      const batchSize = 3;
+      let untranslated = 0;
       for (let i = 0; i < blocks.length; i += batchSize) {
         const batch = blocks.slice(i, i + batchSize);
         await Promise.all(
           batch.map(async (el) => {
             const src = el.textContent || '';
+            if (!src.trim()) return;
             try {
               const translated = await translateWithGoogle(src, targetLanguage, 'en');
-              if (translated && translated !== src) el.textContent = translated;
-            } catch (_) {}
+              if (translated && translated !== src) {
+                el.textContent = translated;
+              } else {
+                untranslated++;
+              }
+            } catch (_) {
+              untranslated++;
+            }
           })
         );
         const progress = Math.round(((i + batch.length) / blocks.length) * 100);
@@ -125,7 +133,11 @@ const DOCXReader = ({ docxUrl, docxFile, title = 'DOCX Reader', onClose }) => {
       }
       toast.dismiss('docx-translation-progress');
       setIsTranslated(true);
-      toast.success(`Document translated to ${languages.find(l => l.code === targetLanguage)?.name}`);
+      if (untranslated > 0) {
+        toast.error(`${untranslated} section${untranslated === 1 ? '' : 's'} couldn't be translated — try again`, { duration: 5000 });
+      } else {
+        toast.success(`Document translated to ${languages.find(l => l.code === targetLanguage)?.name}`);
+      }
     } catch (e) {
       console.error(e);
       toast.dismiss('docx-translation-progress');

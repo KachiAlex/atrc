@@ -755,32 +755,45 @@ function parseNumberedSegments(output, expected) {
   return out;
 }
 
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+// Single entry point for Groq calls — retries 429s and transient 5xx,
+// honoring Retry-After so document translation survives rate limits.
+async function fetchGroq(messages, { maxTokens, retries = 4 } = {}) {
+  for (let attempt = 0; ; attempt++) {
+    const resp = await fetch(GROQ_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${GROQ_API_KEY}` },
+      body: JSON.stringify({
+        model: TRANSLATE_MODEL,
+        temperature: 0.1,
+        ...(maxTokens ? { max_tokens: maxTokens } : {}),
+        messages
+      })
+    });
+    if (resp.ok) return resp.json();
+    const errText = await resp.text().catch(() => '');
+    const retryable = resp.status === 429 || resp.status >= 500;
+    if (!retryable || attempt >= retries) {
+      throw new Error(`Groq ${resp.status}: ${errText.slice(0, 200)}`);
+    }
+    const ra = parseFloat(resp.headers.get('retry-after') || '');
+    await sleep(Math.min(Number.isFinite(ra) ? ra * 1000 : 2000 * (attempt + 1), 30000));
+  }
+}
+
 async function groqTranslateGroup(group, source, target) {
   const numbered = group.map((t, i) => `«${i + 1}» ${t}`).join('\n');
-  const resp = await fetch(GROQ_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${GROQ_API_KEY}` },
-    body: JSON.stringify({
-      model: TRANSLATE_MODEL,
-      temperature: 0.1,
-      max_tokens: 4000,
-      messages: [
-        {
-          role: 'system',
-          content: 'You are a professional translation engine. The user sends text segments marked «N». Translate every segment into the requested language faithfully, preserving meaning and tone. Keep each «N» marker exactly as given. Output only the translated segments, nothing else.'
-        },
-        {
-          role: 'user',
-          content: `Translate to language "${target}"${source && source !== 'auto' ? ` from "${source}"` : ''}:\n\n${numbered}`
-        }
-      ]
-    })
-  });
-  if (!resp.ok) {
-    const errText = await resp.text().catch(() => '');
-    throw new Error(`Groq ${resp.status}: ${errText.slice(0, 200)}`);
-  }
-  const data = await resp.json();
+  const data = await fetchGroq([
+    {
+      role: 'system',
+      content: 'You are a professional translation engine. The user sends text segments marked «N». Translate every segment into the requested language faithfully, preserving meaning and tone. Keep each «N» marker exactly as given. Output only the translated segments, nothing else.'
+    },
+    {
+      role: 'user',
+      content: `Translate to language "${target}"${source && source !== 'auto' ? ` from "${source}"` : ''}:\n\n${numbered}`
+    }
+  ], { maxTokens: 4000 });
   const output = data.choices?.[0]?.message?.content || '';
   const parsed = parseNumberedSegments(output, group.length);
   if (parsed.filter(Boolean).length < group.length) {
@@ -791,20 +804,10 @@ async function groqTranslateGroup(group, source, target) {
 }
 
 async function groqSingle(text, source, target) {
-  const resp = await fetch(GROQ_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${GROQ_API_KEY}` },
-    body: JSON.stringify({
-      model: TRANSLATE_MODEL,
-      temperature: 0.1,
-      messages: [
-        { role: 'system', content: 'You are a professional translation engine. Output only the translated text, no commentary, no quotes.' },
-        { role: 'user', content: `Translate to language "${target}"${source && source !== 'auto' ? ` from "${source}"` : ''}:\n\n${text}` }
-      ]
-    })
-  });
-  if (!resp.ok) throw new Error(`Groq ${resp.status}`);
-  const data = await resp.json();
+  const data = await fetchGroq([
+    { role: 'system', content: 'You are a professional translation engine. Output only the translated text, no commentary, no quotes.' },
+    { role: 'user', content: `Translate to language "${target}"${source && source !== 'auto' ? ` from "${source}"` : ''}:\n\n${text}` }
+  ]);
   return (data.choices?.[0]?.message?.content || '').trim() || text;
 }
 
