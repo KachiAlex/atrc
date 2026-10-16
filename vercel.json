@@ -1,0 +1,16 @@
+{
+  "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "http://161.97.107.107:8080/api/:path*"
+    },
+    {
+      "source": "/uploads/:path*",
+      "destination": "http://161.97.107.107:8080/uploads/:path*"
+    },
+    {
+      "source": "/((?!api/|uploads/).*)",
+      "destination": "/index.html"
+    }
+  ]
+}
