@@ -544,27 +544,28 @@ const CourseReader = () => {
 
       {/* Course Modal */}
       {selectedCourse && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg max-w-6xl w-full max-h-[90vh] overflow-hidden">
-            <div className="flex justify-between items-center p-6 border-b">
-              <div>
-                <h2 className="text-2xl font-bold text-gray-900">{selectedCourse.title}</h2>
-                <p className="text-gray-600">by {selectedCourse.instructor}</p>
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-end sm:items-center justify-center sm:p-4 z-50">
+          <div className="bg-white sm:rounded-lg max-w-6xl w-full max-h-[92vh] sm:max-h-[90vh] flex flex-col overflow-hidden rounded-t-2xl">
+            <div className="flex justify-between items-start sm:items-center gap-3 p-4 sm:p-6 border-b flex-shrink-0">
+              <div className="min-w-0">
+                <h2 className="text-lg sm:text-2xl font-bold text-gray-900 break-words">{selectedCourse.title}</h2>
+                <p className="text-gray-600 text-sm sm:text-base">by {selectedCourse.instructor}</p>
               </div>
               <button
                 onClick={closeCourse}
-                className="text-gray-400 hover:text-gray-600"
+                className="text-gray-400 hover:text-gray-600 p-2 -m-1 flex-shrink-0"
+                aria-label="Close"
               >
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
             </div>
-            
-            <div className="p-6">
+
+            <div className="p-4 sm:p-6 overflow-y-auto">
               <div className="mb-4">
-                <p className="text-gray-700 mb-4">{selectedCourse.description}</p>
-                <div className="flex gap-4 text-sm text-gray-600">
+                <p className="text-gray-700 mb-4 break-words">{selectedCourse.description}</p>
+                <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-gray-600">
                   <span>📚 {categories.find(c => c.value === selectedCourse.category)?.label}</span>
                   <span>🌐 {languages.find(l => l.value === selectedCourse.language)?.label}</span>
                   {selectedCourse.duration && <span>⏱️ {selectedCourse.duration}</span>}
@@ -579,7 +580,7 @@ const CourseReader = () => {
                   />
               </div>
               
-              <div className="flex gap-4">
+              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 pb-safe">
                 <button
                   onClick={closeCourse}
                   className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
