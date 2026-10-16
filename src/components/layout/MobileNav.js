@@ -99,9 +99,6 @@ const MobileNav = () => {
           More
         </button>
       </nav>
-      {/* Bottom padding so content isn't hidden behind tab bar */}
-      <div className="lg:hidden h-[72px]" />
-
       {/* Drawer */}
       {isOpen && (
         <div className="fixed inset-0 z-50 lg:hidden">

@@ -39,26 +39,27 @@ import './index.css';
 
 // Main App Layout Component
 const AppLayout = ({ children }) => (
-  <div className="flex h-screen">
-    {/* Desktop Sidebar */}
-    <div className="hidden lg:block">
-      <Sidebar />
-    </div>
-    
-    {/* Mobile Navigation */}
-    <div className="lg:hidden">
-      <MobileNav />
-    </div>
-    
-    <div className="flex-1 flex flex-col overflow-hidden">
-      {/* Desktop Navbar */}
+  <div className="flex flex-col h-screen">
+    {/* Mobile top bar + bottom tabs (self-hides on lg inside MobileNav) */}
+    <MobileNav />
+
+    <div className="flex flex-1 min-h-0">
+      {/* Desktop Sidebar */}
       <div className="hidden lg:block">
-        <Navbar />
+        <Sidebar />
       </div>
-      
-      <main className="flex-1 overflow-x-hidden overflow-y-auto">
-        {children}
-      </main>
+
+      <div className="flex-1 min-w-0 flex flex-col overflow-hidden">
+        {/* Desktop Navbar */}
+        <div className="hidden lg:block">
+          <Navbar />
+        </div>
+
+        {/* Bottom padding clears the fixed mobile tab bar */}
+        <main className="flex-1 overflow-x-hidden overflow-y-auto pb-[80px] lg:pb-0">
+          {children}
+        </main>
+      </div>
     </div>
   </div>
 );
