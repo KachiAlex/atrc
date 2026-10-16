@@ -7,6 +7,7 @@ import { translateWithGoogle } from '../services/translationService';
 const DOCXReader = ({ docxUrl, docxFile, title = 'DOCX Reader', onClose }) => {
   const { isDarkMode } = useTheme();
   const containerRef = useRef(null);
+  const [html, setHtml] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [targetLanguage, setTargetLanguage] = useState('fr');
@@ -30,11 +31,9 @@ const DOCXReader = ({ docxUrl, docxFile, title = 'DOCX Reader', onClose }) => {
       try {
         const u = new URL(url);
         if (u.hostname.includes('drive.google.com')) {
-          // Support both file/d/<id>/view and open?id=<id>
           const fileIdMatch = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
           const id = fileIdMatch?.[1] || u.searchParams.get('id');
           if (id) {
-            // Use export=download for programmatic access (fetch will handle it correctly)
             return `https://drive.google.com/uc?export=download&id=${id}`;
           }
         }
@@ -58,10 +57,10 @@ const DOCXReader = ({ docxUrl, docxFile, title = 'DOCX Reader', onClose }) => {
           arrayBuffer = await arrayBufferFromFile(docxFile);
         } else if (docxUrl) {
           const normalizedUrl = toDirectDriveUrl(docxUrl);
-          const res = await fetch(normalizedUrl, { 
-            mode: 'cors', 
-            credentials: 'omit', 
-            redirect: 'follow', 
+          const res = await fetch(normalizedUrl, {
+            mode: 'cors',
+            credentials: 'omit',
+            redirect: 'follow',
             referrerPolicy: 'no-referrer',
             headers: {
               'Accept': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/octet-stream'
@@ -72,7 +71,6 @@ const DOCXReader = ({ docxUrl, docxFile, title = 'DOCX Reader', onClose }) => {
         } else {
           throw new Error('No DOCX source provided');
         }
-        // Map common Word styles to semantic HTML to preserve structure
         const options = {
           styleMap: [
             "p[style-name='Title'] => h1.title:fresh",
@@ -89,21 +87,8 @@ const DOCXReader = ({ docxUrl, docxFile, title = 'DOCX Reader', onClose }) => {
           ]
         };
 
-        const { value: html } = await mammoth.convertToHtml({ arrayBuffer }, options);
-        if (containerRef.current) {
-          containerRef.current.innerHTML = `
-            <style>
-              .docx-container { line-height: 1.6; }
-              .docx-container h1, .docx-container h2, .docx-container h3 { margin: 1.2em 0 0.6em; }
-              .docx-container p { margin: 0.6em 0; }
-              .docx-container ul, .docx-container ol { margin: 0.8em 1.2em; }
-              .docx-container table { border-collapse: collapse; width: 100%; margin: 1em 0; }
-              .docx-container table td, .docx-container table th { border: 1px solid rgba(0,0,0,0.1); padding: 6px 8px; }
-              .docx-container blockquote { border-left: 4px solid rgba(59,130,246,0.5); padding-left: 12px; margin-left: 0; color: inherit; }
-            </style>
-            <div class="docx-container">${html}</div>
-          `;
-        }
+        const { value } = await mammoth.convertToHtml({ arrayBuffer }, options);
+        setHtml(value || '<p><em>This document appears to be empty.</em></p>');
       } catch (e) {
         console.error(e);
         setError('Unable to load DOCX file. Try uploading the file directly.');
@@ -119,7 +104,6 @@ const DOCXReader = ({ docxUrl, docxFile, title = 'DOCX Reader', onClose }) => {
     setIsTranslating(true);
     try {
       const root = containerRef.current;
-      // Translate by blocks to reduce layout fragmentation and improve quality
       const blocks = Array.from(
         root.querySelectorAll('h1, h2, h3, h4, h5, h6, p, li, figcaption, blockquote')
       );
@@ -199,8 +183,12 @@ const DOCXReader = ({ docxUrl, docxFile, title = 'DOCX Reader', onClose }) => {
             <p className="text-red-500">{error}</p>
           </div>
         ) : (
-          <div className={`${isDarkMode ? 'prose-invert' : ''} prose max-w-4xl mx-auto px-6 py-6`}>
-            <div ref={containerRef} />
+          <div className="max-w-4xl mx-auto px-6 py-6">
+            <div
+              ref={containerRef}
+              className={`docx-content ${isDarkMode ? 'text-gray-200' : 'text-gray-800'}`}
+              dangerouslySetInnerHTML={{ __html: html }}
+            />
           </div>
         )}
       </div>
@@ -209,5 +197,3 @@ const DOCXReader = ({ docxUrl, docxFile, title = 'DOCX Reader', onClose }) => {
 };
 
 export default DOCXReader;
-
-
