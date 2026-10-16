@@ -4,6 +4,14 @@ node_modules/
 # Sensitive / stray artifacts
 users.json
 -app-firebase
+
+# Local ops scripts (contain VPS credentials)
+auto-deploy.ps1
+deploy-simple.ps1
+deploy.ps1
+deploy.bat
+deploy-to-vps.sh
+quick-deploy.sh
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
