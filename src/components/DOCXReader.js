@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import mammoth from 'mammoth';
 import toast from 'react-hot-toast';
 import { useTheme } from '../contexts/ThemeContext';
-import { translateWithGoogle } from '../services/translationService';
+import { translateWithGoogle, SUPPORTED_LANGUAGES } from '../services/translationService';
 
 const DOCXReader = ({ docxUrl, docxFile, title = 'DOCX Reader', onClose }) => {
   const { isDarkMode } = useTheme();
@@ -14,17 +14,10 @@ const DOCXReader = ({ docxUrl, docxFile, title = 'DOCX Reader', onClose }) => {
   const [isTranslating, setIsTranslating] = useState(false);
   const [isTranslated, setIsTranslated] = useState(false);
 
-  const languages = [
-    { code: 'en', name: 'English' },
-    { code: 'fr', name: 'French' },
-    { code: 'es', name: 'Spanish' },
-    { code: 'pt', name: 'Portuguese' },
-    { code: 'ar', name: 'Arabic' },
-    { code: 'sw', name: 'Swahili' },
-    { code: 'yo', name: 'Yoruba' },
-    { code: 'ig', name: 'Igbo' },
-    { code: 'ha', name: 'Hausa' }
-  ];
+  const languages = SUPPORTED_LANGUAGES;
+  // Pass the language NAME to the translator — unambiguous for minority
+  // languages where ISO codes mean something else (ti = Tigrinya, not Tiv)
+  const targetLangName = (code) => languages.find((l) => l.code === code)?.name || code;
 
   useEffect(() => {
     const toDirectDriveUrl = (url) => {
@@ -117,7 +110,7 @@ const DOCXReader = ({ docxUrl, docxFile, title = 'DOCX Reader', onClose }) => {
             const src = el.textContent || '';
             if (!src.trim()) return;
             try {
-              const translated = await translateWithGoogle(src, targetLanguage, 'en');
+              const translated = await translateWithGoogle(src, targetLangName(targetLanguage), 'en');
               if (translated && translated !== src) {
                 el.textContent = translated;
               } else {

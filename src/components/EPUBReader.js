@@ -48,6 +48,9 @@ const EPUBReader = ({ bookUrl, bookTitle, onClose }) => {
   const epubUrl = getEpubUrl(bookUrl);
 
   const languages = SUPPORTED_LANGUAGES;
+  // Pass language NAME to the translator — ISO codes are ambiguous for
+  // minority languages (ti = Tigrinya, not Tiv)
+  const langName = (code) => languages.find((l) => l.code === code)?.name || code;
 
   // Font size controls (A- / A+)
   useEffect(() => {
@@ -80,7 +83,7 @@ const EPUBReader = ({ bookUrl, bookTitle, onClose }) => {
   const translateText = async (text, targetLang) => {
     try {
       // Use Google Cloud Translation API (includes fallback logic)
-      const translated = await translateWithGoogle(text, targetLang, originalLanguage);
+      const translated = await translateWithGoogle(text, langName(targetLang), originalLanguage);
       return translated;
     } catch (error) {
       console.warn('Translation error:', error);
@@ -116,7 +119,7 @@ const EPUBReader = ({ bookUrl, bookTitle, onClose }) => {
       const batch = nodes.slice(i, i + batchSize);
       const texts = batch.map((n) => n.textContent);
       try {
-        const translated = await batchTranslate(texts, targetLanguage, originalLanguage);
+        const translated = await batchTranslate(texts, langName(targetLanguage), originalLanguage);
         batch.forEach((textNode, idx) => {
           const t = translated[idx];
           if (t && t !== textNode.textContent) {

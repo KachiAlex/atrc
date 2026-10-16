@@ -71,13 +71,18 @@ const TranslationUI = ({
     return d.textContent || '';
   };
 
+  // Pass language NAME to the translator — ISO codes are ambiguous for
+  // minority languages
+  const langName = (code) =>
+    availableLanguages.find((l) => l.code === code)?.name || code;
+
   // Translate selected text
   const translateSelectedText = async () => {
     if (!selectedText) return;
 
     setIsTranslating(true);
     try {
-      const result = await translateText(selectedText, targetLanguage);
+      const result = await translateText(selectedText, langName(targetLanguage));
       setTranslatedText(stripHtml(result));
       setShowTranslation(true);
       
@@ -105,7 +110,7 @@ const TranslationUI = ({
 
     setIsTranslating(true);
     try {
-      const result = await translateText(stripHtml(content), targetLanguage);
+      const result = await translateText(stripHtml(content), langName(targetLanguage));
       setTranslatedText(stripHtml(result));
       setShowTranslation(true);
       setTranslationMode('full');

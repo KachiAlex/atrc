@@ -239,8 +239,8 @@ const BookReader = () => {
       };
 
       const translatedResult = await translateBookContent(
-        bookContent, 
-        targetLanguage, 
+        bookContent,
+        languages.find(l => l.value === targetLanguage)?.label || targetLanguage,
         'en',
         (progress) => setTranslationProgress(progress)
       );
