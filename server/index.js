@@ -535,7 +535,7 @@ app.use('/uploads', express.static(UPLOAD_DIR, { maxAge: '30d', fallthrough: fal
 // ---------- translation (Groq primary, Google fallback, Postgres cache) ----------
 const GROQ_API_KEY = process.env.GROQ_API_KEY || '';
 const GOOGLE_TRANSLATE_API_KEY = process.env.GOOGLE_TRANSLATE_API_KEY || '';
-const TRANSLATE_MODEL = process.env.TRANSLATE_MODEL || 'llama-3.3-70b-versatile';
+const TRANSLATE_MODEL = process.env.TRANSLATE_MODEL || 'openai/gpt-oss-120b';
 const GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions';
 const GOOGLE_URL = 'https://translation.googleapis.com/language/translate/v2';
 const T_MAX_TEXTS = 200;
