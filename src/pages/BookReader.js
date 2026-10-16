@@ -485,7 +485,7 @@ const BookReader = () => {
               
               <button
                 onClick={() => openTranslationModal(selectedBook)}
-                className="flex items-center gap-1 text-sm bg-blue-500 text-white px-3 py-1 rounded-lg hover:bg-blue-600 transition-colors"
+                className="flex items-center gap-1 text-sm bg-primary-600 text-white px-3 py-1.5 rounded-[10px] hover:bg-primary-700 transition-colors"
               >
                 <LanguageIcon className="w-4 h-4" />
                 Translate
@@ -584,7 +584,7 @@ const BookReader = () => {
       <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8 py-4 sm:py-8">
         {/* Enhanced Header */}
         <div className="text-center mb-6 sm:mb-8">
-          <h1 className={`text-2xl sm:text-4xl font-bold mb-2 sm:mb-4 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+          <h1 className={`text-2xl sm:text-4xl font-serif font-bold mb-2 sm:mb-4 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
             Digital Library
           </h1>
           <p className={`text-base sm:text-xl max-w-3xl mx-auto px-4 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
@@ -797,14 +797,10 @@ const BookReader = () => {
                   
                   {/* Tags */}
                   <div className="flex flex-wrap gap-1 mb-3">
-                    <span className={`px-2 py-1 text-xs rounded-full ${
-                      isDarkMode ? 'bg-blue-900 text-blue-300' : 'bg-blue-100 text-blue-800'
-                    }`}>
+                    <span className="a-badge a-badge-info">
                       {getLanguageLabel(book.language)}
                     </span>
-                    <span className={`px-2 py-1 text-xs rounded-full ${
-                      isDarkMode ? 'bg-purple-900 text-purple-300' : 'bg-purple-100 text-purple-800'
-                    }`}>
+                    <span className="a-badge a-badge-warn">
                       {getCategoryLabel(book.category)}
                     </span>
                   </div>

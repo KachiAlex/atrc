@@ -2,220 +2,166 @@ import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
-import LogoImage from '../LogoImage';
+import Icon, { CrownMark } from '../ui/Icon';
 
 const MobileNav = () => {
-  const { currentUser, logout } = useAuth();
+  const { currentUser, userRole, logout } = useAuth();
   const { isDarkMode, toggleTheme } = useTheme();
   const location = useLocation();
   const [isOpen, setIsOpen] = useState(false);
-  const [isLeadershipInstituteOpen, setIsLeadershipInstituteOpen] = useState(false);
 
-  const navigation = [
-    { name: 'Dashboard', href: '/app/dashboard', icon: '🏠' },
-    { name: 'Community Report', href: '/app/community', icon: '📝' },
-    { name: 'Live Meetings', href: '/app/meetings', icon: '📹' },
-    { name: 'Local Events', href: '/app/events', icon: '📅' },
-    // Announcements appear only for admins on mobile nav; users see public announcements on homepage
-    // { name: 'Announcements', href: '/app/announcements', icon: '📢' },
-    { name: 'Reports', href: '/app/reports', icon: '📊' },
-    { name: 'Profile', href: '/app/profile', icon: '👤' },
-    { name: 'Settings', href: '/app/settings', icon: '⚙️' }
+  const isActive = (path) => location.pathname === path;
+
+  // Bottom tab bar — labels always visible (design rule)
+  const tabs = [
+    { name: 'Home', href: '/app/dashboard', icon: 'home' },
+    { name: 'Reports', href: '/app/community', icon: 'reports' },
+    { name: 'Meetings', href: '/app/meetings', icon: 'meetings' },
+    { name: 'Library', href: '/app/books', icon: 'library' },
   ];
 
-  const leadershipInstituteItems = [
-    { name: 'Digital Library', href: '/app/books', icon: '📚' },
-    { name: 'Courses', href: '/app/courses', icon: '🎓' }
+  const drawerNav = [
+    { name: 'Dashboard', href: '/app/dashboard', icon: 'dashboard' },
+    { name: 'Community Reports', href: '/app/community', icon: 'reports' },
+    { name: 'Live Meetings', href: '/app/meetings', icon: 'meetings' },
+    { name: 'Local Events', href: '/app/events', icon: 'events' },
+    ...(userRole === 'admin' ? [{ name: 'Announcements', href: '/app/announcements', icon: 'announcements' }] : []),
+    { name: 'Analytics', href: '/app/reports', icon: 'analytics' },
+    { name: 'Digital Library', href: '/app/books', icon: 'library' },
+    { name: 'Courses', href: '/app/courses', icon: 'courses' },
+    { name: 'Documents', href: '/app/docx', icon: 'file' },
+    { name: 'Profile', href: '/app/profile', icon: 'user' },
+    { name: 'Settings', href: '/app/settings', icon: 'settings' },
   ];
 
-  const isActive = (path) => {
-    return location.pathname === path;
-  };
+  const initials = (currentUser?.displayName || 'U')
+    .split(' ').map((w) => w[0]).slice(0, 2).join('').toUpperCase();
 
-  const isLeadershipInstituteActive = () => {
-    return leadershipInstituteItems.some(item => isActive(item.href));
-  };
-
-  const handleLinkClick = () => {
-    setIsOpen(false);
-  };
+  const close = () => setIsOpen(false);
 
   return (
     <>
-      {/* Enhanced Mobile Header */}
-      <div className={`${isDarkMode ? 'bg-gray-800' : 'bg-white'} shadow-lg lg:hidden sticky top-0 z-40`}>
-        <div className="px-3 sm:px-4 py-3">
-          <div className="flex items-center justify-between">
-            <Link to="/" className="flex items-center min-w-0 flex-1 hover:opacity-80 transition-opacity">
-              <div className="flex-shrink-0">
-                <LogoImage type="traditional-rulers" size="small" />
-              </div>
-              <div className="ml-3 min-w-0 flex-1">
-                <h1 className={`text-lg font-semibold truncate ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-                  ATRC
-                </h1>
-                <p className={`text-xs truncate ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                  Traditional Rulers
-                </p>
-              </div>
-            </Link>
-            
-            <div className="flex items-center space-x-1">
-              <button
-                onClick={toggleTheme}
-                className={`p-2.5 rounded-lg transition-colors touch-manipulation ${isDarkMode ? 'hover:bg-gray-700 active:bg-gray-600' : 'hover:bg-gray-100 active:bg-gray-200'}`}
-                aria-label="Toggle theme"
-              >
-                <span className="text-lg">{isDarkMode ? '☀️' : '🌙'}</span>
-              </button>
-              
-              <button
-                onClick={() => setIsOpen(!isOpen)}
-                className={`p-2.5 rounded-lg transition-colors touch-manipulation ${isDarkMode ? 'hover:bg-gray-700 active:bg-gray-600' : 'hover:bg-gray-100 active:bg-gray-200'}`}
-                aria-label="Toggle navigation menu"
-              >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  {isOpen ? (
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  ) : (
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                  )}
-                </svg>
-              </button>
+      {/* Mobile top bar */}
+      <div
+        className="lg:hidden sticky top-0 z-40 border-b"
+        style={{ background: 'var(--bg)', borderColor: 'var(--border)' }}
+      >
+        <div className="px-4 py-2.5 flex items-center justify-between">
+          <Link to="/" className="flex items-center gap-2.5 min-w-0 hover:opacity-90">
+            <CrownMark size={34} variant="gold" />
+            <div className="min-w-0">
+              <h1 className="text-base font-bold leading-tight truncate" style={{ color: 'var(--ink)' }}>ATRC</h1>
+              <p className="text-[12px] leading-tight truncate" style={{ color: 'var(--muted)' }}>Traditional Rulers</p>
             </div>
-          </div>
+          </Link>
+          <button
+            onClick={toggleTheme}
+            className="min-h-[44px] min-w-[44px] inline-flex items-center justify-center rounded-[10px] border"
+            style={{ borderColor: 'var(--border)', background: 'var(--surface)', color: 'var(--ink)' }}
+            aria-label="Toggle theme"
+          >
+            <Icon name={isDarkMode ? 'sun' : 'moon'} size={20} />
+          </button>
         </div>
       </div>
 
-      {/* Mobile Navigation Overlay */}
+      {/* Bottom tab bar */}
+      <nav
+        className="lg:hidden fixed bottom-0 left-0 right-0 z-40 border-t"
+        style={{ background: 'var(--surface)', borderColor: 'var(--border)', paddingBottom: 'env(safe-area-inset-bottom)' }}
+      >
+        <div className="flex">
+          {tabs.map((tab) => (
+            <Link
+              key={tab.name}
+              to={tab.href}
+              className="flex-1 flex flex-col items-center justify-center gap-0.5 py-2 min-h-[56px] text-[12px] font-semibold transition-colors"
+              style={{ color: isActive(tab.href) ? 'var(--brand)' : 'var(--muted)' }}
+            >
+              <Icon name={tab.icon} size={22} />
+              {tab.name}
+            </Link>
+          ))}
+          <button
+            onClick={() => setIsOpen(true)}
+            className="flex-1 flex flex-col items-center justify-center gap-0.5 py-2 min-h-[56px] text-[12px] font-semibold"
+            style={{ color: 'var(--muted)' }}
+          >
+            <Icon name="menu" size={22} />
+            More
+          </button>
+        </div>
+      </nav>
+      {/* Bottom padding so content isn't hidden behind tab bar */}
+      <div className="lg:hidden h-[60px]" />
+
+      {/* Drawer */}
       {isOpen && (
         <div className="fixed inset-0 z-50 lg:hidden">
-          <div 
-            className="fixed inset-0 bg-black bg-opacity-50"
-            onClick={() => setIsOpen(false)}
-          />
-          
-          <div className={`fixed top-0 left-0 h-full w-80 max-w-[85vw] ${isDarkMode ? 'bg-gray-800' : 'bg-white'} shadow-xl transform transition-transform duration-300 ease-in-out overflow-y-auto`}>
-            <div className="p-4 sm:p-6">
-              {/* Enhanced Header */}
+          <div className="fixed inset-0 bg-black/50" onClick={close} />
+          <div
+            className="fixed top-0 left-0 h-full w-80 max-w-[85vw] shadow-xl overflow-y-auto"
+            style={{ background: 'var(--side)' }}
+          >
+            <div className="p-5">
               <div className="flex items-center justify-between mb-6">
-                <Link 
-                  to="/" 
-                  className="flex items-center min-w-0 flex-1 hover:opacity-80 transition-opacity"
-                  onClick={handleLinkClick}
-                >
-                  <div className="flex-shrink-0">
-                    <LogoImage type="traditional-rulers" size="medium" />
+                <div className="flex items-center gap-2.5">
+                  <CrownMark size={36} variant="gold" />
+                  <div>
+                    <h1 className="text-base font-bold text-white leading-tight">ATRC</h1>
+                    <p className="text-[12px] text-[#AAB4E0]">Traditional Rulers</p>
                   </div>
-                  <div className="ml-3 min-w-0 flex-1">
-                    <h1 className={`text-lg font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-                      ATRC
-                    </h1>
-                    <p className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                      Traditional Rulers
-                    </p>
-                  </div>
-                </Link>
+                </div>
                 <button
-                  onClick={() => setIsOpen(false)}
-                  className={`p-2.5 rounded-lg transition-colors touch-manipulation ${isDarkMode ? 'hover:bg-gray-700 active:bg-gray-600' : 'hover:bg-gray-100 active:bg-gray-200'}`}
+                  onClick={close}
+                  className="min-h-[44px] min-w-[44px] inline-flex items-center justify-center rounded-[10px] text-[#C9D0EE] hover:bg-[#1A2866]"
+                  aria-label="Close menu"
                 >
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
+                  <Icon name="close" size={22} />
                 </button>
               </div>
 
-              {/* Enhanced Navigation */}
               <nav className="space-y-1">
-                {navigation.map((item) => (
+                {drawerNav.map((item) => (
                   <Link
                     key={item.name}
                     to={item.href}
-                    onClick={handleLinkClick}
-                    className={`group flex items-center px-3 py-3.5 text-sm font-medium rounded-xl transition-all duration-200 touch-manipulation ${
+                    onClick={close}
+                    className={`flex items-center gap-3 px-3 py-3 rounded-[10px] text-[15px] font-medium min-h-[44px] transition-colors ${
                       isActive(item.href)
-                        ? `${isDarkMode ? 'bg-primary-900 text-primary-200 shadow-lg' : 'bg-primary-100 text-primary-700 shadow-md'}`
-                        : `${isDarkMode ? 'text-gray-300 hover:bg-gray-700 hover:text-white active:bg-gray-600' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900 active:bg-gray-100'}`
+                        ? 'bg-[#1A2866] text-white'
+                        : 'text-[#C9D0EE] hover:bg-[#1A2866] hover:text-white'
                     }`}
                   >
-                    <span className="mr-3 text-lg flex-shrink-0">{item.icon}</span>
-                    <span className="truncate">{item.name}</span>
-                    {isActive(item.href) && (
-                      <div className={`ml-auto w-2 h-2 rounded-full ${isDarkMode ? 'bg-primary-400' : 'bg-primary-600'}`}></div>
-                    )}
+                    <Icon
+                      name={item.icon}
+                      size={20}
+                      className={isActive(item.href) ? 'text-[#E3B04B]' : 'text-[#8B98C9]'}
+                    />
+                    {item.name}
                   </Link>
                 ))}
-
-                {/* Leadership Institute Section */}
-                <div className="mt-4">
-                  <button
-                    onClick={() => setIsLeadershipInstituteOpen(!isLeadershipInstituteOpen)}
-                    className={`group flex items-center justify-between w-full px-3 py-3.5 text-sm font-medium rounded-xl transition-all duration-200 touch-manipulation ${
-                      isLeadershipInstituteActive()
-                        ? `${isDarkMode ? 'bg-primary-900 text-primary-200 shadow-lg' : 'bg-primary-100 text-primary-700 shadow-md'}`
-                        : `${isDarkMode ? 'text-gray-300 hover:bg-gray-700 hover:text-white active:bg-gray-600' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900 active:bg-gray-100'}`
-                    }`}
-                  >
-                    <div className="flex items-center">
-                      <LogoImage type="leadership-institute" size="small" className="mr-3 flex-shrink-0" />
-                      <span className="truncate">Leadership Institute</span>
-                    </div>
-                    <span className={`transform transition-transform duration-200 ${isLeadershipInstituteOpen ? 'rotate-90' : ''}`}>
-                      ▶
-                    </span>
-                  </button>
-
-                  {/* Leadership Institute Submenu */}
-                  <div className={`mt-1 space-y-1 transition-all duration-200 overflow-hidden ${
-                    isLeadershipInstituteOpen ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
-                  }`}>
-                    {leadershipInstituteItems.map((item) => (
-                      <Link
-                        key={item.name}
-                        to={item.href}
-                        onClick={handleLinkClick}
-                        className={`group flex items-center pl-12 pr-3 py-3 text-sm font-medium rounded-xl transition-all duration-200 touch-manipulation ${
-                          isActive(item.href)
-                            ? `${isDarkMode ? 'bg-primary-800 text-primary-100 shadow-md' : 'bg-primary-50 text-primary-600 shadow-sm'}`
-                            : `${isDarkMode ? 'text-gray-400 hover:bg-gray-700 hover:text-white active:bg-gray-600' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-700 active:bg-gray-100'}`
-                        }`}
-                      >
-                        <span className="mr-3 text-base flex-shrink-0">{item.icon}</span>
-                        <span className="truncate">{item.name}</span>
-                        {isActive(item.href) && (
-                          <div className={`ml-auto w-2 h-2 rounded-full ${isDarkMode ? 'bg-primary-400' : 'bg-primary-600'}`}></div>
-                        )}
-                      </Link>
-                    ))}
-                  </div>
-                </div>
               </nav>
 
-              {/* Enhanced User Info */}
-              <div className="mt-8 pt-6 border-t border-gray-200">
-                <div className={`${isDarkMode ? 'bg-gray-700' : 'bg-gray-50'} rounded-xl p-4`}>
-                  <div className="flex items-center">
-                    <div className="flex-shrink-0">
-                      <div className="h-10 w-10 rounded-full bg-gradient-to-br from-primary-100 to-primary-200 flex items-center justify-center">
-                        <span className="text-lg">👤</span>
-                      </div>
-                    </div>
-                    <div className="ml-3 flex-1 min-w-0">
-                      <p className={`text-sm font-medium truncate ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-                        {currentUser?.displayName || 'User'}
-                      </p>
-                      <p className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                        Traditional Ruler
-                      </p>
-                    </div>
-                    <button
-                      onClick={logout}
-                      className="ml-2 bg-red-500 text-white px-3 py-2 rounded-lg text-xs hover:bg-red-600 active:bg-red-700 transition-colors touch-manipulation"
-                    >
-                      Logout
-                    </button>
+              {/* User card + logout */}
+              <div className="mt-8 rounded-[12px] bg-[#1A2350] p-4">
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-full bg-[#E3B04B] flex items-center justify-center flex-shrink-0">
+                    <span className="text-sm font-bold text-[#14182B]">{initials}</span>
                   </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-white truncate">
+                      {currentUser?.displayName || 'Member'}
+                    </p>
+                    <p className="text-[13px] text-[#AAB4E0] capitalize">{userRole || 'Member'}</p>
+                  </div>
+                  <button
+                    onClick={logout}
+                    className="min-h-[44px] min-w-[44px] inline-flex items-center justify-center rounded-[10px] text-[#C9D0EE] hover:bg-[#27315F]"
+                    aria-label="Sign out"
+                  >
+                    <Icon name="logout" size={20} />
+                  </button>
                 </div>
               </div>
             </div>

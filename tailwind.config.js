@@ -8,33 +8,85 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        // ATRC Primary Colors - Dark Blue (Shield)
+        // ATRC Primary - Indigo (structure & primary actions)
         primary: {
-          50: '#eff6ff',
-          100: '#dbeafe',
-          200: '#bfdbfe',
-          300: '#93c5fd',
-          400: '#60a5fa',
-          500: '#3b82f6',
-          600: '#1e40af',
-          700: '#1e3a8a',
-          800: '#1e3a8a',
-          900: '#1e3a8a',
+          50: '#EEF1FA',
+          100: '#E4E8F7',
+          200: '#C9D0EE',
+          300: '#AEB9E4',
+          400: '#6B7FC4',
+          500: '#22388A',
+          600: '#17275F',
+          700: '#111F52',
+          800: '#0F1A44',
+          900: '#0A1233',
         },
-        // ATRC Secondary Colors - Gold
+        // ATRC Secondary - Gold (accent; fills carry dark ink text)
         secondary: {
-          50: '#fffbeb',
-          100: '#fef3c7',
-          200: '#fde68a',
-          300: '#fcd34d',
-          400: '#fbbf24',
-          500: '#f59e0b',
-          600: '#d97706',
-          700: '#b45309',
-          800: '#92400e',
-          900: '#78350f',
+          50: '#FBF6E9',
+          100: '#FBF0D5',
+          200: '#F7E2A8',
+          300: '#F0C968',
+          400: '#E3B04B',
+          500: '#E3B04B',
+          600: '#C69433',
+          700: '#8A6210',
+          800: '#7A5410',
+          900: '#5C3F0C',
         },
-        // ATRC Accent Colors - Purple (Crown)
+        gold: {
+          50: '#FBF6E9',
+          100: '#FBF0D5',
+          200: '#F7E2A8',
+          300: '#F0C968',
+          400: '#E3B04B',
+          500: '#E3B04B',
+          600: '#C69433',
+          700: '#8A6210',
+          800: '#7A5410',
+          900: '#5C3F0C',
+        },
+        // Parchment (surfaces) and ink (text)
+        parchment: {
+          50: '#FFFCF6',
+          100: '#F6F1E7',
+          200: '#EDE5D3',
+          300: '#E2D9C6',
+        },
+        ink: {
+          500: '#6E6A5E',
+          600: '#4F566E',
+          700: '#3A405A',
+          900: '#14182B',
+        },
+        // Remap neutral gray scale into the warm/navy system so legacy
+        // screens adopt the palette without per-file changes
+        gray: {
+          50: '#F6F1E7',
+          100: '#EDE5D3',
+          200: '#E2D9C6',
+          300: '#D6CCBA',
+          400: '#A9A08C',
+          500: '#6E6A5E',
+          600: '#4F566E',
+          700: '#3A405A',
+          800: '#1A2350',
+          900: '#14182B',
+        },
+        // Legacy blue utilities mapped onto indigo so old screens stay on-brand
+        blue: {
+          50: '#EEF1FA',
+          100: '#E4E8F7',
+          200: '#C9D0EE',
+          300: '#AEB9E4',
+          400: '#6B7FC4',
+          500: '#22388A',
+          600: '#17275F',
+          700: '#111F52',
+          800: '#0F1A44',
+          900: '#0A1233',
+        },
+        // ATRC Accent - Purple (crown, legacy, being retired)
         accent: {
           50: '#faf5ff',
           100: '#f3e8ff',
@@ -47,23 +99,13 @@ module.exports = {
           800: '#6b21b8',
           900: '#581c87',
         },
-        // Legacy gold for compatibility
-        gold: {
-          50: '#fffbeb',
-          100: '#fef3c7',
-          200: '#fde68a',
-          300: '#fcd34d',
-          400: '#fbbf24',
-          500: '#f59e0b',
-          600: '#d97706',
-          700: '#b45309',
-          800: '#92400e',
-          900: '#78350f',
-        }
       },
       fontFamily: {
-        'sans': ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
-        'serif': ['Playfair Display', 'serif'],
+        'sans': ['"Source Sans 3"', 'system-ui', '-apple-system', 'sans-serif'],
+        'serif': ['"Playfair Display"', 'serif'],
+      },
+      borderRadius: {
+        card: '16px',
       },
       animation: {
         'fade-in': 'fadeIn 0.5s ease-in-out',
@@ -84,20 +126,6 @@ module.exports = {
         slideOut: {
           '0%': { transform: 'translateX(0)' },
           '100%': { transform: 'translateX(-100%)' },
-        },
-        pulse: {
-          '0%, 100%': { opacity: '1' },
-          '50%': { opacity: '0.5' },
-        },
-        bounce: {
-          '0%, 100%': {
-            transform: 'translateY(-25%)',
-            'animation-timing-function': 'cubic-bezier(0.8, 0, 1, 1)',
-          },
-          '50%': {
-            transform: 'translateY(0)',
-            'animation-timing-function': 'cubic-bezier(0, 0, 0.2, 1)',
-          },
         },
       },
     },

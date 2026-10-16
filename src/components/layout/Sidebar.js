@@ -1,118 +1,104 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
-import { useTheme } from '../../contexts/ThemeContext';
-import LogoImage from '../LogoImage';
+import Icon, { CrownMark } from '../ui/Icon';
 
 const Sidebar = () => {
   const { currentUser, userRole } = useAuth();
-  const { isDarkMode } = useTheme();
   const location = useLocation();
-  const [isLeadershipInstituteOpen, setIsLeadershipInstituteOpen] = useState(false);
+  const [isInstituteOpen, setIsInstituteOpen] = useState(false);
 
   const navigation = [
-    { name: 'Dashboard', href: '/app/dashboard', icon: '🏠' },
-    { name: 'Community Report', href: '/app/community', icon: '📝' },
-    // { name: 'Project Reports', href: '/app/projects', icon: '📁' },
-    { name: 'Live Meetings', href: '/app/meetings', icon: '📹' },
-    // { name: 'Disputes', href: '/app/disputes', icon: '⚖️' },
-    { name: 'Local Events', href: '/app/events', icon: '📅' },
-    // Announcements moved to Admin only
-    ...(userRole === 'admin' ? [{ name: 'Announcements', href: '/app/announcements', icon: '📢' }] : []),
-    { name: 'Reports', href: '/app/reports', icon: '📊' },
-    { name: 'Profile', href: '/app/profile', icon: '👤' },
-    { name: 'Settings', href: '/app/settings', icon: '⚙️' }
+    { name: 'Dashboard', href: '/app/dashboard', icon: 'dashboard' },
+    { name: 'Community Reports', href: '/app/community', icon: 'reports' },
+    { name: 'Live Meetings', href: '/app/meetings', icon: 'meetings' },
+    { name: 'Local Events', href: '/app/events', icon: 'events' },
+    ...(userRole === 'admin' ? [{ name: 'Announcements', href: '/app/announcements', icon: 'announcements' }] : []),
+    { name: 'Analytics', href: '/app/reports', icon: 'analytics' },
   ];
 
-  const leadershipInstituteItems = [
-    { name: 'Digital Library', href: '/app/books', icon: '📚' },
-    { name: 'Courses', href: '/app/courses', icon: '🎓' }
+  const instituteItems = [
+    { name: 'Digital Library', href: '/app/books', icon: 'library' },
+    { name: 'Courses', href: '/app/courses', icon: 'courses' },
+    { name: 'Documents', href: '/app/docx', icon: 'file' },
   ];
 
-  const isActive = (path) => {
-    return location.pathname === path;
-  };
+  const utilityItems = [
+    { name: 'Profile', href: '/app/profile', icon: 'user' },
+    { name: 'Settings', href: '/app/settings', icon: 'settings' },
+  ];
 
-  const isLeadershipInstituteActive = () => {
-    return leadershipInstituteItems.some(item => isActive(item.href));
-  };
+  const isActive = (path) => location.pathname === path;
+  const isInstituteActive = () => instituteItems.some((item) => isActive(item.href));
 
-  // Auto-open Leadership Institute if any of its items are active
   React.useEffect(() => {
-    if (isLeadershipInstituteActive()) {
-      setIsLeadershipInstituteOpen(true);
-    }
+    if (isInstituteActive()) setIsInstituteOpen(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location.pathname]);
 
+  const itemClass = (active) =>
+    `group flex items-center gap-3 px-3 py-2.5 rounded-[10px] text-[15px] font-medium transition-colors duration-150 min-h-[44px] ${
+      active
+        ? 'bg-[#1A2866] text-white'
+        : 'text-[#C9D0EE] hover:bg-[#1A2866] hover:text-white'
+    }`;
+
+  const iconClass = (active) => (active ? 'text-[#E3B04B]' : 'text-[#8B98C9] group-hover:text-white');
+
+  const initials = (currentUser?.displayName || 'U')
+    .split(' ')
+    .map((w) => w[0])
+    .slice(0, 2)
+    .join('')
+    .toUpperCase();
+
   return (
-    <div className={`${isDarkMode ? 'bg-gray-800' : 'bg-white'} w-64 min-h-screen shadow-lg`}>
-      <div className="p-6">
-        <Link to="/" className="flex items-center hover:opacity-80 transition-opacity">
-          <div className="flex-shrink-0">
-            <LogoImage type="traditional-rulers" size="small" />
-          </div>
+    <div
+      className="w-64 min-h-screen flex flex-col"
+      style={{ background: 'var(--side)' }}
+    >
+      {/* Brand */}
+      <div className="p-5">
+        <Link to="/" className="flex items-center hover:opacity-90 transition-opacity">
+          <CrownMark size={40} variant="gold" />
           <div className="ml-3">
-            <h1 className={`text-lg font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-              ATRC
-            </h1>
-            <p className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-              Traditional Rulers
-            </p>
+            <h1 className="text-lg font-bold text-white leading-tight">ATRC</h1>
+            <p className="text-[13px] text-[#AAB4E0]">Traditional Rulers</p>
           </div>
         </Link>
       </div>
 
-      <nav className="mt-6 px-3">
+      {/* Nav */}
+      <nav className="mt-2 px-3 flex-1">
         <div className="space-y-1">
           {navigation.map((item) => (
-            <Link
-              key={item.name}
-              to={item.href}
-              className={`group flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors duration-200 ${
-                isActive(item.href)
-                  ? `${isDarkMode ? 'bg-primary-900 text-primary-200' : 'bg-primary-100 text-primary-700'}`
-                  : `${isDarkMode ? 'text-gray-300 hover:bg-gray-700 hover:text-white' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'}`
-              }`}
-            >
-              <span className="mr-3 text-lg">{item.icon}</span>
+            <Link key={item.name} to={item.href} className={itemClass(isActive(item.href))}>
+              <Icon name={item.icon} size={20} className={`flex-shrink-0 ${iconClass(isActive(item.href))}`} />
               {item.name}
             </Link>
           ))}
 
-          {/* Leadership Institute Section */}
-          <div className="mt-4">
+          {/* Leadership Institute */}
+          <div className="pt-4">
             <button
-              onClick={() => setIsLeadershipInstituteOpen(!isLeadershipInstituteOpen)}
-              className={`group flex items-center justify-between w-full px-3 py-2 text-sm font-medium rounded-md transition-colors duration-200 ${
-                isLeadershipInstituteActive()
-                  ? `${isDarkMode ? 'bg-primary-900 text-primary-200' : 'bg-primary-100 text-primary-700'}`
-                  : `${isDarkMode ? 'text-gray-300 hover:bg-gray-700 hover:text-white' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'}`
+              onClick={() => setIsInstituteOpen(!isInstituteOpen)}
+              className="flex items-center justify-between w-full px-3 py-2 text-[13px] font-semibold uppercase tracking-wide text-[#8B98C9] hover:text-white transition-colors min-h-[36px]"
+            >
+              <span>Leadership Institute</span>
+              <Icon
+                name="chevronDown"
+                size={16}
+                className={`transform transition-transform duration-200 ${isInstituteOpen ? '' : '-rotate-90'}`}
+              />
+            </button>
+            <div
+              className={`mt-1 space-y-1 transition-all duration-200 overflow-hidden ${
+                isInstituteOpen ? 'max-h-60 opacity-100' : 'max-h-0 opacity-0'
               }`}
             >
-              <div className="flex items-center">
-                <LogoImage type="leadership-institute" size="small" className="mr-3" />
-                <span>Leadership Institute</span>
-              </div>
-              <span className={`transform transition-transform duration-200 ${isLeadershipInstituteOpen ? 'rotate-90' : ''}`}>
-                ▶
-              </span>
-            </button>
-
-            {/* Leadership Institute Submenu */}
-            <div className={`mt-1 space-y-1 transition-all duration-200 overflow-hidden ${
-              isLeadershipInstituteOpen ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
-            }`}>
-              {leadershipInstituteItems.map((item) => (
-                <Link
-                  key={item.name}
-                  to={item.href}
-                  className={`group flex items-center pl-12 pr-3 py-2 text-sm font-medium rounded-md transition-colors duration-200 ${
-                    isActive(item.href)
-                      ? `${isDarkMode ? 'bg-primary-800 text-primary-100' : 'bg-primary-50 text-primary-600'}`
-                      : `${isDarkMode ? 'text-gray-400 hover:bg-gray-700 hover:text-white' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-700'}`
-                  }`}
-                >
-                  <span className="mr-3 text-base">{item.icon}</span>
+              {instituteItems.map((item) => (
+                <Link key={item.name} to={item.href} className={itemClass(isActive(item.href))}>
+                  <Icon name={item.icon} size={20} className={`flex-shrink-0 ${iconClass(isActive(item.href))}`} />
                   {item.name}
                 </Link>
               ))}
@@ -121,21 +107,25 @@ const Sidebar = () => {
         </div>
       </nav>
 
-      {/* User Info */}
-      <div className="absolute bottom-0 w-64 p-4">
-        <div className={`${isDarkMode ? 'bg-gray-700' : 'bg-gray-50'} rounded-lg p-3`}>
-          <div className="flex items-center">
-            <div className="flex-shrink-0">
-              <div className="h-8 w-8 rounded-full bg-primary-100 flex items-center justify-center">
-                <span className="text-sm">👤</span>
-              </div>
+      {/* Utility + user card pinned to bottom */}
+      <div className="px-3 pb-4 space-y-1">
+        {utilityItems.map((item) => (
+          <Link key={item.name} to={item.href} className={itemClass(isActive(item.href))}>
+            <Icon name={item.icon} size={20} className={`flex-shrink-0 ${iconClass(isActive(item.href))}`} />
+            {item.name}
+          </Link>
+        ))}
+        <div className="rounded-[12px] bg-[#1A2350] p-3 mt-2">
+          <div className="flex items-center gap-3">
+            <div className="h-9 w-9 rounded-full bg-[#E3B04B] flex items-center justify-center flex-shrink-0">
+              <span className="text-[13px] font-bold text-[#14182B]">{initials}</span>
             </div>
-            <div className="ml-3">
-              <p className={`text-sm font-medium ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-                {currentUser?.displayName || 'User'}
+            <div className="min-w-0">
+              <p className="text-sm font-semibold text-white truncate">
+                {currentUser?.displayName || 'Member'}
               </p>
-              <p className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                Traditional Ruler
+              <p className="text-[13px] text-[#AAB4E0] truncate">
+                {userRole ? userRole.charAt(0).toUpperCase() + userRole.slice(1) : 'Member'}
               </p>
             </div>
           </div>

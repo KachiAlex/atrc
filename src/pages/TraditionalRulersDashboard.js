@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { collection, addDoc, doc, updateDoc } from '../api/store';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
+import { collection, addDoc, doc, updateDoc, getDocs, query, orderBy, limit } from '../api/store';
 import { db } from '../api/config';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
+import Icon from '../components/ui/Icon';
 import BookReader from './BookReader';
 import ProgressTracker from '../components/education/ProgressTracker';
 import BookmarkManager from '../components/education/BookmarkManager';
@@ -19,7 +20,7 @@ const TraditionalRulersDashboard = () => {
   const navigate = useNavigate();
 
   console.log('TraditionalRulersDashboard - Component rendered');
-  const [activeTab, setActiveTab] = useState('profile');
+  const [activeTab, setActiveTab] = useState('overview');
   const [status] = useState("Verified");
   const [stats] = useState({
     myCommunities: 3,
@@ -28,6 +29,30 @@ const TraditionalRulersDashboard = () => {
     totalMembers: 45,
     documentsPublished: 7
   });
+
+  // Overview data (live)
+  const [recentReports, setRecentReports] = useState([]);
+  const [upcomingEventsList, setUpcomingEventsList] = useState([]);
+  const [nextMeeting, setNextMeeting] = useState(null);
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const r = await getDocs(query(collection(db, 'communityReports'), orderBy('createdAt', 'desc'), limit(3)));
+        setRecentReports(r.docs.map(d => ({ id: d.id, ...d.data() })));
+      } catch (e) { /* empty list is fine */ }
+      try {
+        const ev = await getDocs(query(collection(db, 'events'), orderBy('date', 'asc'), limit(3)));
+        setUpcomingEventsList(ev.docs.map(d => ({ id: d.id, ...d.data() })));
+      } catch (e) { /* empty list is fine */ }
+      try {
+        const m = await getDocs(query(collection(db, 'liveMeetings'), orderBy('createdAt', 'desc'), limit(1)));
+        const docs = m.docs.map(d => ({ id: d.id, ...d.data() }));
+        if (docs[0]) setNextMeeting(docs[0]);
+      } catch (e) { /* none scheduled */ }
+    };
+    load();
+  }, []);
 
   // Form states
   const [profileData, setProfileData] = useState({
@@ -178,74 +203,206 @@ const TraditionalRulersDashboard = () => {
   const statusColor = status === "Verified" ? "bg-green-500" : status === "Pending" ? "bg-yellow-500" : "bg-red-500";
 
   const tabs = [
-    { id: 'profile', label: 'Throne Profile', icon: '👤' },
-    { id: 'verification', label: 'Verification', icon: '✅' },
-    { id: 'projects', label: 'Projects', icon: '🏗️' },
-    { id: 'community', label: 'Community', icon: '👥' },
-    { id: 'analytics', label: 'Analytics', icon: '📈' },
-    { id: 'documents', label: 'Documents', icon: '📄' },
-    { id: 'events', label: 'Events', icon: '📅' },
-    { id: 'learning', label: 'Learning Center', icon: '📚' },
-    { id: 'library', label: 'Digital Library', icon: '📖' }
+    { id: 'overview', label: 'Overview', icon: 'dashboard' },
+    { id: 'profile', label: 'Throne Profile', icon: 'user' },
+    { id: 'verification', label: 'Verification', icon: 'checkCircle' },
+    { id: 'projects', label: 'Projects', icon: 'fileEdit' },
+    { id: 'community', label: 'Community', icon: 'users' },
+    { id: 'analytics', label: 'Analytics', icon: 'analytics' },
+    { id: 'documents', label: 'Documents', icon: 'file' },
+    { id: 'events', label: 'Events', icon: 'events' },
+    { id: 'learning', label: 'Learning Center', icon: 'library' },
+    { id: 'library', label: 'Digital Library', icon: 'library' }
   ];
 
+  const statusBadge = (s) => {
+    const v = (s || '').toLowerCase();
+    if (v === 'approved' || v === 'resolved' || v === 'closed') return 'a-badge-ok';
+    if (v === 'pending' || v === 'submitted' || v === 'under review') return 'a-badge-warn';
+    if (v === 'rejected' || v === 'urgent') return 'a-badge-danger';
+    return 'a-badge-neutral';
+  };
+
+  const fmtDate = (d) => {
+    if (!d) return '';
+    const date = new Date(d);
+    if (isNaN(date)) return '';
+    return date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+  };
+
+  const greeting = () => {
+    const h = new Date().getHours();
+    if (h < 12) return 'Good morning';
+    if (h < 17) return 'Good afternoon';
+    return 'Good evening';
+  };
+
   return (
-    <div className={`min-h-screen ${isDarkMode ? 'bg-gray-900 text-white' : 'bg-gray-50 text-gray-900'}`}>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
-        {/* Welcome Header */}
-        <div className="mb-8">
-          <h1 className={`text-3xl font-bold mb-2 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-            Welcome, {currentUser?.displayName || 'Traditional Ruler'}
-          </h1>
-          <p className={`text-lg ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-            Manage your throne profile, documents, events, and training.
-          </p>
-        </div>
-
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
-          <div className={`${isDarkMode ? 'bg-gray-800' : 'bg-white'} rounded-2xl shadow-md p-6`}>
-            <h3 className={`text-lg font-semibold mb-2 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-              Verification Status
-            </h3>
-            <span className={`inline-block px-3 py-1 rounded-full text-white text-sm font-medium ${statusColor}`}>
-              {status}
-            </span>
-          </div>
-
-          <div className={`${isDarkMode ? 'bg-gray-800' : 'bg-white'} rounded-2xl shadow-md p-6`}>
-            <h3 className={`text-lg font-semibold mb-2 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-              Events Created
-            </h3>
-            <p className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-              {stats.upcomingEvents}
+    <div className="a-page min-h-screen">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-9 py-6 sm:py-9">
+        {/* Greeting + actions */}
+        <div className="flex flex-wrap items-start justify-between gap-4 mb-8">
+          <div>
+            <h1 className="a-page-title">
+              {greeting()}, {currentUser?.displayName || 'Ruler'}
+            </h1>
+            <p className="mt-1.5 text-[16px]" style={{ color: 'var(--muted)' }}>
+              Here is what needs the council's attention today.
             </p>
           </div>
-
-          <div className={`${isDarkMode ? 'bg-gray-800' : 'bg-white'} rounded-2xl shadow-md p-6`}>
-            <h3 className={`text-lg font-semibold mb-2 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-              Documents Published
-            </h3>
-            <p className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-              {stats.documentsPublished}
-            </p>
+          <div className="flex gap-2.5">
+            <button onClick={() => setActiveTab('events')} className="a-btn-ghost">
+              <Icon name="plus" size={17} /> Create event
+            </button>
+            <Link to="/app/community" className="a-btn-primary">
+              <Icon name="fileEdit" size={17} /> File a report
+            </Link>
           </div>
         </div>
 
-        {/* Tabs Navigation */}
-        <div className={`${isDarkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-md mb-6`}>
-          <div className="flex overflow-x-auto border-b border-gray-200">
-            {tabs.map((tab) => (
+        {/* Overview (default view) */}
+        {activeTab === 'overview' && (
+          <div className="space-y-6">
+            {/* Stat cards */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+              {[
+                { label: 'Upcoming events', value: upcomingEventsList.length || stats.upcomingEvents, icon: 'events' },
+                { label: 'Meetings this month', value: nextMeeting ? 1 : 0, icon: 'meetings' },
+                { label: 'Open reports', value: recentReports.length, icon: 'reports' },
+                { label: 'Courses in progress', value: 0, icon: 'courses' },
+              ].map((s) => (
+                <div key={s.label} className="a-card !p-4 sm:!p-5">
+                  <div
+                    className="w-9 h-9 rounded-[10px] flex items-center justify-center mb-3"
+                    style={{ background: 'var(--brand-soft)', color: 'var(--brand)' }}
+                  >
+                    <Icon name={s.icon} size={20} />
+                  </div>
+                  <div className="text-[26px] font-bold leading-none">{s.value}</div>
+                  <div className="text-[14px] font-medium mt-1.5" style={{ color: 'var(--muted)' }}>{s.label}</div>
+                </div>
+              ))}
+            </div>
+
+            {/* Next meeting — live card */}
+            <div className="rounded-card p-5 sm:p-6 text-white" style={{ background: 'var(--hero)' }}>
+              <div className="flex flex-wrap items-center justify-between gap-4">
+                <div>
+                  <div className="flex items-center gap-2.5 mb-2">
+                    <span className="text-[12px] font-semibold uppercase tracking-wide text-[#AAB4E0]">Next meeting</span>
+                    <span className="a-badge a-badge-live">LIVE TODAY</span>
+                  </div>
+                  <div className="font-serif font-semibold text-[22px]">
+                    {nextMeeting?.title || 'Quarterly Council Assembly'}
+                  </div>
+                  <div className="text-[14px] text-[#C9D0EE] mt-0.5">
+                    {nextMeeting?.scheduledAt
+                      ? fmtDate(nextMeeting.scheduledAt)
+                      : 'Check the meetings page for the next session'} · open to council delegates
+                  </div>
+                </div>
+                <Link to="/app/meetings" className="a-btn-gold">
+                  <Icon name="play" size={16} /> Join live
+                </Link>
+              </div>
+            </div>
+
+            <div className="grid lg:grid-cols-2 gap-5">
+              {/* Recent reports */}
+              <div className="a-card">
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="a-section-title">Recent community reports</h2>
+                  <Link to="/app/community" className="text-[14px] font-semibold inline-flex items-center gap-1" style={{ color: 'var(--brand)' }}>
+                    View all <Icon name="arrowRight" size={15} />
+                  </Link>
+                </div>
+                {recentReports.length === 0 ? (
+                  <p className="text-[15px] py-6 text-center" style={{ color: 'var(--muted)' }}>No reports filed yet.</p>
+                ) : (
+                  <div className="space-y-1">
+                    {recentReports.map((r) => (
+                      <div key={r.id} className="flex items-center justify-between gap-3 py-2.5 border-b last:border-0" style={{ borderColor: 'var(--border)' }}>
+                        <div className="min-w-0">
+                          <div className="font-semibold text-[15px] truncate">{r.title || r.subject || 'Report'}</div>
+                          <div className="text-[13px]" style={{ color: 'var(--muted)' }}>
+                            Filed {fmtDate(r.createdAt)}{r.location || r.ward ? ` · ${r.location || r.ward}` : ''}
+                          </div>
+                        </div>
+                        <span className={`a-badge flex-shrink-0 capitalize ${statusBadge(r.status)}`}>
+                          {r.status || 'Submitted'}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Upcoming events */}
+              <div className="a-card">
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="a-section-title">Upcoming events</h2>
+                  <Link to="/app/events" className="text-[14px] font-semibold inline-flex items-center gap-1" style={{ color: 'var(--brand)' }}>
+                    View all <Icon name="arrowRight" size={15} />
+                  </Link>
+                </div>
+                {upcomingEventsList.length === 0 ? (
+                  <p className="text-[15px] py-6 text-center" style={{ color: 'var(--muted)' }}>No upcoming events.</p>
+                ) : (
+                  <div className="space-y-1">
+                    {upcomingEventsList.map((ev) => (
+                      <div key={ev.id} className="flex items-center justify-between gap-3 py-2.5 border-b last:border-0" style={{ borderColor: 'var(--border)' }}>
+                        <div className="min-w-0">
+                          <div className="font-semibold text-[15px] truncate">{ev.title}</div>
+                          <div className="text-[13px]" style={{ color: 'var(--muted)' }}>
+                            {fmtDate(ev.date)}{ev.location ? ` · ${ev.location}` : ''}
+                          </div>
+                        </div>
+                        <span className="a-badge a-badge-info flex-shrink-0 capitalize">{ev.type || 'Event'}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Continue learning */}
+            <div className="a-card flex flex-wrap items-center justify-between gap-4">
+              <div className="flex items-center gap-4 min-w-0">
+                <div
+                  className="w-11 h-11 rounded-[12px] flex items-center justify-center flex-shrink-0"
+                  style={{ background: 'var(--warn-bg)', color: 'var(--warn-fg)' }}
+                >
+                  <Icon name="courses" size={22} />
+                </div>
+                <div className="min-w-0">
+                  <div className="text-[12px] font-semibold uppercase tracking-wide" style={{ color: 'var(--muted)' }}>Continue learning</div>
+                  <div className="font-semibold text-[16px]">Leadership Foundations</div>
+                  <div className="mt-1.5 w-48 h-1.5 rounded-full" style={{ background: 'var(--surface2)' }}>
+                    <div className="h-1.5 rounded-full bg-[#E3B04B]" style={{ width: '38%' }} />
+                  </div>
+                  <div className="text-[13px] mt-1" style={{ color: 'var(--muted)' }}>Module 3 of 8 · 38% complete</div>
+                </div>
+              </div>
+              <Link to="/app/courses" className="a-btn-primary">Resume lesson</Link>
+            </div>
+          </div>
+        )}
+
+        {/* Management tabs */}
+        <div className="a-card !p-0 overflow-hidden mt-8">
+          <div className="flex overflow-x-auto border-b" style={{ borderColor: 'var(--border)' }}>
+            {tabs.filter(t => t.id !== 'overview').map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex-shrink-0 px-3 sm:px-6 py-4 text-xs sm:text-sm font-medium transition-colors duration-200 whitespace-nowrap ${
+                className="flex-shrink-0 inline-flex items-center gap-2 px-4 sm:px-5 py-3.5 text-[14px] font-semibold whitespace-nowrap transition-colors border-b-2 min-h-[44px]"
+                style={
                   activeTab === tab.id
-                    ? `${isDarkMode ? 'text-primary-400 border-b-2 border-primary-400' : 'text-primary-600 border-b-2 border-primary-600'}`
-                    : `${isDarkMode ? 'text-gray-400 hover:text-white' : 'text-gray-500 hover:text-gray-700'}`
-                }`}
+                    ? { color: 'var(--brand)', borderColor: 'var(--brand)' }
+                    : { color: 'var(--muted)', borderColor: 'transparent' }
+                }
               >
-                <span className="mr-1 sm:mr-2">{tab.icon}</span>
+                <Icon name={tab.icon} size={17} />
                 <span className="hidden sm:inline">{tab.label}</span>
                 <span className="sm:hidden">{tab.label.split(' ')[0]}</span>
               </button>
@@ -254,7 +411,12 @@ const TraditionalRulersDashboard = () => {
         </div>
 
         {/* Tab Content */}
-        <div className={`${isDarkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-md p-4 sm:p-6`}>
+        <div className={`${isDarkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-md p-4 sm:p-6 mt-5`}>
+          {activeTab === 'overview' && (
+            <p className="text-[15px]" style={{ color: 'var(--muted)' }}>
+              Pick a management tab above — profile, verification, projects, community, analytics, documents, events, learning or library.
+            </p>
+          )}
           {/* Profile Tab */}
           {activeTab === 'profile' && (
             <div>

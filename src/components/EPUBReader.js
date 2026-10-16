@@ -56,7 +56,7 @@ const EPUBReader = ({ bookUrl, bookTitle, onClose }) => {
           </p>
           <button
             onClick={onClose}
-            className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+            className="bg-primary-600 text-white px-6 py-2 rounded-[10px] hover:bg-primary-700 transition-colors"
           >
             Back to Library
           </button>
@@ -328,7 +328,7 @@ const EPUBReader = ({ bookUrl, bookTitle, onClose }) => {
               <select
                 value={targetLanguage}
                 onChange={(e) => setTargetLanguage(e.target.value)}
-                className={`px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 ${
+                className={`px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 ${
                   isDarkMode 
                     ? 'bg-gray-700 border-gray-600 text-white' 
                     : 'bg-white border-gray-300 text-gray-900'
@@ -349,7 +349,7 @@ const EPUBReader = ({ bookUrl, bookTitle, onClose }) => {
                   className={`px-4 py-2 rounded-lg transition-colors ${
                     isTranslating || targetLanguage === originalLanguage
                       ? 'bg-gray-400 text-gray-200 cursor-not-allowed'
-                      : 'bg-blue-600 text-white hover:bg-blue-700'
+                      : 'bg-primary-600 text-white hover:bg-primary-700'
                   }`}
                 >
                   {isTranslating ? (
@@ -372,7 +372,7 @@ const EPUBReader = ({ bookUrl, bookTitle, onClose }) => {
               ) : (
                 <button
                   onClick={resetToOriginal}
-                  className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                  className="px-4 py-2 bg-[#E3B04B] text-[#14182B] rounded-[10px] hover:bg-[#C69433] font-semibold transition-colors"
                 >
                   <svg className="w-4 h-4 mr-2 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
@@ -423,7 +423,7 @@ const EPUBReader = ({ bookUrl, bookTitle, onClose }) => {
                   </div>
                   <button
                     onClick={onClose}
-                    className="mt-4 bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                    className="mt-4 bg-primary-600 text-white px-6 py-2 rounded-[10px] hover:bg-primary-700 transition-colors"
                   >
                     Back to Library
                   </button>
@@ -484,7 +484,7 @@ const EPUBReader = ({ bookUrl, bookTitle, onClose }) => {
             loadingView={
               <div className="flex items-center justify-center h-full">
                 <div className="text-center">
-                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto mb-4"></div>
                   <p className={`${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>Loading EPUB book...</p>
                 </div>
               </div>
@@ -524,7 +524,7 @@ const EPUBReader = ({ bookUrl, bookTitle, onClose }) => {
                 <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
                   Translation ({languages.find(l => l.code === translatedContent.targetLanguage)?.name}):
                 </label>
-                <p className="text-sm text-gray-900 dark:text-white mt-1 p-2 bg-blue-50 dark:bg-blue-900 rounded">
+                <p className="text-sm text-gray-900 dark:text-white mt-1 p-2 bg-[#E4E8F7] dark:bg-[#1E2958] rounded">
                   {translatedContent.translated}
                 </p>
               </div>

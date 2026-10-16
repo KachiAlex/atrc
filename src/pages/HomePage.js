@@ -1,122 +1,46 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { collection, getDocs, query, orderBy, limit, where } from '../api/store';
+import { collection, getDocs, query, orderBy, limit } from '../api/store';
 import { db } from '../api/config';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
-import LanguageSelector from '../components/LanguageSelector';
-import LogoImage from '../components/LogoImage';
+import Icon, { CrownMark, WeaveBand } from '../components/ui/Icon';
 
 const HomePage = () => {
   const { isDarkMode, toggleTheme } = useTheme();
   const { t } = useLanguage();
-  const [isVisible, setIsVisible] = useState(false);
-  const [visibleSections, setVisibleSections] = useState(new Set());
   const [events, setEvents] = useState([]);
   const [announcements, setAnnouncements] = useState([]);
   const [loadingEvents, setLoadingEvents] = useState(true);
   const [loadingAnnouncements, setLoadingAnnouncements] = useState(true);
-  const [currentSlide, setCurrentSlide] = useState(0);
 
-  // Fetch events from Firebase
   const fetchEvents = async () => {
     try {
-      const eventsQuery = query(
-        collection(db, 'events'),
-        orderBy('date', 'desc'),
-        limit(3)
-      );
+      const eventsQuery = query(collection(db, 'events'), orderBy('date', 'desc'), limit(3));
       const eventsSnapshot = await getDocs(eventsQuery);
-      const eventsData = eventsSnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }));
-      setEvents(eventsData);
+      setEvents(eventsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
     } catch (error) {
       console.error('Error fetching events:', error);
-      // Fallback to static data
       setEvents([
-        {
-          id: 1,
-          title: 'Annual Cultural Festival',
-          date: '2024-03-15',
-          location: 'Lagos State',
-          organizer: 'Oba Adeyemi III',
-          type: 'cultural',
-          status: 'upcoming',
-          description: 'Celebrating traditional African culture with music, dance, and ceremonial activities.'
-        },
-        {
-          id: 2,
-          title: 'Traditional Marriage Ceremony',
-          date: '2024-02-20',
-          location: 'Anambra State',
-          organizer: 'Eze Nwosu',
-          type: 'ceremony',
-          status: 'upcoming',
-          description: 'Sacred union ceremony following traditional customs and spiritual blessings.'
-        },
-        {
-          id: 3,
-          title: 'Council Meeting',
-          date: '2024-01-25',
-          location: 'Abuja',
-          organizer: 'ATRC Council',
-          type: 'meeting',
-          status: 'completed',
-          description: 'Monthly gathering of traditional rulers to discuss community matters and governance.'
-        }
+        { id: 1, title: 'Council Assembly', date: '2024-03-15', location: 'Abuja', type: 'governance', status: 'upcoming' },
+        { id: 2, title: 'Youth and Elders Dialogue', date: '2024-03-22', location: 'Enugu', type: 'community', status: 'upcoming' },
+        { id: 3, title: 'Heritage Day Celebration', date: '2024-04-01', location: 'Lagos State', type: 'culture', status: 'upcoming' }
       ]);
     } finally {
       setLoadingEvents(false);
     }
   };
 
-  // Fetch announcements from Firebase
   const fetchAnnouncements = async () => {
     try {
-      const announcementsQuery = query(
-        collection(db, 'announcements'),
-        orderBy('createdAt', 'desc'),
-        limit(3)
-      );
+      const announcementsQuery = query(collection(db, 'announcements'), orderBy('createdAt', 'desc'), limit(3));
       const announcementsSnapshot = await getDocs(announcementsQuery);
-      const announcementsData = announcementsSnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }));
-      setAnnouncements(announcementsData);
+      setAnnouncements(announcementsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
     } catch (error) {
       console.error('Error fetching announcements:', error);
-      // Fallback to static data
       setAnnouncements([
-        {
-          id: 1,
-          title: 'Council Meeting Announcement',
-          content: 'The monthly council meeting will be held on January 30th, 2024 at 10:00 AM.',
-          author: 'Oba Adeyemi III',
-          date: '2024-01-20',
-          priority: 'high',
-          createdBy: 'admin'
-        },
-        {
-          id: 2,
-          title: 'Cultural Festival Update',
-          content: 'The annual cultural festival has been rescheduled to March 15th, 2024.',
-          author: 'Eze Nwosu',
-          date: '2024-01-18',
-          priority: 'medium',
-          createdBy: 'ruler'
-        },
-        {
-          id: 3,
-          title: 'New Community Guidelines',
-          content: 'Please review the updated community guidelines for traditional practices.',
-          author: 'Emir Muhammad',
-          date: '2024-01-15',
-          priority: 'low',
-          createdBy: 'ruler'
-        }
+        { id: 1, title: 'Assembly agenda published', content: 'Read the full agenda before you RSVP.', createdAt: '2024-10-12' },
+        { id: 2, title: 'Course enrolment is open', content: 'Leadership Foundations is now accepting new learners.', createdAt: '2024-10-09' }
       ]);
     } finally {
       setLoadingAnnouncements(false);
@@ -124,960 +48,302 @@ const HomePage = () => {
   };
 
   useEffect(() => {
-    // Trigger initial animation
-    setIsVisible(true);
-    
-    // Fetch data
     fetchEvents();
     fetchAnnouncements();
-    
-    // Intersection Observer for scroll animations
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            setVisibleSections(prev => new Set([...prev, entry.target.id]));
-          }
-        });
-      },
-      { threshold: 0.1 }
-    );
-
-    // Observe all sections
-    const sections = document.querySelectorAll('[data-animate]');
-    sections.forEach(section => observer.observe(section));
-
-    return () => observer.disconnect();
   }, []);
-
-  // Auto-advance banner slides
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentSlide((prev) => (prev + 1) % 5); // 5 slides total
-    }, 5000); // Change slide every 5 seconds
-
-    return () => clearInterval(interval);
-  }, []);
-
-  const bannerSlides = [
-    {
-      id: 1,
-      title: "Unity in Diversity",
-      subtitle: "Connecting Traditional Rulers Across Africa",
-      description: "Join our network of traditional leaders working together for community development and cultural preservation.",
-      image: "👑",
-      gradient: "from-blue-600 to-purple-600",
-      backgroundImage: "https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=1200&h=800&fit=crop"
-    },
-    {
-      id: 2,
-      title: "Digital Transformation",
-      subtitle: "Modern Solutions for Traditional Leadership",
-      description: "Embrace technology while preserving cultural heritage through our comprehensive digital platform.",
-      image: "📱",
-      gradient: "from-green-600 to-blue-600",
-      backgroundImage: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=1200&h=800&fit=crop"
-    },
-    {
-      id: 3,
-      title: "Community Development",
-      subtitle: "Building Stronger Communities Together",
-      description: "Collaborate on projects that enhance education, healthcare, and infrastructure in your communities.",
-      image: "🏘️",
-      gradient: "from-purple-600 to-pink-600",
-      backgroundImage: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=1200&h=800&fit=crop"
-    },
-    {
-      id: 4,
-      title: "Cultural Preservation",
-      subtitle: "Honoring Our Rich Heritage",
-      description: "Document and preserve traditional knowledge, customs, and practices for future generations.",
-      image: "🎭",
-      gradient: "from-orange-600 to-red-600",
-      backgroundImage: "https://images.unsplash.com/photo-1560250097-0b93528c311a?w=1200&h=800&fit=crop"
-    },
-    {
-      id: 5,
-      title: "Global Network",
-      subtitle: "Connecting Africa to the World",
-      description: "Build international partnerships and showcase African traditional leadership on the global stage.",
-      image: "🌍",
-      gradient: "from-teal-600 to-green-600",
-      backgroundImage: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=1200&h=800&fit=crop"
-    }
-  ];
 
   const features = [
-    {
-      icon: '🏘️',
-      title: t('features.community.title'),
-      description: t('features.community.desc')
-    },
-    {
-      icon: '⚖️',
-      title: t('features.disputes.title'),
-      description: t('features.disputes.desc')
-    },
-    {
-      icon: '📅',
-      title: t('features.events.title'),
-      description: t('features.events.desc')
-    },
-    {
-      icon: '📢',
-      title: t('features.announcements.title'),
-      description: t('features.announcements.desc')
-    },
-    {
-      icon: '📊',
-      title: t('features.analytics.title'),
-      description: t('features.analytics.desc')
-    },
-    {
-      icon: '👥',
-      title: t('features.members.title'),
-      description: t('features.members.desc')
-    }
+    { icon: 'reports', title: 'Community Reports', desc: 'File reports on issues, projects and updates from your community, and follow each one from submitted to resolved.' },
+    { icon: 'disputes', title: 'Dispute Resolution', desc: 'Record disputes between parties, track each case through its stages, and keep a clear account of every resolution.' },
+    { icon: 'meetings', title: 'Live Meetings', desc: 'Join council sessions live or watch the recording later, with the meeting details beside the video.' },
+    { icon: 'events', title: 'Local Events', desc: 'Publish gatherings, share the details and collect RSVPs. Public events are visible to everyone.' },
+    { icon: 'library', title: 'Digital Library', desc: 'Read books and documents in the app, bookmark where you stopped, and translate a passage or a whole chapter.' },
+    { icon: 'courses', title: 'Courses', desc: 'Learn through modules and lessons, check understanding with quizzes, and earn certificates.' },
   ];
 
-  const stats = [
-    { number: '500+', label: t('stats.communities') },
-    { number: '50+', label: t('stats.rulers') },
-    { number: '1000+', label: t('stats.members') },
-    { number: '24/7', label: t('stats.support') }
+  const featureChips = [
+    { icon: 'language', label: 'Multi-language', sub: 'Interface and in-book translation' },
+    { icon: 'meetings', label: 'Live and recorded', sub: 'Council meetings, from anywhere' },
+    { icon: 'file', label: 'EPUB, PDF and DOCX', sub: 'Read inside the app' },
+    { icon: 'smartphone', label: 'Installable on phones', sub: 'Works like an app, built for touch' },
   ];
 
+  const formatDate = (d) => {
+    if (!d) return '';
+    const date = new Date(d);
+    if (isNaN(date)) return String(d);
+    return date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+  };
+
+  const dateBlock = (d) => {
+    const date = new Date(d);
+    if (isNaN(date)) return { day: '—', mon: '' };
+    return {
+      day: date.toLocaleDateString('en-GB', { day: '2-digit' }),
+      mon: date.toLocaleDateString('en-GB', { month: 'short' }).toUpperCase(),
+    };
+  };
+
+  const eventTypeColor = (type) => {
+    const t = (type || '').toLowerCase();
+    if (t === 'governance' || t === 'meeting') return 'a-badge-info';
+    if (t === 'community' || t === 'ceremony') return 'a-badge-warn';
+    return 'a-badge-ok';
+  };
 
   return (
-    <div className={`min-h-screen ${isDarkMode ? 'bg-gray-900 text-white' : 'bg-gray-50 text-gray-900'}`}>
-      {/* Navigation */}
-      <nav className={`${isDarkMode ? 'bg-gray-800' : 'bg-white'} shadow-lg`}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16">
-            <div className="flex items-center">
-              <div className="flex-shrink-0">
-                <LogoImage type="traditional-rulers" size="small" />
-              </div>
-              <div className="ml-3">
-                <h1 className={`text-lg font-bold atrc-gradient-text`}>
-                  ATRC
-                </h1>
-                <p className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                  Africa Traditional Rulers for Christ
-                </p>
-              </div>
+    <div className="min-h-screen" style={{ background: 'var(--bg)', color: 'var(--ink)' }}>
+
+      {/* ===== Top nav ===== */}
+      <nav
+        className="sticky top-0 z-40 border-b"
+        style={{ background: 'var(--bg)', borderColor: 'var(--border)' }}
+      >
+        <div className="max-w-6xl mx-auto px-5 flex items-center justify-between h-[68px]">
+          <Link to="/" className="flex items-center gap-2.5">
+            <CrownMark size={38} variant="dark" />
+            <div className="leading-tight">
+              <div className="font-bold text-[16px]">ATRC</div>
+              <div className="text-[12px]" style={{ color: 'var(--muted)' }}>Traditional Rulers</div>
             </div>
-            
-            <div className="flex items-center space-x-4">
-              <LanguageSelector />
-              <button
-                onClick={toggleTheme}
-                className={`p-2 rounded-md hover:bg-gray-100 ${isDarkMode ? 'hover:bg-gray-700' : ''}`}
-              >
-                {isDarkMode ? '☀️' : '🌙'}
-              </button>
-              <Link
-                to="/auth"
-                className="bg-primary-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-primary-700 transition-colors"
-              >
-                {t('nav.joinATRC')}
-              </Link>
-            </div>
+          </Link>
+          <div className="hidden md:flex items-center gap-7 text-[15px] font-medium" style={{ color: 'var(--muted)' }}>
+            <a href="#platform" className="hover:opacity-70">Platform</a>
+            <a href="#institute" className="hover:opacity-70">Leadership Institute</a>
+            <Link to="/events" className="hover:opacity-70">Events</Link>
+            <Link to="/announcements" className="hover:opacity-70">Announcements</Link>
+          </div>
+          <div className="flex items-center gap-2.5">
+            <button
+              onClick={toggleTheme}
+              className="min-h-[44px] min-w-[44px] inline-flex items-center justify-center rounded-[10px] border"
+              style={{ borderColor: 'var(--border)', background: 'var(--surface)', color: 'var(--ink)' }}
+              aria-label="Toggle theme"
+            >
+              <Icon name={isDarkMode ? 'sun' : 'moon'} size={19} />
+            </button>
+            <Link to="/auth" className="a-btn-ghost hidden sm:inline-flex">Sign in</Link>
+            <Link to="/auth" className="a-btn-primary">Join</Link>
           </div>
         </div>
       </nav>
 
-      {/* Dynamic Banner Hero Section */}
-      <div className="relative overflow-hidden h-screen">
-        {/* Enhanced Background Slides */}
-        <div className="absolute inset-0">
-          {bannerSlides.map((slide, index) => (
-            <div
-              key={slide.id}
-              className={`absolute inset-0 transition-opacity duration-1000 ${
-                index === currentSlide ? 'opacity-100' : 'opacity-0'
-              }`}
-            >
-              {/* Background Image */}
-              <div 
-                className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-                style={{
-                  backgroundImage: `url(${slide.backgroundImage})`
-                }}
-              />
-              {/* Gradient Overlay */}
-              <div className={`absolute inset-0 bg-gradient-to-br ${slide.gradient}`}></div>
-              <div className="absolute inset-0 bg-black/40"></div>
-            </div>
-          ))}
-        </div>
-
-        {/* Content */}
-        <div className="relative z-10 h-full flex items-center justify-center">
-          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
-            <div className="text-center flex flex-col items-center justify-center">
-              {bannerSlides.map((slide, index) => (
-                <div
-                  key={slide.id}
-                  className={`transition-all duration-1000 ${
-                    index === currentSlide 
-                      ? 'opacity-100 translate-y-0' 
-                      : 'opacity-0 translate-y-8 absolute inset-0'
-                  }`}
-                >
-                  <div className={`transform transition-all duration-1000 ${
-                    isVisible ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'
-                  }`}>
-                    <div className="text-8xl mb-6 animate-bounce">{slide.image}</div>
-                    <h1 className="text-4xl tracking-tight font-extrabold text-white sm:text-5xl md:text-6xl mb-4">
-                      <span className="block">{slide.title}</span>
-                      <span className="block text-yellow-300">{slide.subtitle}</span>
-                    </h1>
-                    <p className="mt-6 text-lg sm:text-xl text-white/90 max-w-3xl mx-auto">
-                      {slide.description}
-                    </p>
-                  </div>
-                </div>
-              ))}
-              
-              <div className={`mt-12 transform transition-all duration-1000 delay-500 ${
-                isVisible ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'
-              }`}>
-                <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                  <Link
-                    to="/auth"
-                    className="inline-flex items-center px-8 py-4 border border-transparent text-lg font-medium rounded-lg text-primary-600 bg-white hover:bg-primary-50 transition-all duration-300 transform hover:scale-105 shadow-lg"
-                  >
-                    {t('home.joinCommunity')}
-                  </Link>
-                  <Link
-                    to="/login"
-                    className="inline-flex items-center px-8 py-4 border-2 border-white text-lg font-medium rounded-lg text-white hover:bg-white hover:text-primary-600 transition-all duration-300 transform hover:scale-105"
-                  >
-                    {t('home.signIn')}
-                  </Link>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Slide Indicators */}
-        <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 flex space-x-2">
-          {bannerSlides.map((_, index) => (
-            <button
-              key={index}
-              onClick={() => setCurrentSlide(index)}
-              className={`w-3 h-3 rounded-full transition-all duration-300 ${
-                index === currentSlide 
-                  ? 'bg-white scale-125' 
-                  : 'bg-white/50 hover:bg-white/75'
-              }`}
-            />
-          ))}
-        </div>
-
-        {/* Navigation Arrows */}
-        <button
-          onClick={() => setCurrentSlide((prev) => (prev - 1 + bannerSlides.length) % bannerSlides.length)}
-          className="absolute left-4 top-1/2 transform -translate-y-1/2 text-white/70 hover:text-white transition-colors duration-300"
-        >
-          <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-          </svg>
-        </button>
-        <button
-          onClick={() => setCurrentSlide((prev) => (prev + 1) % bannerSlides.length)}
-          className="absolute right-4 top-1/2 transform -translate-y-1/2 text-white/70 hover:text-white transition-colors duration-300"
-        >
-          <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-          </svg>
-        </button>
-      </div>
-
-      {/* Stats Section */}
-      <div 
-        id="stats" 
-        data-animate
-        className={`py-16 ${isDarkMode ? 'bg-gray-800' : 'bg-white'} ${
-          visibleSections.has('stats') ? 'animate-fadeInUp' : 'opacity-0'
-        }`}
-      >
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 gap-8 md:grid-cols-4 justify-items-center">
-            {stats.map((stat, index) => (
-              <div 
-                key={index} 
-                className={`text-center transform transition-all duration-700 delay-${index * 100} ${
-                  visibleSections.has('stats') ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'
-                } hover:scale-105`}
-              >
-                <div className={`text-3xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'} transition-colors duration-300`}>
-                  {stat.number}
-                </div>
-                <div className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'} transition-colors duration-300`}>
-                  {stat.label}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Features Section */}
-      <div 
-        id="features" 
-        data-animate
-        className={`py-20 ${isDarkMode ? 'bg-gray-900' : 'bg-gray-50'} ${
-          visibleSections.has('features') ? 'animate-fadeInUp' : 'opacity-0'
-        }`}
-      >
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className={`text-center transform transition-all duration-1000 ${
-            visibleSections.has('features') ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'
-          }`}>
-            <h2 className={`text-3xl font-extrabold ${isDarkMode ? 'text-white' : 'text-gray-900'} sm:text-4xl`}>
-              {t('features.title')}
-            </h2>
-            <p className={`mt-4 text-lg max-w-3xl mx-auto ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-              {t('features.subtitle')}
+      {/* ===== Hero ===== */}
+      <section style={{ background: 'var(--hero)' }} className="text-white">
+        <WeaveBand height={14} />
+        <div className="max-w-6xl mx-auto px-5 pt-16 pb-20 lg:pt-24 lg:pb-28 grid lg:grid-cols-2 gap-14 items-center">
+          <div>
+            <h1 className="font-serif font-bold leading-[1.08] text-[42px] sm:text-[54px] lg:text-[62px]">
+              The digital home of traditional leadership
+            </h1>
+            <p className="mt-5 text-[19px] leading-relaxed text-[#C9D0EE] max-w-xl">
+              Where the council gathers, wherever its people are.
             </p>
-          </div>
-
-          <div className="mt-16">
-            <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3 justify-items-center">
-              {features.map((feature, index) => (
-                <div 
-                  key={index} 
-                  className={`${isDarkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-md p-6 hover:shadow-xl transition-all duration-500 transform hover:scale-105 hover:-translate-y-2 ${
-                    visibleSections.has('features') 
-                      ? 'translate-y-0 opacity-100' 
-                      : 'translate-y-8 opacity-0'
-                  }`}
-                  style={{ transitionDelay: `${index * 100}ms` }}
-                >
-                  <div className="text-4xl mb-4 transform transition-transform duration-300 hover:scale-110 hover:rotate-12">
-                    {feature.icon}
-                  </div>
-                  <h3 className={`text-lg font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'} mb-2 transition-colors duration-300`}>
-                    {feature.title}
-                  </h3>
-                  <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'} transition-colors duration-300`}>
-                    {feature.description}
-                  </p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Traditional Leadership Gallery Section */}
-      <div 
-        id="leadership-gallery" 
-        data-animate
-        className={`py-20 ${isDarkMode ? 'bg-gray-800' : 'bg-white'} ${
-          visibleSections.has('leadership-gallery') ? 'animate-fadeInUp' : 'opacity-0'
-        }`}
-      >
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className={`text-center transform transition-all duration-1000 ${
-            visibleSections.has('leadership-gallery') ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'
-          }`}>
-            <h2 className={`text-3xl font-extrabold ${isDarkMode ? 'text-white' : 'text-gray-900'} sm:text-4xl`}>
-              Traditional Leadership in Action
-            </h2>
-            <p className={`mt-4 text-lg max-w-3xl mx-auto ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-              Witness the profound wisdom and cultural richness of traditional African leadership through these ceremonial gatherings.
-            </p>
-          </div>
-
-          <div className="mt-16 grid grid-cols-1 lg:grid-cols-2 gap-12">
-            {/* First Image - Church Gathering */}
-            <div className={`transform transition-all duration-1000 ${
-              visibleSections.has('leadership-gallery') ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'
-            }`}>
-              <div className={`${isDarkMode ? 'bg-gray-900' : 'bg-gray-50'} rounded-2xl overflow-hidden shadow-2xl hover:shadow-3xl transition-shadow duration-300`}>
-                <div className="relative">
-                  <img 
-                    src="/images/traditional-leaders/spiritual-leadership.jpeg" 
-                    alt="Traditional rulers and elders in church ceremony with prayer and reverence"
-                    className="w-full h-80 object-cover"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
-                  <div className="absolute bottom-4 left-4 right-4">
-                    <h3 className={`text-xl font-bold ${isDarkMode ? 'text-white' : 'text-white'} mb-2`}>
-                      Spiritual Leadership
-                    </h3>
-                    <p className={`text-sm ${isDarkMode ? 'text-gray-200' : 'text-gray-100'}`}>
-                      Traditional rulers in ornate ceremonial regalia during sacred church gathering, displaying deep spiritual devotion and cultural heritage
-                    </p>
-                  </div>
-                </div>
-                <div className="p-6">
-                  <div className="flex items-center space-x-2 mb-3">
-                    <span className="text-2xl">⛪</span>
-                    <span className={`text-sm font-medium ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                      Ceremonial Gathering
-                    </span>
-                  </div>
-                  <p className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-                    A powerful moment of spiritual unity, where traditional African leaders in magnificent ceremonial regalia demonstrate their deep faith and cultural heritage within sacred church spaces.
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Second Image - Ceremonial Interaction */}
-            <div className={`transform transition-all duration-1000 delay-200 ${
-              visibleSections.has('leadership-gallery') ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'
-            }`}>
-              <div className={`${isDarkMode ? 'bg-gray-900' : 'bg-gray-50'} rounded-2xl overflow-hidden shadow-2xl hover:shadow-3xl transition-shadow duration-300`}>
-                <div className="relative">
-                  <img 
-                    src="/images/traditional-leaders/ceremonial-gathering.jpeg" 
-                    alt="Traditional rulers in sacred ceremony with candle ritual and ornate regalia"
-                    className="w-full h-80 object-cover"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
-                  <div className="absolute bottom-4 left-4 right-4">
-                    <h3 className={`text-xl font-bold ${isDarkMode ? 'text-white' : 'text-white'} mb-2`}>
-                      Sacred Ceremony
-                    </h3>
-                    <p className={`text-sm ${isDarkMode ? 'text-gray-200' : 'text-gray-100'}`}>
-                      Traditional rulers and community members in ceremonial gathering, showcasing unity, worship, and the preservation of cultural traditions
-                    </p>
-                  </div>
-                </div>
-                <div className="p-6">
-                  <div className="flex items-center space-x-2 mb-3">
-                    <span className="text-2xl">🕯️</span>
-                    <span className={`text-sm font-medium ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                      Sacred Ritual
-                    </span>
-                  </div>
-                  <p className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-                    A sacred gathering of traditional rulers and community members in worship, demonstrating the harmony between African cultural traditions and Christian faith.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Call to Action */}
-          <div className="mt-16 text-center">
-            <div className={`${isDarkMode ? 'bg-gray-900' : 'bg-gray-50'} rounded-2xl p-8`}>
-              <h3 className={`text-2xl font-bold mb-4 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-                Experience Traditional Wisdom
-              </h3>
-              <p className={`text-lg mb-6 max-w-2xl mx-auto ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-                Join our platform to connect with traditional leaders, learn from their wisdom, and contribute to preserving African cultural heritage.
-              </p>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Link
-                  to="/auth"
-                  className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-lg text-white bg-primary-600 hover:bg-primary-700 transition-colors duration-200"
-                >
-                  Join Our Community
-                </Link>
-                <Link
-                  to="/login"
-                  className="inline-flex items-center px-6 py-3 border border-gray-300 text-base font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 transition-colors duration-200"
-                >
-                  Learn More
-                </Link>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Leadership Institute Section */}
-      <div 
-        id="leadership-institute" 
-        data-animate
-        className={`py-20 ${isDarkMode ? 'bg-gray-800' : 'bg-white'} ${
-          visibleSections.has('leadership-institute') ? 'animate-fadeInUp' : 'opacity-0'
-        }`}
-      >
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className={`text-center transform transition-all duration-1000 ${
-            visibleSections.has('leadership-institute') ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'
-          }`}>
-            <div className="flex flex-col items-center mb-8">
-              <LogoImage type="leadership-institute" size="xlarge" className="mb-6" />
-              <h2 className={`text-3xl font-extrabold ${isDarkMode ? 'text-white' : 'text-gray-900'} sm:text-4xl`}>
-                Africa Traditional Rulers for Christ (ATRC) Leadership Institute
-              </h2>
-              <p className={`mt-4 text-lg max-w-3xl mx-auto ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-                Empowering Traditional African Leaders through Christ-centered education, wisdom, and practical leadership training.
-              </p>
-            </div>
-          </div>
-
-          {/* Features Grid */}
-          <div className="mt-16 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {/* Digital Library */}
-            <div className={`transform transition-all duration-1000 ${
-              visibleSections.has('leadership-institute') ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'
-            }`}>
-              <div className={`${isDarkMode ? 'bg-gray-900' : 'bg-gray-50'} rounded-2xl p-8 text-center hover:shadow-xl transition-shadow duration-300`}>
-                <div className="text-5xl mb-4">📚</div>
-                <h3 className={`text-xl font-bold mb-4 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-                  Digital Library
-                </h3>
-                <p className={`text-sm mb-6 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-                  Access a comprehensive collection of books on leadership, governance, and spiritual growth for traditional rulers.
-                </p>
-                <Link
-                  to="/app/books"
-                  className="inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                >
-                  <span className="mr-2">📖</span>
-                  Explore Library
-                </Link>
-              </div>
-            </div>
-
-            {/* Courses */}
-            <div className={`transform transition-all duration-1000 delay-200 ${
-              visibleSections.has('leadership-institute') ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'
-            }`}>
-              <div className={`${isDarkMode ? 'bg-gray-900' : 'bg-gray-50'} rounded-2xl p-8 text-center hover:shadow-xl transition-shadow duration-300`}>
-                <div className="text-5xl mb-4">🎓</div>
-                <h3 className={`text-xl font-bold mb-4 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-                  Leadership Courses
-                </h3>
-                <p className={`text-sm mb-6 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-                  Structured learning paths designed specifically for traditional African leaders and their development.
-                </p>
-                <Link
-                  to="/app/courses"
-                  className="inline-flex items-center px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
-                >
-                  <span className="mr-2">🎯</span>
-                  Start Learning
-                </Link>
-              </div>
-            </div>
-
-            {/* Wisdom & Training */}
-            <div className={`transform transition-all duration-1000 delay-400 ${
-              visibleSections.has('leadership-institute') ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'
-            }`}>
-              <div className={`${isDarkMode ? 'bg-gray-900' : 'bg-gray-50'} rounded-2xl p-8 text-center hover:shadow-xl transition-shadow duration-300`}>
-                <div className="text-5xl mb-4">🧠</div>
-                <h3 className={`text-xl font-bold mb-4 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-                  Wisdom & Training
-                </h3>
-                <p className={`text-sm mb-6 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-                  Biblical wisdom and practical training programs to enhance leadership effectiveness and spiritual growth.
-                </p>
-                <Link
-                  to="/auth"
-                  className="inline-flex items-center px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
-                >
-                  <span className="mr-2">⭐</span>
-                  Learn More
-                </Link>
-              </div>
-            </div>
-          </div>
-
-          {/* Call to Action for Leadership Institute */}
-          <div className="mt-16 text-center">
-            <div className={`${isDarkMode ? 'bg-gray-900' : 'bg-gray-50'} rounded-2xl p-8`}>
-              <h3 className={`text-2xl font-bold mb-4 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-                Join the Leadership Institute
-              </h3>
-              <p className={`text-lg mb-6 max-w-2xl mx-auto ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-                Transform your leadership through Christ-centered education and connect with fellow traditional rulers across Africa.
-              </p>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Link
-                  to="/auth"
-                  className="inline-flex items-center px-8 py-4 border border-transparent text-lg font-medium rounded-lg text-white bg-primary-600 hover:bg-primary-700 transition-colors duration-200"
-                >
-                  <span className="mr-2">🎓</span>
-                  Enroll Now
-                </Link>
-                <Link
-                  to="/login"
-                  className="inline-flex items-center px-8 py-4 border border-gray-300 text-lg font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 transition-colors duration-200"
-                >
-                  <span className="mr-2">📚</span>
-                  Browse Resources
-                </Link>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Events Section */}
-      <div 
-        id="events" 
-        data-animate
-        className={`py-20 ${isDarkMode ? 'bg-gray-900' : 'bg-gray-50'} ${
-          visibleSections.has('events') ? 'animate-fadeInUp' : 'opacity-0'
-        }`}
-      >
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className={`text-center transform transition-all duration-1000 ${
-            visibleSections.has('events') ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'
-          }`}>
-            <h2 className={`text-3xl font-extrabold ${isDarkMode ? 'text-white' : 'text-gray-900'} sm:text-4xl`}>
-              Local Events
-            </h2>
-            <p className={`mt-4 text-lg max-w-3xl mx-auto ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-              Join traditional rulers and community members in celebrating our rich cultural heritage and spiritual gatherings.
-            </p>
-          </div>
-
-          {/* Events Grid - Show 3 recent events */}
-          <div className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-8">
-            {loadingEvents ? (
-              // Loading skeleton
-              [...Array(3)].map((_, index) => (
-                <div key={index} className={`transform transition-all duration-1000 delay-${index * 200}`}>
-                  <div className={`${isDarkMode ? 'bg-gray-800' : 'bg-white'} rounded-2xl shadow-lg overflow-hidden animate-pulse`}>
-                    <div className="p-6">
-                      <div className="flex items-center justify-between mb-4">
-                        <div className="h-6 bg-gray-300 rounded-full w-16"></div>
-                        <div className="h-4 bg-gray-300 rounded w-20"></div>
-                      </div>
-                      <div className="h-6 bg-gray-300 rounded mb-2"></div>
-                      <div className="h-4 bg-gray-300 rounded mb-4"></div>
-                      <div className="h-4 bg-gray-300 rounded mb-4"></div>
-                      <div className="h-8 bg-gray-300 rounded"></div>
-                    </div>
-                  </div>
-                </div>
-              ))
-            ) : events.length > 0 ? (
-              events.map((event, index) => {
-                const getTypeColor = (type) => {
-                  switch (type) {
-                    case 'cultural': return 'bg-purple-100 text-purple-800';
-                    case 'ceremony': return 'bg-pink-100 text-pink-800';
-                    case 'meeting': return 'bg-blue-100 text-blue-800';
-                    default: return 'bg-gray-100 text-gray-800';
-                  }
-                };
-
-                return (
-                  <div key={event.id} className={`transform transition-all duration-1000 delay-${index * 200} ${
-                    visibleSections.has('events') ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'
-                  }`}>
-                    <div className={`${isDarkMode ? 'bg-gray-800' : 'bg-white'} rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300`}>
-                      <div className="p-6">
-                        <div className="flex items-center justify-between mb-4">
-                          <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${getTypeColor(event.type)}`}>
-                            {event.type}
-                          </span>
-                          <span className="text-sm text-gray-500">
-                            {new Date(event.date).toLocaleDateString()}
-                          </span>
-                        </div>
-                        <h3 className={`text-lg font-semibold mb-2 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-                          {event.title}
-                        </h3>
-                        <p className={`text-sm mb-4 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-                          {event.description || 'Event details will be provided closer to the date.'}
-                        </p>
-                        <div className="flex items-center text-sm text-gray-500 mb-4">
-                          <span className="mr-4">📍 {event.location}</span>
-                          <span>👤 {event.organizer || event.createdBy}</span>
-                        </div>
-                        <Link
-                          to="/events"
-                          className="w-full bg-primary-600 text-white py-2 rounded-md hover:bg-primary-700 transition-colors text-center block"
-                        >
-                          Learn More
-                        </Link>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })
-            ) : (
-              // No events state
-              <div className="col-span-3 text-center py-12">
-                <div className="text-4xl mb-4">📅</div>
-                <p className={`text-lg ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-                  No upcoming events at the moment. Check back soon!
-                </p>
-              </div>
-            )}
-          </div>
-
-          {/* View More Events */}
-          <div className="mt-12 text-center">
-            <Link
-              to="/events"
-              className="inline-flex items-center px-8 py-4 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors text-lg font-medium"
-            >
-              <span className="mr-2">📅</span>
-              View All Events
-            </Link>
-          </div>
-        </div>
-      </div>
-
-      {/* Announcements Section */}
-      <div 
-        id="announcements" 
-        data-animate
-        className={`py-20 ${isDarkMode ? 'bg-gray-800' : 'bg-white'} ${
-          visibleSections.has('announcements') ? 'animate-fadeInUp' : 'opacity-0'
-        }`}
-      >
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className={`text-center transform transition-all duration-1000 ${
-            visibleSections.has('announcements') ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'
-          }`}>
-            <h2 className={`text-3xl font-extrabold ${isDarkMode ? 'text-white' : 'text-gray-900'} sm:text-4xl`}>
-              Latest Announcements
-            </h2>
-            <p className={`mt-4 text-lg max-w-3xl mx-auto ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-              Stay informed with the latest news, updates, and important communications from traditional rulers.
-            </p>
-          </div>
-
-          {/* Announcements Grid - Show 3 recent announcements */}
-          <div className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-8">
-            {loadingAnnouncements ? (
-              // Loading skeleton
-              [...Array(3)].map((_, index) => (
-                <div key={index} className={`transform transition-all duration-1000 delay-${index * 200}`}>
-                  <div className={`${isDarkMode ? 'bg-gray-900' : 'bg-gray-50'} rounded-2xl p-6 animate-pulse`}>
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="h-6 bg-gray-300 rounded-full w-20"></div>
-                      <div className="h-4 bg-gray-300 rounded w-16"></div>
-                    </div>
-                    <div className="h-6 bg-gray-300 rounded mb-3"></div>
-                    <div className="h-4 bg-gray-300 rounded mb-4"></div>
-                    <div className="h-3 bg-gray-300 rounded w-24"></div>
-                  </div>
-                </div>
-              ))
-            ) : announcements.length > 0 ? (
-              announcements.map((announcement, index) => {
-                const getPriorityColor = (priority) => {
-                  switch (priority) {
-                    case 'high': return 'bg-red-100 text-red-800';
-                    case 'medium': return 'bg-yellow-100 text-yellow-800';
-                    case 'low': return 'bg-green-100 text-green-800';
-                    default: return 'bg-gray-100 text-gray-800';
-                  }
-                };
-
-                return (
-                  <div key={announcement.id} className={`transform transition-all duration-1000 delay-${index * 200} ${
-                    visibleSections.has('announcements') ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'
-                  }`}>
-                    <div className={`${isDarkMode ? 'bg-gray-900' : 'bg-gray-50'} rounded-2xl p-6 hover:shadow-lg transition-shadow duration-300`}>
-                      <div className="flex items-center justify-between mb-4">
-                        <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${getPriorityColor(announcement.priority)}`}>
-                          {announcement.priority} Priority
-                        </span>
-                        <span className="text-sm text-gray-500">
-                          {announcement.createdAt 
-                            ? new Date(announcement.createdAt).toLocaleDateString()
-                            : announcement.date
-                          }
-                        </span>
-                      </div>
-                      <h3 className={`text-lg font-semibold mb-3 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-                        {announcement.title}
-                      </h3>
-                      <p className={`text-sm mb-4 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-                        {announcement.content}
-                      </p>
-                      <div className="flex items-center justify-between">
-                        <p className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                          By {announcement.author || announcement.createdBy}
-                        </p>
-                        <Link
-                          to="/announcements"
-                          className="text-primary-600 hover:text-primary-700 text-xs font-medium"
-                        >
-                          Read More →
-                        </Link>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })
-            ) : (
-              // No announcements state
-              <div className="col-span-3 text-center py-12">
-                <div className="text-4xl mb-4">📢</div>
-                <p className={`text-lg ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-                  No announcements at the moment. Check back soon!
-                </p>
-              </div>
-            )}
-          </div>
-
-          {/* View More Announcements */}
-          <div className="mt-12 text-center">
-            <Link
-              to="/announcements"
-              className="inline-flex items-center px-8 py-4 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors text-lg font-medium"
-            >
-              <span className="mr-2">📢</span>
-              View All Announcements
-            </Link>
-          </div>
-        </div>
-      </div>
-
-      {/* Cultural Heritage Section */}
-      <div 
-        id="heritage" 
-        data-animate
-        className={`py-20 ${isDarkMode ? 'bg-gray-900' : 'bg-gray-50'} ${
-          visibleSections.has('heritage') ? 'animate-fadeInUp' : 'opacity-0'
-        }`}
-      >
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className={`text-center transform transition-all duration-1000 ${
-            visibleSections.has('heritage') ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'
-          }`}>
-            <h2 className={`text-3xl font-extrabold ${isDarkMode ? 'text-white' : 'text-gray-900'} sm:text-4xl`}>
-              Preserving African Cultural Heritage
-            </h2>
-            <p className={`mt-4 text-lg max-w-3xl mx-auto ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-              Our platform celebrates the rich diversity of African cultures, traditions, and leadership practices.
-            </p>
-          </div>
-
-          <div className="mt-16 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 justify-items-center">
-            {[
-              {
-                icon: "🏛️",
-                title: "Traditional Architecture",
-                description: "Showcasing the architectural marvels of African kingdoms and palaces"
-              },
-              {
-                icon: "🎭",
-                title: "Cultural Festivals",
-                description: "Celebrating traditional ceremonies and cultural festivals across Africa"
-              },
-              {
-                icon: "📜",
-                title: "Oral Traditions",
-                description: "Preserving ancient wisdom, stories, and traditional knowledge"
-              },
-              {
-                icon: "👑",
-                title: "Royal Regalia",
-                description: "Honoring the symbols and artifacts of traditional leadership"
-              }
-            ].map((item, index) => (
-              <div 
-                key={index}
-                className={`${isDarkMode ? 'bg-gray-800' : 'bg-white'} rounded-xl p-6 text-center hover:shadow-xl transition-all duration-500 transform hover:scale-105 hover:-translate-y-2 ${
-                  visibleSections.has('heritage') 
-                    ? 'translate-y-0 opacity-100' 
-                    : 'translate-y-8 opacity-0'
-                }`}
-                style={{ transitionDelay: `${index * 100}ms` }}
-              >
-                <div className="text-4xl mb-4 transform transition-transform duration-300 hover:scale-110 hover:rotate-12">
-                  {item.icon}
-                </div>
-                <h3 className={`text-lg font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'} mb-2`}>
-                  {item.title}
-                </h3>
-                <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                  {item.description}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* CTA Section */}
-      <div 
-        id="cta" 
-        data-animate
-        className={`py-20 atrc-gradient-bg ${
-          visibleSections.has('cta') ? 'animate-fadeInUp' : 'opacity-0'
-        }`}
-      >
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <div className={`transform transition-all duration-1000 ${
-            visibleSections.has('cta') ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'
-          }`}>
-            <h2 className="text-3xl font-extrabold text-white sm:text-4xl">
-              {t('cta.title')}
-            </h2>
-            <p className="mt-4 text-lg text-white/90">
-              {t('cta.subtitle')}
-            </p>
-            <div className="mt-8">
+            <div className="mt-9 flex flex-wrap gap-3">
+              <Link to="/auth" className="a-btn-gold text-[16px] px-7">Join the council</Link>
               <Link
-                to="/auth"
-                className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-primary-600 bg-white hover:bg-primary-50 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
+                to="/events"
+                className="a-btn text-[16px] px-7 border border-[#3D4B8C] text-white hover:bg-[#1A2866]"
+                style={{ background: 'transparent' }}
               >
-                {t('cta.getStarted')}
+                See public events
               </Link>
             </div>
           </div>
-        </div>
-      </div>
 
-      {/* Footer */}
-      <footer className={`${isDarkMode ? 'bg-gray-800' : 'bg-white'} border-t border-gray-200`}>
-        <div className="max-w-6xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-            <div className="col-span-1 md:col-span-2">
-              <div className="flex items-center">
-                <LogoImage type="traditional-rulers" size="small" />
-                <div className="ml-3">
-                  <h3 className={`text-lg font-semibold atrc-gradient-text`}>
-                    ATRC
-                  </h3>
-                  <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                    Africa Traditional Rulers for Christ
-                  </p>
-                </div>
+          {/* Floating preview cards */}
+          <div className="hidden lg:flex flex-col gap-4 relative">
+            <div className="self-start w-[300px] rounded-card p-4 shadow-xl" style={{ background: 'var(--surface)', color: 'var(--ink)' }}>
+              <div className="flex items-center justify-between">
+                <span className="text-[12px] font-semibold uppercase tracking-wide" style={{ color: 'var(--muted)' }}>Live meeting</span>
+                <span className="a-badge a-badge-live">LIVE</span>
               </div>
-              <p className={`mt-4 text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                {t('footer.description')}
-              </p>
+              <div className="mt-2 font-semibold text-[16px]">Quarterly Council Assembly</div>
+              <div className="text-[14px]" style={{ color: 'var(--muted)' }}>Sample meeting card</div>
             </div>
-            <div>
-              <h4 className={`text-sm font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'} uppercase tracking-wider`}>
-                {t('footer.features')}
-              </h4>
-              <ul className="mt-4 space-y-2">
-                <li><Link to="/login" className={`text-sm ${isDarkMode ? 'text-gray-400 hover:text-white' : 'text-gray-600 hover:text-gray-900'} transition-colors`}>{t('features.community.title')}</Link></li>
-                <li><Link to="/login" className={`text-sm ${isDarkMode ? 'text-gray-400 hover:text-white' : 'text-gray-600 hover:text-gray-900'} transition-colors`}>{t('features.disputes.title')}</Link></li>
-                <li><Link to="/login" className={`text-sm ${isDarkMode ? 'text-gray-400 hover:text-white' : 'text-gray-600 hover:text-gray-900'} transition-colors`}>{t('features.events.title')}</Link></li>
-                <li><Link to="/login" className={`text-sm ${isDarkMode ? 'text-gray-400 hover:text-white' : 'text-gray-600 hover:text-gray-900'} transition-colors`}>{t('features.analytics.title')}</Link></li>
-              </ul>
+            <div className="self-end w-[300px] rounded-card p-4 shadow-xl" style={{ background: 'var(--surface)', color: 'var(--ink)' }}>
+              <span className="text-[12px] font-semibold uppercase tracking-wide" style={{ color: 'var(--muted)' }}>Report filed</span>
+              <div className="mt-2 font-semibold text-[16px]">Water point repair, Ward 3</div>
+              <div className="text-[14px]" style={{ color: 'var(--muted)' }}>Status: under review</div>
             </div>
-            <div>
-              <h4 className={`text-sm font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'} uppercase tracking-wider`}>
-                {t('footer.support')}
-              </h4>
-              <ul className="mt-4 space-y-2">
-                <li><Link to="/login" className={`text-sm ${isDarkMode ? 'text-gray-400 hover:text-white' : 'text-gray-600 hover:text-gray-900'} transition-colors`}>{t('footer.helpCenter')}</Link></li>
-                <li><Link to="/login" className={`text-sm ${isDarkMode ? 'text-gray-400 hover:text-white' : 'text-gray-600 hover:text-gray-900'} transition-colors`}>{t('footer.contactUs')}</Link></li>
-                <li><Link to="/login" className={`text-sm ${isDarkMode ? 'text-gray-400 hover:text-white' : 'text-gray-600 hover:text-gray-900'} transition-colors`}>{t('footer.privacyPolicy')}</Link></li>
-                <li><Link to="/login" className={`text-sm ${isDarkMode ? 'text-gray-400 hover:text-white' : 'text-gray-600 hover:text-gray-900'} transition-colors`}>{t('footer.termsOfService')}</Link></li>
-              </ul>
+            <div className="self-start w-[300px] rounded-card p-4 shadow-xl ml-10" style={{ background: 'var(--surface)', color: 'var(--ink)' }}>
+              <span className="text-[12px] font-semibold uppercase tracking-wide" style={{ color: 'var(--muted)' }}>Announcement</span>
+              <div className="mt-2 font-semibold text-[16px]">Assembly agenda published</div>
+              <div className="text-[14px]" style={{ color: 'var(--muted)' }}>From the council secretariat</div>
             </div>
           </div>
-          <div className={`mt-8 pt-8 border-t border-gray-200 text-center`}>
-            <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-              {t('footer.copyright')}
-            </p>
+        </div>
+        <WeaveBand height={14} />
+      </section>
+
+      {/* ===== Feature chips ===== */}
+      <section className="max-w-6xl mx-auto px-5 py-14">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {featureChips.map((chip) => (
+            <div key={chip.label} className="a-card flex items-start gap-3">
+              <Icon name={chip.icon} size={24} className="flex-shrink-0 mt-0.5" style={{ color: 'var(--brand)' }} />
+              <div>
+                <div className="font-semibold text-[15px]">{chip.label}</div>
+                <div className="text-[14px]" style={{ color: 'var(--muted)' }}>{chip.sub}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ===== The platform ===== */}
+      <section id="platform" className="max-w-6xl mx-auto px-5 pb-20">
+        <span className="a-badge a-badge-info mb-4">The platform</span>
+        <h2 className="font-serif font-bold text-[30px] sm:text-[38px] leading-tight max-w-2xl">
+          The work of governance and the work of learning, in one place
+        </h2>
+        <p className="mt-4 text-[17px] max-w-2xl" style={{ color: 'var(--muted)' }}>
+          Every tool follows the way councils already operate: record, deliberate, decide, share.
+        </p>
+        <div className="mt-10 grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+          {features.map((f) => (
+            <div key={f.title} className="a-card">
+              <div
+                className="w-11 h-11 rounded-[12px] flex items-center justify-center mb-4"
+                style={{ background: 'var(--brand-soft)', color: 'var(--brand)' }}
+              >
+                <Icon name={f.icon} size={24} />
+              </div>
+              <h3 className="font-serif font-semibold text-[20px] mb-2">{f.title}</h3>
+              <p className="text-[15px] leading-relaxed" style={{ color: 'var(--muted)' }}>{f.desc}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ===== Leadership Institute ===== */}
+      <section id="institute" style={{ background: 'var(--surface)' }} className="border-y" >
+        <div className="max-w-6xl mx-auto px-5 py-20 grid lg:grid-cols-2 gap-12 items-center">
+          <div>
+            <span className="a-badge a-badge-warn mb-4">Leadership Institute</span>
+            <h2 className="font-serif font-bold text-[30px] sm:text-[38px] leading-tight">
+              Read, translate and learn at your own pace
+            </h2>
+            <ul className="mt-6 space-y-3.5 text-[16px]" style={{ color: 'var(--muted)' }}>
+              <li className="flex gap-2.5"><Icon name="check" size={20} className="flex-shrink-0 mt-0.5" style={{ color: 'var(--ok-fg)' }} />Pick up where you left off. Progress and bookmarks are saved to your account.</li>
+              <li className="flex gap-2.5"><Icon name="check" size={20} className="flex-shrink-0 mt-0.5" style={{ color: 'var(--ok-fg)' }} />Select any passage to translate it, or translate a whole chapter.</li>
+              <li className="flex gap-2.5"><Icon name="check" size={20} className="flex-shrink-0 mt-0.5" style={{ color: 'var(--ok-fg)' }} />Courses with lessons, quizzes, discussion and certificates.</li>
+            </ul>
+            <Link to="/auth" className="a-btn-primary mt-8 px-7">Open the Institute</Link>
+          </div>
+
+          {/* Reader preview mock */}
+          <div className="a-card !p-0 overflow-hidden shadow-lg">
+            <div className="px-5 py-3 border-b flex items-center gap-2" style={{ borderColor: 'var(--border)' }}>
+              <Icon name="library" size={18} style={{ color: 'var(--brand)' }} />
+              <span className="text-[13px] font-semibold" style={{ color: 'var(--muted)' }}>Chapter 3 — Sample text</span>
+            </div>
+            <div className="p-6 font-serif text-[17px] leading-relaxed">
+              <p>The elders sat in a wide circle so that no voice would come from behind another.</p>
+              <p className="mt-4">A council that listens first rarely has to command.</p>
+              <p className="mt-4">Only then did the question go round.</p>
+            </div>
+            <div className="px-6 pb-5">
+              <div className="rounded-[12px] p-4" style={{ background: 'var(--warn-bg)' }}>
+                <span className="text-[12px] font-semibold uppercase tracking-wide" style={{ color: 'var(--warn-fg)' }}>
+                  Translated to Français
+                </span>
+                <p className="mt-1.5 font-serif text-[15px]" style={{ color: 'var(--ink)' }}>
+                  Un conseil qui écoute d'abord a rarement besoin de commander.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ===== Events ===== */}
+      <section className="max-w-6xl mx-auto px-5 py-20">
+        <div className="flex items-center justify-between mb-8">
+          <h2 className="font-serif font-bold text-[28px] sm:text-[34px]">Upcoming events</h2>
+          <Link to="/events" className="text-[15px] font-semibold inline-flex items-center gap-1.5" style={{ color: 'var(--brand)' }}>
+            View all <Icon name="arrowRight" size={16} />
+          </Link>
+        </div>
+        {loadingEvents ? (
+          <div className="text-center py-10 a-muted">Loading events…</div>
+        ) : (
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            {events.map((event) => (
+              <div key={event.id} className="a-card">
+                <div className="flex items-start justify-between gap-3">
+                  <h3 className="font-serif font-semibold text-[19px] leading-snug">{event.title}</h3>
+                  <Icon name="events" size={20} className="flex-shrink-0 mt-1" style={{ color: 'var(--brand)' }} />
+                </div>
+                <p className="mt-2 text-[14px]" style={{ color: 'var(--muted)' }}>
+                  {formatDate(event.date)}{event.location ? ` · ${event.location}` : ''} · RSVP open
+                </p>
+                <span className={`a-badge mt-4 capitalize ${eventTypeColor(event.type)}`}>
+                  {event.type || 'Event'}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
+
+      {/* ===== Announcements ===== */}
+      <section className="max-w-6xl mx-auto px-5 pb-20">
+        <div className="flex items-center justify-between mb-8">
+          <h2 className="font-serif font-bold text-[28px] sm:text-[34px]">Announcements</h2>
+          <Link to="/announcements" className="text-[15px] font-semibold inline-flex items-center gap-1.5" style={{ color: 'var(--brand)' }}>
+            View all <Icon name="arrowRight" size={16} />
+          </Link>
+        </div>
+        {loadingAnnouncements ? (
+          <div className="text-center py-10 a-muted">Loading announcements…</div>
+        ) : (
+          <div className="space-y-4">
+            {announcements.map((a) => {
+              const db2 = dateBlock(a.createdAt || a.date);
+              return (
+                <div key={a.id} className="a-card flex gap-5 items-start">
+                  <div
+                    className="flex-shrink-0 w-14 rounded-[10px] py-2 text-center"
+                    style={{ background: 'var(--brand-soft)', color: 'var(--brand)' }}
+                  >
+                    <div className="text-[18px] font-bold leading-none">{db2.day}</div>
+                    <div className="text-[11px] font-semibold tracking-wide mt-1">{db2.mon}</div>
+                  </div>
+                  <div className="min-w-0">
+                    <h3 className="font-semibold text-[17px]">{a.title}</h3>
+                    <p className="text-[15px] mt-1 line-clamp-2" style={{ color: 'var(--muted)' }}>
+                      {a.content || a.description}
+                    </p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </section>
+
+      {/* ===== Footer ===== */}
+      <footer style={{ background: 'var(--side)' }} className="text-white">
+        <WeaveBand height={14} />
+        <div className="max-w-6xl mx-auto px-5 py-14">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-8">
+            <div className="flex items-center gap-3">
+              <CrownMark size={40} variant="gold" />
+              <div>
+                <div className="font-bold text-[17px]">ATRC</div>
+                <div className="text-[13px] text-[#AAB4E0]">African Traditional Rulers Council</div>
+              </div>
+            </div>
+            <div className="flex flex-wrap gap-6 text-[15px] text-[#C9D0EE]">
+              <Link to="/events" className="hover:text-white">Events</Link>
+              <Link to="/announcements" className="hover:text-white">Announcements</Link>
+              <Link to="/auth" className="hover:text-white">Sign in</Link>
+              <Link to="/auth" className="hover:text-white">Join the council</Link>
+            </div>
+          </div>
+          <div className="mt-10 pt-6 border-t border-[#27315F] text-[13px] text-[#8B98C9]">
+            © {new Date().getFullYear()} African Traditional Rulers Council
           </div>
         </div>
       </footer>

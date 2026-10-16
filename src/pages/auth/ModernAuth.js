@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
+import Icon, { CrownMark, WeaveBand } from '../../components/ui/Icon';
 
 const ModernAuth = () => {
-  const [role, setRole] = useState("learner");
+  const [role, setRole] = useState('learner');
   const [isLogin, setIsLogin] = useState(true);
   const [formData, setFormData] = useState({
     email: '',
@@ -12,6 +13,8 @@ const ModernAuth = () => {
     throneName: '',
     title: '',
     country: '',
+    community: '',
+    phone: '',
     linkedThroneName: '',
     delegateRole: '',
     confirmPassword: ''
@@ -24,17 +27,13 @@ const ModernAuth = () => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
+    setFormData(prev => ({ ...prev, [name]: value }));
   };
 
   const handleLogin = async (e) => {
     e.preventDefault();
     setError('');
     setLoading(true);
-
     try {
       await login(formData.email, formData.password);
       navigate('/app/dashboard');
@@ -55,15 +54,13 @@ const ModernAuth = () => {
     }
 
     setLoading(true);
-
     try {
       const { password, confirmPassword, ...profile } = formData;
       const userData = {
         ...profile,
-        role: role,
+        role,
         displayName: formData.fullName || formData.throneName
       };
-
       await signup(formData.email, formData.password, userData);
       navigate('/app/dashboard');
     } catch (error) {
@@ -73,268 +70,201 @@ const ModernAuth = () => {
     setLoading(false);
   };
 
+  const field = (name, label, type = 'text', placeholder = '', required = true, extra = null) => (
+    <div key={name}>
+      <label className="a-label" htmlFor={name}>{label}</label>
+      <input
+        id={name}
+        type={type}
+        name={name}
+        placeholder={placeholder}
+        value={formData[name]}
+        onChange={handleInputChange}
+        required={required}
+        className="a-input"
+      />
+      {extra}
+    </div>
+  );
+
   const renderRoleFields = () => {
     switch (role) {
-      case "learner":
+      case 'learner':
         return (
           <>
-            <input
-              type="text"
-              name="fullName"
-              placeholder="Full Name"
-              value={formData.fullName}
-              onChange={handleInputChange}
-              required
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-            />
-            <input
-              type="email"
-              name="email"
-              placeholder="Email"
-              value={formData.email}
-              onChange={handleInputChange}
-              required
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-            />
-            <input
-              type="text"
-              name="country"
-              placeholder="Country"
-              value={formData.country}
-              onChange={handleInputChange}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-            />
+            {field('fullName', 'Full name')}
+            {field('email', 'Email', 'email')}
+            {field('phone', 'Phone', 'tel', '', false)}
+            {field('country', 'Country / Community')}
           </>
         );
-      
-      case "ruler":
+      case 'ruler':
+      case 'chief':
+      case 'elder':
         return (
           <>
-            <input
-              type="text"
-              name="throneName"
-              placeholder="Throne Name (e.g., Ife Kingdom)"
-              value={formData.throneName}
-              onChange={handleInputChange}
-              required
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-            />
-            <input
-              type="text"
-              name="fullName"
-              placeholder="Full Name (Ruler)"
-              value={formData.fullName}
-              onChange={handleInputChange}
-              required
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-            />
-            <input
-              type="text"
-              name="title"
-              placeholder="Title (Oba, Eze, Emir…)"
-              value={formData.title}
-              onChange={handleInputChange}
-              required
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-            />
-            <input
-              type="text"
-              name="country"
-              placeholder="Country / Community"
-              value={formData.country}
-              onChange={handleInputChange}
-              required
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-            />
-            <input
-              type="email"
-              name="email"
-              placeholder="Palace Email"
-              value={formData.email}
-              onChange={handleInputChange}
-              required
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-            />
-            <input
-              type="file"
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-            />
-            <p className="text-xs text-gray-500">
-              Upload supporting documents (Recognition Certificate, Council Letter).
-            </p>
+            {field('throneName', 'Throne name', 'text', 'e.g., Ife Kingdom')}
+            {field('fullName', 'Full name')}
+            {field('title', 'Title', 'text', 'Oba, Eze, Emir…')}
+            {field('country', 'Country / Community')}
+            {field('email', 'Email', 'email')}
           </>
         );
-      
-      case "delegate":
+      case 'delegate':
         return (
           <>
-            <input
-              type="text"
-              name="fullName"
-              placeholder="Full Name (Delegate)"
-              value={formData.fullName}
-              onChange={handleInputChange}
-              required
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-            />
-            <input
-              type="text"
-              name="linkedThroneName"
-              placeholder="Linked Throne Name"
-              value={formData.linkedThroneName}
-              onChange={handleInputChange}
-              required
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-            />
-            <input
-              type="text"
-              name="delegateRole"
-              placeholder="Role (Secretary, Media Aide…)"
-              value={formData.delegateRole}
-              onChange={handleInputChange}
-              required
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-            />
-            <input
-              type="email"
-              name="email"
-              placeholder="Contact Email"
-              value={formData.email}
-              onChange={handleInputChange}
-              required
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-            />
+            {field('fullName', 'Full name')}
+            {field('linkedThroneName', 'Linked throne', 'text', 'The throne you serve')}
+            {field('delegateRole', 'Your role', 'text', 'Secretary, Media Aide…')}
+            {field('email', 'Email', 'email')}
           </>
         );
-      
       default:
         return null;
     }
   };
 
-  return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
-      <div className="w-full max-w-lg shadow-lg rounded-2xl bg-white">
-        <div className="p-8">
-          <h1 className="text-2xl font-bold text-center mb-6 text-gray-800">
-            ATRC Leadership Institute
-          </h1>
+  const valueProps = [
+    'A dashboard shaped to your role',
+    'Interface and books in your language',
+    'Live and recorded council meetings',
+  ];
 
-          {/* Tab Navigation */}
-          <div className="flex mb-6 bg-gray-100 rounded-lg p-1">
-            <button
-              onClick={() => setIsLogin(true)}
-              className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
-                isLogin
-                  ? 'bg-white text-primary-600 shadow-sm'
-                  : 'text-gray-600 hover:text-gray-800'
-              }`}
-            >
-              Login
-            </button>
-            <button
-              onClick={() => setIsLogin(false)}
-              className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
-                !isLogin
-                  ? 'bg-white text-primary-600 shadow-sm'
-                  : 'text-gray-600 hover:text-gray-800'
-              }`}
-            >
-              Register
-            </button>
+  return (
+    <div className="min-h-screen flex" style={{ background: 'var(--bg)' }}>
+      {/* ===== Left brand panel ===== */}
+      <div className="hidden lg:flex w-[44%] flex-col text-white" style={{ background: 'var(--side)' }}>
+        <WeaveBand height={14} />
+        <div className="flex-1 flex flex-col justify-center px-12 xl:px-16">
+          <CrownMark size={52} variant="gold" />
+          <h1 className="font-serif font-bold text-[36px] xl:text-[44px] leading-[1.12] mt-8">
+            The council's digital home
+          </h1>
+          <p className="mt-5 text-[17px] leading-relaxed text-[#C9D0EE] max-w-md">
+            Sign in to your dashboard to file reports, join meetings, read in your own language and keep learning.
+          </p>
+          <ul className="mt-9 space-y-4">
+            {valueProps.map((v) => (
+              <li key={v} className="flex items-center gap-3 text-[16px] text-[#E4E8F7]">
+                <span className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: '#1A2866' }}>
+                  <Icon name="check" size={17} className="text-[#E3B04B]" />
+                </span>
+                {v}
+              </li>
+            ))}
+          </ul>
+        </div>
+        <WeaveBand height={14} />
+      </div>
+
+      {/* ===== Right form ===== */}
+      <div className="flex-1 flex items-center justify-center px-5 py-10">
+        <div className="w-full max-w-md">
+          {/* Mobile brand */}
+          <div className="lg:hidden flex items-center gap-2.5 mb-8 justify-center">
+            <CrownMark size={40} variant="dark" />
+            <div className="leading-tight">
+              <div className="font-bold text-[17px]" style={{ color: 'var(--ink)' }}>ATRC</div>
+              <div className="text-[13px]" style={{ color: 'var(--muted)' }}>Traditional Rulers</div>
+            </div>
           </div>
 
+          {/* Tabs */}
+          <div
+            className="flex rounded-[12px] p-1 mb-8 border"
+            style={{ background: 'var(--surface2)', borderColor: 'var(--border)' }}
+          >
+            {[
+              { id: true, label: 'Sign in' },
+              { id: false, label: 'Join the council' },
+            ].map((tab) => (
+              <button
+                key={tab.label}
+                onClick={() => { setIsLogin(tab.id); setError(''); }}
+                className="flex-1 py-2.5 px-4 rounded-[10px] text-[15px] font-semibold transition-colors min-h-[44px]"
+                style={
+                  isLogin === tab.id
+                    ? { background: 'var(--surface)', color: 'var(--ink)', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }
+                    : { color: 'var(--muted)' }
+                }
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
+
+          <h2 className="font-serif font-bold text-[28px]" style={{ color: 'var(--ink)' }}>
+            {isLogin ? 'Welcome back' : 'Create your account'}
+          </h2>
+          <p className="mt-1.5 mb-7 text-[15px]" style={{ color: 'var(--muted)' }}>
+            {isLogin
+              ? 'Sign in with the email you registered with.'
+              : 'Tell us who you are and which community you serve.'}
+          </p>
+
           {error && (
-            <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg">
+            <div
+              className="mb-5 px-4 py-3 rounded-[10px] text-[14px] font-medium"
+              style={{ background: 'var(--danger-bg)', color: 'var(--danger-fg)' }}
+            >
               {error}
             </div>
           )}
 
-          {/* LOGIN FORM */}
-          {isLogin && (
+          {isLogin ? (
             <form onSubmit={handleLogin} className="space-y-4">
-              <input
-                type="email"
-                name="email"
-                placeholder="Email"
-                value={formData.email}
-                onChange={handleInputChange}
-                required
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-              />
-              <input
-                type="password"
-                name="password"
-                placeholder="Password"
-                value={formData.password}
-                onChange={handleInputChange}
-                required
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-              />
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full mt-2 bg-primary-600 text-white py-3 px-4 rounded-lg hover:bg-primary-700 focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-              >
-                {loading ? 'Logging in...' : 'Login'}
+              {field('email', 'Email', 'email')}
+              {field('password', 'Password', 'password')}
+              <button type="submit" disabled={loading} className="a-btn-primary w-full disabled:opacity-60">
+                {loading ? 'Signing in…' : 'Sign in'}
               </button>
-              <p className="text-sm text-center text-gray-600 mt-2">
-                Forgot your password? <button type="button" className="text-primary-600 hover:underline">Reset here</button>
+              <p className="text-[14px] text-center pt-1" style={{ color: 'var(--muted)' }}>
+                Forgot your password?{' '}
+                <button type="button" className="font-semibold hover:underline" style={{ color: 'var(--brand)' }}>
+                  Reset here
+                </button>
               </p>
             </form>
-          )}
-
-          {/* REGISTER FORM */}
-          {!isLogin && (
+          ) : (
             <form onSubmit={handleRegister} className="space-y-4">
-              {/* Role Selection */}
-              <div className="relative">
-                <select
-                  value={role}
-                  onChange={(e) => setRole(e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent appearance-none bg-white"
-                >
-                  <option value="learner">🎓 Learner / General Member</option>
-                  <option value="ruler">👑 Traditional Ruler</option>
-                  <option value="delegate">🛡️ Palace Delegate</option>
-                </select>
-                <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                  <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                  </svg>
+              <div>
+                <label className="a-label" htmlFor="role">I am joining as</label>
+                <div className="relative">
+                  <select
+                    id="role"
+                    value={role}
+                    onChange={(e) => setRole(e.target.value)}
+                    className="a-input appearance-none pr-10"
+                  >
+                    <option value="learner">Learner</option>
+                    <option value="ruler">Ruler</option>
+                    <option value="chief">Chief</option>
+                    <option value="elder">Elder</option>
+                    <option value="delegate">Delegate</option>
+                  </select>
+                  <Icon
+                    name="chevronDown"
+                    size={16}
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none"
+                    style={{ color: 'var(--muted)' }}
+                  />
                 </div>
               </div>
 
-              {/* Dynamic Fields based on role */}
               {renderRoleFields()}
 
-              <input
-                type="password"
-                name="password"
-                placeholder="Set Password"
-                value={formData.password}
-                onChange={handleInputChange}
-                required
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-              />
-              <input
-                type="password"
-                name="confirmPassword"
-                placeholder="Confirm Password"
-                value={formData.confirmPassword}
-                onChange={handleInputChange}
-                required
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-              />
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full mt-2 bg-primary-600 text-white py-3 px-4 rounded-lg hover:bg-primary-700 focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-              >
-                {loading ? 'Creating Account...' : 'Register'}
+              {field('password', 'Password', 'password')}
+              {field('confirmPassword', 'Confirm password', 'password')}
+
+              <button type="submit" disabled={loading} className="a-btn-primary w-full disabled:opacity-60">
+                {loading ? 'Creating account…' : 'Create account'}
               </button>
             </form>
           )}
+
+          <p className="mt-8 text-center text-[14px]" style={{ color: 'var(--muted)' }}>
+            <Link to="/" className="hover:underline" style={{ color: 'var(--brand)' }}>← Back to home</Link>
+          </p>
         </div>
       </div>
     </div>
