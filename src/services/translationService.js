@@ -1,21 +1,59 @@
-import axios from 'axios';
+import { api } from '../api/client';
 
 /**
- * Google Cloud Translation Service
- * Provides real-time translation using Google Cloud Translation API v2
+ * Translation Service
+ * All translation goes through the self-hosted backend (POST /api/translate),
+ * which uses Groq (primary) or Google Cloud Translation (fallback) server-side,
+ * with a Postgres cache. No API keys are shipped to the browser.
  */
 
-const GOOGLE_TRANSLATE_API_KEY = process.env.REACT_APP_GOOGLE_TRANSLATE_API_KEY;
-const GOOGLE_TRANSLATE_API_URL = 'https://translation.googleapis.com/language/translate/v2';
-
-// Fallback translation service
-const FALLBACK_TRANSLATE_API_URL = process.env.REACT_APP_TRANSLATE_API_URL || '';
-const FALLBACK_TRANSLATE_API_KEY = process.env.REACT_APP_TRANSLATE_API_KEY || '';
+// The reader offers any of these target languages.
+export const SUPPORTED_LANGUAGES = [
+  { code: 'en', name: 'English' },
+  { code: 'fr', name: 'French' },
+  { code: 'es', name: 'Spanish' },
+  { code: 'pt', name: 'Portuguese' },
+  { code: 'ar', name: 'Arabic' },
+  { code: 'sw', name: 'Swahili' },
+  { code: 'yo', name: 'Yoruba' },
+  { code: 'ig', name: 'Igbo' },
+  { code: 'ha', name: 'Hausa' },
+  { code: 'zu', name: 'Zulu' },
+  { code: 'xh', name: 'Xhosa' },
+  { code: 'am', name: 'Amharic' },
+  { code: 'om', name: 'Oromo' },
+  { code: 'so', name: 'Somali' },
+  { code: 'rw', name: 'Kinyarwanda' },
+  { code: 'lg', name: 'Luganda' },
+  { code: 'ny', name: 'Chichewa' },
+  { code: 'sn', name: 'Shona' },
+  { code: 'st', name: 'Sesotho' },
+  { code: 'tn', name: 'Tswana' },
+  { code: 'ts', name: 'Tsonga' },
+  { code: 'ee', name: 'Ewe' },
+  { code: 'tw', name: 'Twi' },
+  { code: 'ff', name: 'Fulani' },
+  { code: 'wo', name: 'Wolof' },
+  { code: 'bm', name: 'Bambara' },
+  { code: 'ln', name: 'Lingala' },
+  { code: 'kg', name: 'Kongo' },
+  { code: 'lua', name: 'Luba-Katanga' },
+  { code: 'pcm', name: 'Nigerian Pidgin' },
+  { code: 'de', name: 'German' },
+  { code: 'it', name: 'Italian' },
+  { code: 'nl', name: 'Dutch' },
+  { code: 'zh', name: 'Chinese (Simplified)' },
+  { code: 'hi', name: 'Hindi' },
+  { code: 'ur', name: 'Urdu' },
+  { code: 'ko', name: 'Korean' },
+  { code: 'ja', name: 'Japanese' },
+  { code: 'ru', name: 'Russian' },
+];
 
 /**
- * Translate text using Google Cloud Translation API
+ * Translate text via the backend translation endpoint.
  * @param {string} text - Text to translate
- * @param {string} targetLanguage - Target language code (e.g., 'es', 'fr', 'yo')
+ * @param {string} targetLanguage - Target language code (e.g., 'fr', 'yo')
  * @param {string} sourceLanguage - Source language code (default: 'en')
  * @returns {Promise<string>} Translated text
  */
@@ -30,89 +68,21 @@ export const translateWithGoogle = async (text, targetLanguage, sourceLanguage =
   }
 
   try {
-    // Check if API key is configured
-    if (!GOOGLE_TRANSLATE_API_KEY || GOOGLE_TRANSLATE_API_KEY === 'YOUR_GOOGLE_TRANSLATE_API_KEY_HERE') {
-      console.warn('Google Translate API key not configured. Using fallback.');
-      throw new Error('API key not configured');
-    }
-
-    const response = await axios.post(
-      GOOGLE_TRANSLATE_API_URL,
-      null,
-      {
-        params: {
-          q: text,
-          target: targetLanguage,
-          source: sourceLanguage,
-          format: 'text',
-          key: GOOGLE_TRANSLATE_API_KEY
-        }
-      }
-    );
-
-    if (response.data && response.data.data && response.data.data.translations) {
-      return response.data.data.translations[0].translatedText;
-    }
-
-    throw new Error('Invalid response from Google Translate API');
+    const res = await api('/translate', {
+      method: 'POST',
+      body: { q: text, source: sourceLanguage, target: targetLanguage }
+    });
+    if (res && res.translatedText) return res.translatedText;
+    throw new Error('Invalid response from translation API');
   } catch (error) {
-    console.error('Google Translate API error:', error);
-    
-    // Try fallback translation service
-    if (FALLBACK_TRANSLATE_API_URL) {
-      try {
-        const fallbackResult = await translateWithFallbackService(text, targetLanguage, sourceLanguage);
-        if (fallbackResult) return fallbackResult;
-      } catch (fallbackError) {
-        console.warn('Fallback translation also failed:', fallbackError);
-      }
-    }
-    
-    // Last resort: use static translations
+    console.error('Translation API error:', error);
+    // Last resort: static dictionary (covers a few African languages)
     return translateWithStatic(text, targetLanguage);
   }
 };
 
 /**
- * Translate text using a fallback translation service (e.g., LibreTranslate)
- */
-const translateWithFallbackService = async (text, targetLanguage, sourceLanguage = 'en') => {
-  try {
-    const payload = {
-      q: text,
-      source: sourceLanguage,
-      target: targetLanguage,
-      format: 'text'
-    };
-
-    const response = await axios.post(
-      FALLBACK_TRANSLATE_API_URL,
-      payload,
-      {
-        headers: {
-          'Content-Type': 'application/json',
-          ...(FALLBACK_TRANSLATE_API_KEY ? { 'Authorization': `Bearer ${FALLBACK_TRANSLATE_API_KEY}` } : {})
-        }
-      }
-    );
-
-    if (response.data && response.data.translatedText) {
-      return response.data.translatedText;
-    }
-
-    if (Array.isArray(response.data) && response.data[0] && response.data[0].translatedText) {
-      return response.data[0].translatedText;
-    }
-
-    return null;
-  } catch (error) {
-    console.warn('Fallback translation service failed:', error);
-    return null;
-  }
-};
-
-/**
- * Batch translate multiple texts
+ * Batch translate multiple texts — single backend call.
  * @param {string[]} texts - Array of texts to translate
  * @param {string} targetLanguage - Target language code
  * @param {string} sourceLanguage - Source language code
@@ -124,32 +94,16 @@ export const batchTranslate = async (texts, targetLanguage, sourceLanguage = 'en
   }
 
   try {
-    if (!GOOGLE_TRANSLATE_API_KEY || GOOGLE_TRANSLATE_API_KEY === 'YOUR_GOOGLE_TRANSLATE_API_KEY_HERE') {
-      throw new Error('API key not configured');
+    const res = await api('/translate', {
+      method: 'POST',
+      body: { texts, source: sourceLanguage, target: targetLanguage }
+    });
+    if (res && Array.isArray(res.translations)) {
+      return res.translations.map((t, i) => t || texts[i]);
     }
-
-    const response = await axios.post(
-      GOOGLE_TRANSLATE_API_URL,
-      null,
-      {
-        params: {
-          q: texts,
-          target: targetLanguage,
-          source: sourceLanguage,
-          format: 'text',
-          key: GOOGLE_TRANSLATE_API_KEY
-        }
-      }
-    );
-
-    if (response.data && response.data.data && response.data.data.translations) {
-      return response.data.data.translations.map(t => t.translatedText);
-    }
-
-    throw new Error('Invalid response from Google Translate API');
+    throw new Error('Invalid response from translation API');
   } catch (error) {
     console.error('Batch translation error:', error);
-    // Fallback to individual static translations
     return texts.map(text => translateWithStatic(text, targetLanguage));
   }
 };
@@ -161,26 +115,11 @@ export const batchTranslate = async (texts, targetLanguage, sourceLanguage = 'en
  */
 export const detectLanguage = async (text) => {
   try {
-    if (!GOOGLE_TRANSLATE_API_KEY || GOOGLE_TRANSLATE_API_KEY === 'YOUR_GOOGLE_TRANSLATE_API_KEY_HERE') {
-      return 'en'; // Default to English
-    }
-
-    const response = await axios.post(
-      'https://translation.googleapis.com/language/translate/v2/detect',
-      null,
-      {
-        params: {
-          q: text,
-          key: GOOGLE_TRANSLATE_API_KEY
-        }
-      }
-    );
-
-    if (response.data && response.data.data && response.data.data.detections) {
-      return response.data.data.detections[0][0].language;
-    }
-
-    return 'en';
+    const res = await api('/translate', {
+      method: 'POST',
+      body: { detect: text }
+    });
+    return (res && res.language) || 'en';
   } catch (error) {
     console.error('Language detection error:', error);
     return 'en';
@@ -189,17 +128,17 @@ export const detectLanguage = async (text) => {
 
 /**
  * Enhanced static translation with better word matching
- * Fallback when API is unavailable
+ * Fallback when the backend is unavailable
  */
 export const translateWithStatic = (text, targetLang) => {
   const translations = getStaticTranslations(targetLang);
   if (!translations) return text;
 
   let translatedText = text;
-  
+
   // Sort by length (longest first) to avoid partial replacements
   const sortedKeys = Object.keys(translations).sort((a, b) => b.length - a.length);
-  
+
   sortedKeys.forEach(word => {
     const regex = new RegExp(`\\b${word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'gi');
     translatedText = translatedText.replace(regex, translations[word]);
@@ -272,50 +211,14 @@ const getStaticTranslations = (targetLang) => {
  * Get list of supported languages
  */
 export const getSupportedLanguages = async () => {
-  try {
-    if (!GOOGLE_TRANSLATE_API_KEY || GOOGLE_TRANSLATE_API_KEY === 'YOUR_GOOGLE_TRANSLATE_API_KEY_HERE') {
-      return getDefaultLanguages();
-    }
-
-    const response = await axios.get(
-      'https://translation.googleapis.com/language/translate/v2/languages',
-      {
-        params: {
-          key: GOOGLE_TRANSLATE_API_KEY,
-          target: 'en'
-        }
-      }
-    );
-
-    if (response.data && response.data.data && response.data.data.languages) {
-      return response.data.data.languages;
-    }
-
-    return getDefaultLanguages();
-  } catch (error) {
-    console.error('Error fetching supported languages:', error);
-    return getDefaultLanguages();
-  }
+  return getDefaultLanguages();
 };
 
 /**
  * Get default language list
  */
 const getDefaultLanguages = () => {
-  return [
-    { code: 'en', name: 'English' },
-    { code: 'fr', name: 'French' },
-    { code: 'es', name: 'Spanish' },
-    { code: 'pt', name: 'Portuguese' },
-    { code: 'ar', name: 'Arabic' },
-    { code: 'sw', name: 'Swahili' },
-    { code: 'yo', name: 'Yoruba' },
-    { code: 'ig', name: 'Igbo' },
-    { code: 'ha', name: 'Hausa' },
-    { code: 'zu', name: 'Zulu' },
-    { code: 'am', name: 'Amharic' },
-    { code: 'om', name: 'Oromo' }
-  ];
+  return SUPPORTED_LANGUAGES;
 };
 
 const translationService = {
@@ -324,8 +227,8 @@ const translationService = {
   detectLanguage,
   translateWithStatic,
   getSupportedLanguages,
-  getDefaultLanguages
+  getDefaultLanguages,
+  SUPPORTED_LANGUAGES
 };
 
 export default translationService;
-

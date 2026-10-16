@@ -3,7 +3,7 @@ import { ReactReader } from 'react-reader';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import toast from 'react-hot-toast';
-import { translateWithGoogle, batchTranslate, detectLanguage } from '../services/translationService';
+import { translateWithGoogle, batchTranslate, SUPPORTED_LANGUAGES } from '../services/translationService';
 import Icon from './ui/Icon';
 
 const EPUBReader = ({ bookUrl, bookTitle, onClose }) => {
@@ -47,20 +47,7 @@ const EPUBReader = ({ bookUrl, bookTitle, onClose }) => {
   // Use the validated URL
   const epubUrl = getEpubUrl(bookUrl);
 
-  const languages = [
-    { code: 'en', name: 'English' },
-    { code: 'fr', name: 'French' },
-    { code: 'es', name: 'Spanish' },
-    { code: 'pt', name: 'Portuguese' },
-    { code: 'ar', name: 'Arabic' },
-    { code: 'sw', name: 'Swahili' },
-    { code: 'yo', name: 'Yoruba' },
-    { code: 'ig', name: 'Igbo' },
-    { code: 'ha', name: 'Hausa' },
-    { code: 'zu', name: 'Zulu' },
-    { code: 'am', name: 'Amharic' },
-    { code: 'om', name: 'Oromo' }
-  ];
+  const languages = SUPPORTED_LANGUAGES;
 
   // Font size controls (A- / A+)
   useEffect(() => {
@@ -121,31 +108,31 @@ const EPUBReader = ({ bookUrl, bookTitle, onClose }) => {
     }
 
     console.log(`Found ${nodes.length} text nodes to translate`);
+    let changedCount = 0;
 
-    // Translate in batches to improve performance
-    const batchSize = 10;
+    // Batch translate — the backend handles caching and chunking server-side.
+    const batchSize = 60;
     for (let i = 0; i < nodes.length; i += batchSize) {
       const batch = nodes.slice(i, i + batchSize);
-      await Promise.all(
-        batch.map(async (textNode) => {
-          const src = textNode.textContent;
-          if (src && src.trim()) {
-            try {
-              const translated = await translateText(src, targetLanguage);
-              if (translated && translated !== src) {
-                textNode.textContent = translated;
-              }
-            } catch (error) {
-              console.warn('Translation error for node:', error);
-            }
+      const texts = batch.map((n) => n.textContent);
+      try {
+        const translated = await batchTranslate(texts, targetLanguage, originalLanguage);
+        batch.forEach((textNode, idx) => {
+          const t = translated[idx];
+          if (t && t !== textNode.textContent) {
+            textNode.textContent = t;
+            changedCount++;
           }
-        })
-      );
+        });
+      } catch (error) {
+        console.warn('Translation error for batch:', error);
+      }
 
       // Update progress
       const progress = Math.round(((i + batch.length) / nodes.length) * 100);
       toast.loading(`Translating... ${progress}%`, { id: 'epub-translation-progress' });
     }
+    return changedCount;
   };
 
   // Apply translation to all currently rendered contents (iframes)
@@ -166,16 +153,20 @@ const EPUBReader = ({ bookUrl, bookTitle, onClose }) => {
 
       console.log(`Translating ${views._views.length} views`);
 
+      let totalChanged = 0;
       for (let i = 0; i < views._views.length; i++) {
         const view = views._views[i];
 
         if (view && view.document) {
           console.log(`Translating view ${i + 1}/${views._views.length}`);
-          await translateDocumentNodes(view.document);
+          totalChanged += (await translateDocumentNodes(view.document)) || 0;
         }
       }
 
       toast.dismiss('epub-translation-progress');
+      if (totalChanged === 0 && targetLanguage !== originalLanguage) {
+        throw new Error('Translation provider returned no translations');
+      }
       console.log('Translation completed successfully');
 
     } catch (error) {
@@ -250,11 +241,17 @@ const EPUBReader = ({ bookUrl, bookTitle, onClose }) => {
     }
   };
 
-  const handleTextSelection = (cfiRange, contents) => {
-    if (contents) {
-      setSelections([...selections, { cfiRange, contents }]);
-      console.log('Text selected:', contents);
-    }
+  const handleTextSelection = (cfiRange) => {
+    if (!renditionRef) return;
+    try {
+      renditionRef.book.getRange(cfiRange).then((range) => {
+        const text = range ? range.toString().trim() : '';
+        if (text) {
+          setSelections((prev) => [...prev, { cfiRange, contents: text }]);
+          console.log('Text selected:', text.slice(0, 80));
+        }
+      }).catch(() => {});
+    } catch (e) { /* range unavailable */ }
   };
 
   const translateSelectedText = async () => {
@@ -267,6 +264,11 @@ const EPUBReader = ({ bookUrl, bookTitle, onClose }) => {
     try {
       const lastSelection = selections[selections.length - 1];
       const translated = await translateText(lastSelection.contents, targetLanguage);
+
+      if (!translated || translated === lastSelection.contents) {
+        toast.error('Translation is unavailable right now. Please try again later.');
+        return;
+      }
 
       setTranslatedContent({
         original: lastSelection.contents,
@@ -437,6 +439,7 @@ const EPUBReader = ({ bookUrl, bookTitle, onClose }) => {
                 url={epubUrl}
                 location={location}
                 locationChanged={(epubcfi) => setLocation(epubcfi)}
+                handleTextSelection={handleTextSelection}
                 getRendition={(rendition) => {
                   // Store rendition reference for translation
                   setRenditionRef(rendition);
@@ -465,7 +468,7 @@ const EPUBReader = ({ bookUrl, bookTitle, onClose }) => {
                     } catch (e) { /* ignore */ }
                   });
 
-                  // Best-effort: disable context menu/selection if accessible
+                  // Best-effort: disable right-click context menu (selection stays enabled for translate)
                   rendition.on('rendered', (_section, view) => {
                     try {
                       const contents = typeof rendition.getContents === 'function' ? rendition.getContents() : [];
@@ -474,14 +477,12 @@ const EPUBReader = ({ bookUrl, bookTitle, onClose }) => {
                         try {
                           if (c && c.document) {
                             c.document.addEventListener('contextmenu', (e) => e.preventDefault());
-                            c.document.addEventListener('selectstart', (e) => e.preventDefault());
                           }
                         } catch (_) {}
                       });
                       if (view && view.document) {
                         try {
                           view.document.addEventListener('contextmenu', (e) => e.preventDefault());
-                          view.document.addEventListener('selectstart', (e) => e.preventDefault());
                         } catch (_) {}
                       }
                     } catch (e) {

@@ -1,14 +1,12 @@
-import axios from 'axios';
+import { api } from '../api/client';
 import { collection, doc, getDoc, setDoc, addDoc, query, where, getDocs, orderBy, limit } from '../api/store';
 import { db } from '../api/config';
 
 /**
  * Enhanced Translation Service with Chunking and Caching
- * Implements ChatGPT's recommendations for handling large eBooks
+ * All provider calls go through the self-hosted backend (POST /api/translate)
+ * which runs Groq (primary) or Google (fallback) server-side — no keys in the browser.
  */
-
-const GOOGLE_TRANSLATE_API_KEY = process.env.REACT_APP_GOOGLE_TRANSLATE_API_KEY;
-const GOOGLE_TRANSLATE_API_URL = 'https://translation.googleapis.com/language/translate/v2';
 
 // Configuration
 const CHUNK_SIZE = 1000; // Characters per chunk
@@ -50,7 +48,12 @@ export const chunkText = (text, chunkSize = CHUNK_SIZE) => {
  * Generate cache key for translation
  */
 const generateCacheKey = (text, targetLang, sourceLang = 'en') => {
-  const textHash = btoa(text).replace(/[^a-zA-Z0-9]/g, '');
+  let textHash;
+  try {
+    textHash = btoa(unescape(encodeURIComponent(text))).replace(/[^a-zA-Z0-9]/g, '');
+  } catch (e) {
+    textHash = String(text.length) + String(text.charCodeAt(0) || 0);
+  }
   return `${textHash}_${sourceLang}_${targetLang}`;
 };
 
@@ -99,36 +102,22 @@ const setCachedTranslation = async (cacheKey, translatedText, originalText, targ
 };
 
 /**
- * Translate text using Google Cloud Translation API with retry logic
+ * Translate text via the backend endpoint with retry logic
  */
 const translateWithGoogleAPI = async (text, targetLang, sourceLang = 'en', retryCount = 0) => {
-  if (!GOOGLE_TRANSLATE_API_KEY || GOOGLE_TRANSLATE_API_KEY === 'YOUR_GOOGLE_TRANSLATE_API_KEY_HERE') {
-    throw new Error('Google Translate API key not configured');
-  }
-
   try {
-    const response = await axios.post(
-      GOOGLE_TRANSLATE_API_URL,
-      null,
-      {
-        params: {
-          q: text,
-          target: targetLang,
-          source: sourceLang,
-          format: 'text',
-          key: GOOGLE_TRANSLATE_API_KEY
-        },
-        timeout: 10000 // 10 second timeout
-      }
-    );
+    const res = await api('/translate', {
+      method: 'POST',
+      body: { q: text, source: sourceLang, target: targetLang }
+    });
 
-    if (response.data?.data?.translations?.[0]?.translatedText) {
-      return response.data.data.translations[0].translatedText;
+    if (res && res.translatedText) {
+      return res.translatedText;
     }
 
-    throw new Error('Invalid response from Google Translate API');
+    throw new Error('Invalid response from translation API');
   } catch (error) {
-    if (retryCount < MAX_RETRIES && error.code !== 'ECONNABORTED') {
+    if (retryCount < MAX_RETRIES && !(error && error.status === 401)) {
       console.warn(`Translation attempt ${retryCount + 1} failed, retrying...`, error.message);
       await new Promise(resolve => setTimeout(resolve, 1000 * (retryCount + 1))); // Exponential backoff
       return translateWithGoogleAPI(text, targetLang, sourceLang, retryCount + 1);

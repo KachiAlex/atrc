@@ -48,6 +48,15 @@ async function initDb() {
       email      text NOT NULL,
       expires_at timestamptz NOT NULL
     );
+
+    CREATE TABLE IF NOT EXISTS translations (
+      id              text PRIMARY KEY,
+      source_lang     text NOT NULL,
+      target_lang     text NOT NULL,
+      source_text     text NOT NULL,
+      translated_text text NOT NULL,
+      created_at      timestamptz NOT NULL DEFAULT now()
+    );
   `);
 }
 
@@ -522,6 +531,240 @@ app.delete('/api/upload', auth, (req, res) => {
 });
 
 app.use('/uploads', express.static(UPLOAD_DIR, { maxAge: '30d', fallthrough: false }));
+
+// ---------- translation (Groq primary, Google fallback, Postgres cache) ----------
+const GROQ_API_KEY = process.env.GROQ_API_KEY || '';
+const GOOGLE_TRANSLATE_API_KEY = process.env.GOOGLE_TRANSLATE_API_KEY || '';
+const TRANSLATE_MODEL = process.env.TRANSLATE_MODEL || 'llama-3.3-70b-versatile';
+const GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions';
+const GOOGLE_URL = 'https://translation.googleapis.com/language/translate/v2';
+const T_MAX_TEXTS = 200;
+const T_MAX_CHARS = 6000;
+
+const tHash = (text, source, target) =>
+  crypto.createHash('sha256').update(`${target}|${source}|${text}`).digest('hex');
+
+async function translateCacheGet(texts, source, target) {
+  const ids = texts.map((t) => tHash(t, source, target));
+  const r = await pool.query(
+    'SELECT id, translated_text FROM translations WHERE id = ANY($1)', [ids]
+  );
+  const map = new Map(r.rows.map((row) => [row.id, row.translated_text]));
+  return texts.map((t) => map.get(tHash(t, source, target)) || null);
+}
+
+async function translateCachePut(texts, results, source, target) {
+  const inserts = [];
+  for (let i = 0; i < texts.length; i++) {
+    if (results[i] && results[i] !== texts[i]) {
+      inserts.push([tHash(texts[i], source, target), source, target, texts[i], results[i]]);
+    }
+  }
+  for (const row of inserts) {
+    await pool.query(
+      `INSERT INTO translations (id, source_lang, target_lang, source_text, translated_text)
+       VALUES ($1,$2,$3,$4,$5) ON CONFLICT (id) DO NOTHING`,
+      row
+    ).catch((e) => console.warn('translation cache write failed:', e.message));
+  }
+}
+
+// Split into groups: ≤12 segments or ≤2800 chars per call
+function chunkForTranslation(texts) {
+  const groups = [];
+  let cur = [], curLen = 0;
+  for (const t of texts) {
+    if (cur.length >= 12 || curLen + t.length > 2800) {
+      groups.push(cur); cur = []; curLen = 0;
+    }
+    cur.push(t); curLen += t.length;
+  }
+  if (cur.length) groups.push(cur);
+  return groups;
+}
+
+function parseNumberedSegments(output, expected) {
+  const parts = output.split(/«(\d+)»/);
+  const out = [];
+  for (let i = 1; i < parts.length - 1; i += 2) {
+    const n = parseInt(parts[i], 10);
+    if (n >= 1 && n <= expected) out[n - 1] = parts[i + 1].trim();
+  }
+  return out;
+}
+
+async function groqTranslateGroup(group, source, target) {
+  const numbered = group.map((t, i) => `«${i + 1}» ${t}`).join('\n');
+  const resp = await fetch(GROQ_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${GROQ_API_KEY}` },
+    body: JSON.stringify({
+      model: TRANSLATE_MODEL,
+      temperature: 0.1,
+      max_tokens: 4000,
+      messages: [
+        {
+          role: 'system',
+          content: 'You are a professional translation engine. The user sends text segments marked «N». Translate every segment into the requested language faithfully, preserving meaning and tone. Keep each «N» marker exactly as given. Output only the translated segments, nothing else.'
+        },
+        {
+          role: 'user',
+          content: `Translate to language "${target}"${source && source !== 'auto' ? ` from "${source}"` : ''}:\n\n${numbered}`
+        }
+      ]
+    })
+  });
+  if (!resp.ok) {
+    const errText = await resp.text().catch(() => '');
+    throw new Error(`Groq ${resp.status}: ${errText.slice(0, 200)}`);
+  }
+  const data = await resp.json();
+  const output = data.choices?.[0]?.message?.content || '';
+  const parsed = parseNumberedSegments(output, group.length);
+  if (parsed.filter(Boolean).length < group.length) {
+    // Segment markers dropped — fall back to per-text calls
+    return Promise.all(group.map((t) => groqSingle(t, source, target)));
+  }
+  return parsed;
+}
+
+async function groqSingle(text, source, target) {
+  const resp = await fetch(GROQ_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${GROQ_API_KEY}` },
+    body: JSON.stringify({
+      model: TRANSLATE_MODEL,
+      temperature: 0.1,
+      messages: [
+        { role: 'system', content: 'You are a professional translation engine. Output only the translated text, no commentary, no quotes.' },
+        { role: 'user', content: `Translate to language "${target}"${source && source !== 'auto' ? ` from "${source}"` : ''}:\n\n${text}` }
+      ]
+    })
+  });
+  if (!resp.ok) throw new Error(`Groq ${resp.status}`);
+  const data = await resp.json();
+  return (data.choices?.[0]?.message?.content || '').trim() || text;
+}
+
+async function groqTranslate(texts, source, target) {
+  const groups = chunkForTranslation(texts);
+  const results = [];
+  for (const g of groups) results.push(...await groqTranslateGroup(g, source, target));
+  return results;
+}
+
+async function googleTranslate(texts, source, target) {
+  const params = new URLSearchParams({ target, format: 'text', key: GOOGLE_TRANSLATE_API_KEY });
+  if (source && source !== 'auto') params.set('source', source);
+  for (const t of texts) params.append('q', t);
+  const resp = await fetch(`${GOOGLE_URL}?${params}`, { method: 'POST' });
+  if (!resp.ok) throw new Error(`Google Translate ${resp.status}`);
+  const data = await resp.json();
+  const list = data?.data?.translations || [];
+  return texts.map((t, i) => list[i]?.translatedText || t);
+}
+
+async function detectLanguage(text) {
+  if (GOOGLE_TRANSLATE_API_KEY) {
+    try {
+      const params = new URLSearchParams({ q: text.slice(0, 500), key: GOOGLE_TRANSLATE_API_KEY });
+      const resp = await fetch(`${GOOGLE_URL}/detect?${params}`, { method: 'POST' });
+      if (resp.ok) {
+        const data = await resp.json();
+        const lang = data?.data?.detections?.[0]?.[0]?.language;
+        if (lang) return lang;
+      }
+    } catch { /* fall through to Groq */ }
+  }
+  if (GROQ_API_KEY) {
+    try {
+      const resp = await fetch(GROQ_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${GROQ_API_KEY}` },
+        body: JSON.stringify({
+          model: TRANSLATE_MODEL,
+          temperature: 0,
+          max_tokens: 10,
+          messages: [
+            { role: 'system', content: 'Identify the language of the text. Reply with only the ISO 639-1 language code (e.g. en, fr, yo). Nothing else.' },
+            { role: 'user', content: text.slice(0, 500) }
+          ]
+        })
+      });
+      if (resp.ok) {
+        const data = await resp.json();
+        const lang = (data.choices?.[0]?.message?.content || '').trim().toLowerCase();
+        if (/^[a-z]{2}(-[a-z]+)?$/.test(lang)) return lang;
+      }
+    } catch { /* ignore */ }
+  }
+  return 'en';
+}
+
+app.post('/api/translate', auth, async (req, res) => {
+  try {
+    const { texts, q, source = 'auto', target, detect } = req.body || {};
+
+    // Language detection mode
+    if (typeof detect === 'string' && detect.trim()) {
+      return res.json({ language: await detectLanguage(detect) });
+    }
+
+    const list = Array.isArray(texts)
+      ? texts.map((t) => String(t).slice(0, T_MAX_CHARS))
+      : (typeof q === 'string' ? [q.slice(0, T_MAX_CHARS)] : null);
+
+    if (!list || !list.length || !target) {
+      return res.status(400).json({ error: 'texts/q and target required' });
+    }
+    if (list.length > T_MAX_TEXTS) {
+      return res.status(400).json({ error: `max ${T_MAX_TEXTS} texts per request` });
+    }
+    if (!GROQ_API_KEY && !GOOGLE_TRANSLATE_API_KEY) {
+      return res.status(503).json({ error: 'no translation provider configured', code: 'translate/unavailable' });
+    }
+    if (target === source) {
+      return res.json(texts ? { translations: list } : { translatedText: list[0] });
+    }
+
+    // Cache lookup
+    let results;
+    try {
+      results = await translateCacheGet(list, source, target);
+    } catch (e) {
+      console.warn('translation cache read failed:', e.message);
+      results = list.map(() => null);
+    }
+    const missingIdx = results.map((r, i) => (r === null ? i : -1)).filter((i) => i >= 0);
+
+    if (missingIdx.length) {
+      const missing = missingIdx.map((i) => list[i]);
+      let translated;
+      let providerErr = null;
+      if (GROQ_API_KEY) {
+        try {
+          translated = await groqTranslate(missing, source, target);
+        } catch (e) { providerErr = e; }
+      }
+      if (!translated && GOOGLE_TRANSLATE_API_KEY) {
+        try {
+          translated = await googleTranslate(missing, source, target);
+        } catch (e) { providerErr = e; }
+      }
+      if (!translated) {
+        console.error('translation failed:', providerErr);
+        return res.status(502).json({ error: 'translation provider failed', detail: providerErr?.message });
+      }
+      missingIdx.forEach((idx, k) => { results[idx] = translated[k] || list[idx]; });
+      translateCachePut(missing, missingIdx.map((i) => results[i]), source, target).catch(() => {});
+    }
+
+    res.json(texts ? { translations: results } : { translatedText: results[0] });
+  } catch (e) {
+    console.error('translate error', e);
+    res.status(500).json({ error: e.message });
+  }
+});
 
 app.get('/api/health', (_req, res) => res.json({ ok: true, ts: Date.now() }));
 
