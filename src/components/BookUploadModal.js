@@ -19,6 +19,7 @@ const BookUploadModal = ({ isOpen, onClose, onUpload }) => {
   });
   const [uploadType, setUploadType] = useState('file'); // 'file' or 'url'
   const [loading, setLoading] = useState(false);
+  const [coverPreview, setCoverPreview] = useState('');
 
   const categories = [
     'Spiritual Growth',
@@ -47,6 +48,14 @@ const BookUploadModal = ({ isOpen, onClose, onUpload }) => {
       ...prev,
       [name]: files ? files[0] : value
     }));
+    if (name === 'coverImageFile' && files) {
+      setCoverPreview(prev => {
+        if (prev.startsWith('blob:')) URL.revokeObjectURL(prev);
+        return files[0] ? URL.createObjectURL(files[0]) : '';
+      });
+    } else if (name === 'coverImageUrl') {
+      setCoverPreview(value);
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -70,7 +79,11 @@ const BookUploadModal = ({ isOpen, onClose, onUpload }) => {
         bookFile: null,
         bookUrl: ''
       });
-      
+      setCoverPreview(prev => {
+        if (prev.startsWith('blob:')) URL.revokeObjectURL(prev);
+        return '';
+      });
+
       toast.success('Book uploaded successfully!');
       onClose();
     } catch (error) {
@@ -266,6 +279,16 @@ const BookUploadModal = ({ isOpen, onClose, onUpload }) => {
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600 text-gray-900 bg-white"
                 placeholder="Enter cover image URL"
               />
+            )}
+            {coverPreview && (
+              <div className="mt-3">
+                <img
+                  src={coverPreview}
+                  alt="Cover preview"
+                  onError={() => setCoverPreview('')}
+                  className="h-40 w-28 object-cover rounded-md border border-gray-200 shadow-sm"
+                />
+              </div>
             )}
           </div>
 
